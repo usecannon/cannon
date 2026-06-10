@@ -23,7 +23,7 @@ export function useDeploymentContracts(deploymentData: DeploymentInfo | undefine
       if (contracts) {
         const contract = Object.entries(contracts).find(
           ([k, v]) =>
-            parentModuleName === moduleName && k === contractName && (v as ContractData).address === contractAddress
+            parentModuleName === moduleName && k === contractName && (v as ContractData).address === contractAddress,
         );
 
         if (contract) {
@@ -41,8 +41,8 @@ export function useDeploymentContracts(deploymentData: DeploymentInfo | undefine
           loadAllContractFromDeployment(
             (v as any).contracts,
             parentModuleName && parentModuleName !== name ? `${parentModuleName}.${k}` : k,
-            (v as any).imports
-          )
+            (v as any).imports,
+          ),
         );
       }
 

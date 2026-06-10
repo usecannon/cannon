@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import React from 'react';
-import { GetTransactionReturnType } from 'viem';
+import { GetTransactionReturnType, getAddress } from 'viem';
 import { ExtendedTransactionReceipt } from '@/types/ExtendedTransactionReceipt';
 import { Chain } from '@/types/Chain';
 import { ExtendedTransactionMethod } from '@/types/TransactionMethod';
@@ -59,7 +59,7 @@ const TransactionAction: React.FC<TransactionActionProps> = ({
   hoverId,
   setHoverId,
 }) => {
-  const toAddress = tx.to ?? txReceipt?.contractAddress ?? '';
+  const toAddress = getAddress(tx.to ?? txReceipt?.contractAddress ?? '0x');
 
   return (
     <div className="w-full overflow-x-auto">

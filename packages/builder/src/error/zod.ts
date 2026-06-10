@@ -3,7 +3,7 @@ import { z } from 'zod';
 /**
  *  Returns a custom error message on failure for each parameter in the failed step
  */
-export function handleZodErrors(errors: z.ZodIssue[]) {
+export function handleZodErrors(errors: z.core.$ZodIssue[]) {
   const errorMessages = errors.map((error) => {
     if (error.path.length > 1) {
       return `\n Field: ${error.path
@@ -23,10 +23,10 @@ export function handleZodErrors(errors: z.ZodIssue[]) {
 /**
  * Overwrites Zod's default error map to add custom messages
  */
-export const customErrorMap: z.ZodErrorMap = (error, ctx) => {
+export const customErrorMap: z.ZodErrorMap = (error) => {
   // This is where we override the various error codes
   switch (error.code) {
-    case z.ZodIssueCode.invalid_type:
+    case 'invalid_type':
       if (error.received === 'undefined') {
         return {
           message: 'Field is required',
@@ -40,22 +40,22 @@ export const customErrorMap: z.ZodErrorMap = (error, ctx) => {
           message: `Expected field to be of type ${error.expected} but got ${error.received}`,
         };
       }
-    case z.ZodIssueCode.too_big:
+    case 'too_big':
       return {
-        message: `Expected ${error.path[0]} to equal less than ${error.maximum} but got ${ctx.data.length}`,
+        message: `Expected ${error.path ? String(error.path[0]) : '<unk>'} to equal less than ${error.maximum} but got ${(error.input as string).length}`,
       };
-    case z.ZodIssueCode.too_small:
+    case 'too_small':
       return {
-        message: `Expected ${error.path[0]} to equal more than ${error.minimum} but got ${ctx.data.length}`,
+        message: `Expected ${error.path ? String(error.path[0]) : '<unk>'} to equal more than ${error.minimum} but got ${(error.input as string).length}`,
       };
-    case z.ZodIssueCode.invalid_enum_value:
+    case 'invalid_value':
       return {
         message: `Enum must be one of the following options ${error.options}`,
       };
     default:
       // fall back to default message
-      return { message: ctx.defaultError };
+      return { message: error.code };
   }
 };
 
-z.setErrorMap(customErrorMap);
+z.config({ customError: customErrorMap });

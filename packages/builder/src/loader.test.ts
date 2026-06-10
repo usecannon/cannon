@@ -1,10 +1,10 @@
-import { IPFSLoader } from './loader';
+import { IPFSLoader } from './loader.js';
 
-import { OnChainRegistry } from './registry';
-import { readIpfs, writeIpfs } from './ipfs';
+import { OnChainRegistry } from './registry.js';
+import { readIpfs, writeIpfs } from './ipfs.js';
 
-jest.mock('./ipfs');
-jest.mock('./registry');
+jest.mock('./ipfs.js');
+jest.mock('./registry.js');
 
 describe('loader.ts', () => {
   describe('IPFSLoader', () => {

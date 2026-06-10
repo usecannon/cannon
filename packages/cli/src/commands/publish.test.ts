@@ -72,7 +72,7 @@ describe('publish command', () => {
         registryChainId: '123', // or whatever value is appropriate in your case
         cannonDirectory: dirSync().name,
         // Add other properties as needed
-      })
+      }),
     );
 
     onChainRegistry = new InMemoryRegistry();
@@ -157,7 +157,7 @@ describe('publish command', () => {
           quiet: true,
           skipConfirm: true,
           includeProvisioned: false,
-        })
+        }),
       ).rejects.toThrow("There isn't anything new to publish.");
     });
 

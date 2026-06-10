@@ -51,7 +51,7 @@ class OptimismEmitter extends EventEmitter {
         if (this.unwatch) this.unwatch();
         // reject the promise
         reject(
-          new Error(`Error watching for ${SentMessageEvent} event: ${err}`)
+          new Error(`Error watching for ${SentMessageEvent} event: ${err}`),
         );
       },
     });

@@ -31,7 +31,7 @@ export function useCannonDefinitions({
     currentPackageReference,
     chainId,
     cannonDefInfo?.def?.getDeployers(),
-    prevPackageReference || undefined
+    prevPackageReference || undefined,
   );
 
   const prevDeployLocation = onChainPrevPkgQuery.data || '';

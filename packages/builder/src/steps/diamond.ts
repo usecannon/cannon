@@ -1,15 +1,15 @@
 import Debug from 'debug';
-import _ from 'lodash';
+import { cloneDeep, map, merge, pick, assign } from 'lodash-es';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
-import { mergeTemplateAccesses } from '../access-recorder';
-import { ChainBuilderRuntime } from '../runtime';
-import { diamondSchema } from '../schemas';
-import { ContractArtifact, ContractMap, PackageState } from '../types';
-import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
-import { template } from '../utils/template';
-import { CannonAction } from '../actions';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2.js';
+import { mergeTemplateAccesses } from '../access-recorder.js';
+import { ChainBuilderRuntime } from '../runtime.js';
+import { diamondSchema } from '../schemas.js';
+import { ContractArtifact, ContractMap, PackageState } from '../types.js';
+import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util.js';
+import { template } from '../utils/template.js';
+import { CannonAction } from '../actions.js';
 
 const debug = Debug('cannon:builder:diamond');
 
@@ -69,9 +69,9 @@ const diamondStep = {
   },
 
   configInject(ctx, config) {
-    config = _.cloneDeep(config);
+    config = cloneDeep(config);
 
-    config.contracts = _.map(config.contracts, (n) => template(n, ctx));
+    config.contracts = map(config.contracts, (n) => template(n, ctx));
 
     config.diamondArgs.owner = template(config.diamondArgs.owner, ctx);
     if (config.diamondArgs.init) {
@@ -106,7 +106,7 @@ const diamondStep = {
 
     accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.salt));
     accesses.accesses.push(
-      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
+      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`)),
     );
 
     if (config?.overrides) {
@@ -155,7 +155,7 @@ const diamondStep = {
           stepName + 'DiamondCutFacet',
           stepName + 'DiamondWipeAndPaveFacet',
         ];
-    outputContracts = _.pick(outputContracts, [stepName, ...deployedContracts]);
+    outputContracts = pick(outputContracts, [stepName, ...deployedContracts]);
     debug('output contracts', [stepName, ...deployedContracts]);
 
     // ensure that diamond errors can be decoded if we run into an error on the next step(s)
@@ -164,7 +164,7 @@ const diamondStep = {
     const proxyAddress = outputContracts[stepName].address;
 
     // put the abis together
-    outputContracts[stepName as any].abi = getMergedAbiFromContractPaths(_.merge({}, ctx, { contracts: outputContracts }), [
+    outputContracts[stepName as any].abi = getMergedAbiFromContractPaths(merge({}, ctx, { contracts: outputContracts }), [
       ...deployedContracts,
       ...config.contracts,
     ]);
@@ -198,7 +198,7 @@ const diamondStep = {
         account: ownerSigner.wallet.account || ownerSigner.address,
         to: proxyAddress,
         data: viem.encodeFunctionData({
-          abi: (await import('../abis/diamond/DiamondWipeAndPaveFacet.json')).abi,
+          abi: (await import('../abis/diamond/DiamondWipeAndPaveFacet.json', { with: { type: 'json' } })).default.abi,
           functionName: 'diamondWipeAndPave',
           args: [updateFacets, config.diamondArgs.init, config.diamondArgs.initCalldata],
         }),
@@ -225,7 +225,7 @@ const diamondStep = {
       };
     } catch (err) {
       throw new Error(
-        `failed to cut (upgrade) the diamond which is already deployed. This could happen for a few reasons:\n* the diamond owner has been changed and is now incorrect.\n* the diamond was previously made immutable and can no longer can be upgraded.\noriginal error: ${err}`
+        `failed to cut (upgrade) the diamond which is already deployed. This could happen for a few reasons:\n* the diamond owner has been changed and is now incorrect.\n* the diamond was previously made immutable and can no longer can be upgraded.\noriginal error: ${err}`,
       );
     }
   },
@@ -234,13 +234,13 @@ const diamondStep = {
 async function firstTimeDeploy(
   runtime: ChainBuilderRuntime,
   config: Config,
-  packageState: PackageState
+  packageState: PackageState,
 ): Promise<ContractMap> {
   const stepName = packageState.currentLabel.split('.')[1];
 
   const signer = await runtime.getDefaultSigner(
     { data: viem.keccak256(viem.encodePacked(['string'], [config.salt])) as viem.Hex },
-    config.salt
+    config.salt,
   );
 
   debug('using deploy signer with address', signer.address);
@@ -253,7 +253,7 @@ async function firstTimeDeploy(
     contract: ContractArtifact,
     deployedContractLabel: string,
     constructorArgs: any[],
-    salt = ''
+    salt = '',
   ) {
     debug('deploy contract', contract.contractName, deployedContractLabel, constructorArgs, salt);
     runtime.reportContractArtifact(`${contract.sourceName}:${contract.contractName}`, {
@@ -299,7 +299,7 @@ async function firstTimeDeploy(
 
     if (!bytecode) {
       const hash = await signer.wallet.sendTransaction(
-        _.assign({ account: signer.wallet.account || signer.address }, create2Txn as any)
+        assign({ account: signer.wallet.account || signer.address }, create2Txn as any),
       );
       const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
       const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
@@ -336,29 +336,33 @@ async function firstTimeDeploy(
   };
 
   const baseFacets = await Promise.all([
-    import('../abis/diamond/OwnershipFacet.json'),
-    import('../abis/diamond/DiamondLoupeFacet.json'),
+    import('../abis/diamond/OwnershipFacet.json', { with: { type: 'json' } }),
+    import('../abis/diamond/DiamondLoupeFacet.json', { with: { type: 'json' } }),
   ]);
 
   const mutabilityFacets = await Promise.all([
-    import('../abis/diamond/DiamondCutFacet.json'),
-    import('../abis/diamond/DiamondWipeAndPaveFacet.json'),
+    import('../abis/diamond/DiamondCutFacet.json', { with: { type: 'json' } }),
+    import('../abis/diamond/DiamondWipeAndPaveFacet.json', { with: { type: 'json' } }),
   ]);
 
   const addFacets = [];
   for (const facet of [...baseFacets, ...mutabilityFacets]) {
     // load the diamond proxy contracts which may need to be deployed:
-    const deployedAddr = await deployContract(facet as any, stepName + facet.contractName, []);
-    addFacets.push({ action: 0, facetAddress: deployedAddr, functionSelectors: getFacetSelectors(facet.abi as viem.Abi) });
+    const deployedAddr = await deployContract(facet.default as any, stepName + facet.default.contractName, []);
+    addFacets.push({
+      action: 0,
+      facetAddress: deployedAddr,
+      functionSelectors: getFacetSelectors(facet.default.abi as viem.Abi),
+    });
   }
 
   // then, deploy the proxy
   debug('deploying', addFacets);
   await deployContract(
-    (await import('../abis/diamond/Diamond.json')) as any,
+    (await import('../abis/diamond/Diamond.json', { with: { type: 'json' } })).default as any,
     stepName,
     [addFacets, config.diamondArgs],
-    config.salt || ''
+    config.salt || '',
   );
 
   return outputContracts;

@@ -82,7 +82,7 @@ export async function isEtherscanVerified(
   address: string,
   chainId: number,
   apiUrl: string,
-  apiKey: string
+  apiKey: string,
 ): Promise<boolean> {
   const parameters = new URLSearchParams({
     apikey: apiKey,
@@ -135,7 +135,7 @@ export async function isSourcifyVerified(address: string, chainId: number, serve
       return true;
     } else {
       throw new Error(
-        `Sourcify returned error while checking verification status (${response.status}):` + (await response.text())
+        `Sourcify returned error while checking verification status (${response.status}):` + (await response.text()),
       );
     }
   } catch (e) {

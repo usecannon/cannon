@@ -28,7 +28,7 @@ import 'react-diff-view/style/index.css';
 function TransactionDetailsPage() {
   const walletChainId = useChainId();
   const account = useAccount();
-  const gitDiffContainerRef = useRef<HTMLDivElement>(null);
+  const gitDiffContainerRef = useRef<HTMLDivElement|null>(null);
 
   // get transaction details from url params
   const {

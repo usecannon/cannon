@@ -2,10 +2,6 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { ReactElement } from 'react';
 import NameTagVariantLayout from '../NameTagVariantLayout';
-// import LocalLayout from './_layout';
-// import CodeTab from '@/features/Packages/Tabs/CodeTab';
-import { NextSeo } from 'next-seo';
-import defaultSEO from '@/constants/defaultSeo';
 import { PackageReference } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
@@ -49,16 +45,6 @@ export default function Code() {
 
   return (
     <>
-      <NextSeo
-        {...defaultSEO}
-        title={metadata.title}
-        description={metadata.description}
-        openGraph={{
-          ...defaultSEO.openGraph,
-          title: metadata.title,
-          description: metadata.description,
-        }}
-      />
       <NoSSRCodePage
         name={decodeURIComponent(params.name as string)}
         tag={decodeURIComponent(params.tag as string)}

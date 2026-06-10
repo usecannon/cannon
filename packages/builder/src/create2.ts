@@ -1,6 +1,6 @@
 import Debug from 'debug';
 import * as viem from 'viem';
-import { CannonSigner, ChainBuilderRuntimeInfo } from './';
+import { CannonSigner, ChainBuilderRuntimeInfo } from './index.js';
 
 const debug = Debug('cannon:builder:create2');
 
@@ -15,7 +15,7 @@ export const ARACHNID_DEPLOY_TXN =
  */
 export async function ensureArachnidCreate2Exists(
   runtime: ChainBuilderRuntimeInfo,
-  deployer: viem.Address
+  deployer: viem.Address,
 ): Promise<viem.Address> {
   // if arachnid create2 contract is not deployed
   const proxyAddress = viem.getCreateAddress({ from: deployer, nonce: BigInt(0) });
@@ -35,7 +35,7 @@ export async function ensureArachnidCreate2Exists(
       throw new Error(
         'could not populate arachnid signer address. ' +
           'This most likely means you are trying to deploy to a non-local network, but the arachnid create2 contract has not been deployed. ' +
-          'Please follow the instructions to deploy arachnid create2.'
+          'Please follow the instructions to deploy arachnid create2.',
       );
     }
 
@@ -58,7 +58,7 @@ export async function ensureArachnidCreate2Exists(
 export function makeArachnidCreate2Txn(
   salt: string,
   initcode: viem.Hex,
-  arachnidAddress: viem.Address
+  arachnidAddress: viem.Address,
 ): [Pick<viem.TransactionRequest, 'to' | 'data'>, viem.Address] {
   const saltHash: viem.Hash = !viem.isHash(salt) ? viem.keccak256(viem.toBytes(salt)) : (salt as viem.Hash);
 

@@ -9,13 +9,13 @@ import path from 'path';
 // Generate full cannonfile schema (requires name, version)
 fs.writeFileSync(
   path.join('src', 'schema.json'),
-  JSON.stringify(zodToJsonSchema(chainDefinitionSchema))
+  JSON.stringify(chainDefinitionSchema.toJSONSchema()),
 );
 
 // Generate fragment schema (for included TOML files without header)
 fs.writeFileSync(
   path.join('src', 'schema-fragment.json'),
-  JSON.stringify(zodToJsonSchema(cannonfileFragmentSchema))
+  JSON.stringify(zodToJsonSchema(cannonfileFragmentSchema)),
 );
 
-console.log('Generated schema.json and schema-fragment.json');
+process.stdout.write('Generated schema.json and schema-fragment.json\n');

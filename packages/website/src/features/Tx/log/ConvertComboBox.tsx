@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { isAddress, getAddress } from 'viem';
+import { isAddress, getAddress, Hex } from 'viem';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import HoverHighlight from '@/features/Tx/HoverHighlight';
 
@@ -44,7 +44,7 @@ const ConvertComboBox: React.FC<ConvertComboBoxProps> = ({
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState('Dec');
   const address = '0x' + topicHex.slice(-40);
-  const topicDec = isAddress(address) ? getAddress(address) : address;
+  const topicDec = isAddress(address) ? getAddress(address) : address as Hex;
   const { getExplorerUrl } = useCannonChains();
 
   return (

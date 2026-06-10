@@ -1,7 +1,7 @@
 import { DeploymentInfo, CannonStorage, PackageReference, BundledOutput, forPackageTree } from '@usecannon/builder';
 import Debug from 'debug';
 
-import { pinIpfs } from '@usecannon/builder/dist/src/package';
+import { pinIpfs } from '@usecannon/builder/dist/src/package.js';
 
 const debug = Debug('cannon:cli:pin');
 export interface PinnedPackages {
@@ -23,14 +23,14 @@ export async function pin(ipfsUrl: string, fromStorage: CannonStorage, toStorage
 
   if (!deployData) {
     throw new Error(
-      `could not find deployment artifact the given IPFS hash "${ipfsUrl}". Please double check your settings, and rebuild your package.`
+      `could not find deployment artifact the given IPFS hash "${ipfsUrl}". Please double check your settings, and rebuild your package.`,
     );
   }
 
   const packageReference = PackageReference.from(deployData.def.name, deployData.def.version, deployData.def.preset);
 
   debug(
-    `pin package ${packageReference.fullPackageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`
+    `pin package ${packageReference.fullPackageRef} (${fromStorage.registry.getLabel()} -> ${toStorage.registry.getLabel()})`,
   );
 
   const calls: PinnedPackages[] = (await forPackageTree(fromStorage, deployData, pinPackagesToIpfs)).filter((v: any) => !!v);

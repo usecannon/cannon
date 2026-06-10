@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import TransactionsSection from '@/features/Txs/TransactionsSection';
 import Link from 'next/link';
+import { getAddress } from 'viem';
 
 const AddressTransactionPage = () => {
   const router = useRouter();
@@ -10,7 +11,7 @@ const AddressTransactionPage = () => {
   const chainId = Array.isArray(c) ? c[0] : c;
   const { getChainById, getExplorerUrl } = useCannonChains();
   const chain = getChainById(Number(chainId));
-  const displayAddress = Array.isArray(a) ? a[0] : a;
+  const displayAddress = getAddress(Array.isArray(a) ? a[0] : a || '');
 
   const pageIndex = Array.isArray(p) ? p[0] : p;
   const explorerUrl = getExplorerUrl(chain?.id || 0, displayAddress ?? '');

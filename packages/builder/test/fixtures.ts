@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { CannonSigner, ChainBuilderContext, InMemoryRegistry } from '../src';
-import { ChainBuilderRuntime } from '../src/runtime';
-import { ChainBuilderRuntimeInfo } from '../src/types';
+import { CannonSigner, ChainBuilderContext, InMemoryRegistry } from '../src/index.js';
+import { ChainBuilderRuntime } from '../src/runtime.js';
+import { ChainBuilderRuntimeInfo } from '../src/types.js';
 
 const Greeter = JSON.parse(fs.readFileSync(`${__dirname}/data/Greeter.json`).toString());
 
@@ -43,7 +43,7 @@ export const fixtureCtx = (overrides: Partial<ChainBuilderContext> = {}) =>
       package: {},
       timestamp: 1234123412,
     },
-    overrides
+    overrides,
   ) as ChainBuilderContext;
 
 export const fixtureContractArtifact = (contractName = 'Greeter') => ({
@@ -89,7 +89,7 @@ export const fixtureRuntime = (
   info: ConstructorParameters<typeof ChainBuilderRuntime>[0] = fixtureRuntimeInfo(),
   registry: ConstructorParameters<typeof ChainBuilderRuntime>[1] = new InMemoryRegistry(),
   loaders?: ConstructorParameters<typeof ChainBuilderRuntime>[2],
-  defaultLoaderScheme?: ConstructorParameters<typeof ChainBuilderRuntime>[3]
+  defaultLoaderScheme?: ConstructorParameters<typeof ChainBuilderRuntime>[3],
 ) => new ChainBuilderRuntime(info, registry, loaders, defaultLoaderScheme);
 
 export function makeFakeProvider(): viem.PublicClient & viem.WalletClient & viem.TestClient {

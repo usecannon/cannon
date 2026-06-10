@@ -5,9 +5,9 @@ import { z } from 'zod';
 
 registerAction({
   label: 'run',
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   configInject: () => null,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   getState: async () => null,
   exec: async () => ({ imports: {}, contracts: {}, txns: {}, extras: {} }),
   validate: z.any(),

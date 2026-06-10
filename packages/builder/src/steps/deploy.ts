@@ -1,16 +1,16 @@
 import Debug from 'debug';
-import _ from 'lodash';
+import { get, set, cloneDeep, map as lodashMap, mapValues, forEach, assign } from 'lodash-es';
 import * as viem from 'viem';
 import { z } from 'zod';
-import { mergeTemplateAccesses } from '../access-recorder';
-import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
-import { CannonError, handleTxnError } from '../error';
-import { deploySchema } from '../schemas';
-import { ChainArtifacts, ChainBuilderContext, ContractArtifact } from '../types';
-import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util';
-import { template } from '../utils/template';
-import { CannonAction } from '../actions';
-import { getBlockRetried } from '../helpers';
+import { mergeTemplateAccesses } from '../access-recorder.js';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2.js';
+import { CannonError, handleTxnError } from '../error/index.js';
+import { deploySchema } from '../schemas.js';
+import { ChainArtifacts, ChainBuilderContext, ContractArtifact } from '../types.js';
+import { encodeDeployData, getContractDefinitionFromPath, getMergedAbiFromContractPaths } from '../util.js';
+import { template } from '../utils/template.js';
+import { CannonAction } from '../actions.js';
+import { getBlockRetried } from '../helpers.js';
 
 const debug = Debug('cannon:builder:deploy');
 
@@ -29,14 +29,14 @@ export interface ContractOutputs {
 
 function resolveBytecode(
   artifactData: ContractArtifact,
-  config: Config
+  config: Config,
 ): [viem.Hex, { [sourceName: string]: { [libName: string]: string } }] {
   let injectedBytecode = artifactData.bytecode;
   const linkedLibraries: { [sourceName: string]: { [libName: string]: string } } = {};
   for (const file in artifactData.linkReferences) {
     for (const lib in artifactData.linkReferences[file]) {
       // get the lib from the config
-      const libraryAddress = _.get(config, `libraries.${lib}`);
+      const libraryAddress = get(config, `libraries.${lib}`);
 
       if (!libraryAddress) {
         throw new Error(`library not defined: ${lib}`);
@@ -52,7 +52,7 @@ function resolveBytecode(
           libraryAddress.substring(2) +
           injectedBytecode.substring(2 + (ref.start + ref.length) * 2)) as viem.Hex;
 
-        _.set(linkedLibraries, [file, lib], libraryAddress);
+        set(linkedLibraries, [file, lib], libraryAddress);
       }
     }
   }
@@ -71,7 +71,7 @@ function checkConstructorArgs(abi: viem.Abi, args: any[] | undefined) {
 
   if (suppliedArgs.length !== neededArgs.length) {
     throw new Error(
-      `incorrect number of constructor arguments to deploy contract. supplied: ${suppliedArgs.length}, expected: ${neededArgs.length}`
+      `incorrect number of constructor arguments to deploy contract. supplied: ${suppliedArgs.length}, expected: ${neededArgs.length}`,
     );
   }
 }
@@ -83,7 +83,7 @@ function generateOutputs(
   deployTxn: viem.TransactionReceipt | null,
   deployTxnBlock: viem.Block | null,
   deployAddress: viem.Address,
-  currentLabel: string
+  currentLabel: string,
 ): ChainArtifacts {
   const [, linkedLibraries] = resolveBytecode(artifactData, config);
 
@@ -134,7 +134,7 @@ function generateOutputs(
 const deploySpec = {
   label: 'deploy',
 
-  validate: _.cloneDeep(deploySchema),
+  validate: cloneDeep(deploySchema),
 
   async getState(runtime, ctx, config, packageState) {
     const parsedConfig = this.configInject(ctx, config, packageState);
@@ -156,7 +156,7 @@ const deploySpec = {
   },
 
   configInject(ctx, config) {
-    config = _.cloneDeep(config);
+    config = cloneDeep(config);
 
     config.from = template(config.from || '', ctx);
 
@@ -169,18 +169,18 @@ const deploySpec = {
     config.abi = template(config.abi || '', ctx);
 
     if (config.abiOf) {
-      config.abiOf = _.map(config.abiOf, (v) => template(v, ctx));
+      config.abiOf = lodashMap(config.abiOf, (v) => template(v, ctx));
     }
 
     if (config.args) {
-      config.args = _.map(config.args, (a) => {
+      config.args = lodashMap(config.args, (a) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
         return JSON.parse(template(JSON.stringify(a), ctx));
       });
     }
 
     if (config.libraries) {
-      config.libraries = _.mapValues(config.libraries, (a) => {
+      config.libraries = mapValues(config.libraries, (a) => {
         return template(a, ctx);
       });
     }
@@ -205,18 +205,18 @@ const deploySpec = {
     accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.salt));
 
     if (config.abiOf) {
-      _.forEach(config.abiOf, (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(v))));
+      forEach(config.abiOf, (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(v))));
     }
 
     if (config.args) {
-      _.forEach(
+      forEach(
         config.args,
-        (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(JSON.stringify(v))))
+        (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(JSON.stringify(v)))),
       );
     }
 
     if (config.libraries) {
-      _.forEach(config.libraries, (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(v))));
+      forEach(config.libraries, (v) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(v))));
     }
 
     if (config?.overrides?.gasLimit) {
@@ -245,7 +245,7 @@ const deploySpec = {
 
     if (!artifactData) {
       throw new Error(
-        `bytecode/abi for artifact ${config.artifact} not found. please double check the contract name and your build configuration`
+        `bytecode/abi for artifact ${config.artifact} not found. please double check the contract name and your build configuration`,
       );
     }
 
@@ -287,7 +287,7 @@ const deploySpec = {
       if (config.create2) {
         const arachnidDeployerAddress = await ensureArachnidCreate2Exists(
           runtime,
-          typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
+          typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR,
         );
 
         debug('performing arachnid create2');
@@ -304,7 +304,7 @@ const deploySpec = {
           if (config.ifExists !== 'continue') {
             throw new CannonError(
               `The contract at the create2 destination ${addr} is already deployed, but the Cannon state does not recognize that this contract has already been deployed. This typically indicates incorrect upgrade configuration. Please confirm if this contract should already be deployed or not, and if you want to continue the build as-is, add 'ifExists = "continue"' to the step definition`,
-              'CREATE2_COLLISION'
+              'CREATE2_COLLISION',
             );
           }
         } else {
@@ -312,7 +312,7 @@ const deploySpec = {
             ? await runtime.getSigner(config.from as viem.Address)
             : await runtime.getDefaultSigner!(txn, config.salt);
 
-          const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
+          const fullCreate2Txn = assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
           debug('final create2 txn', fullCreate2Txn);
 
           const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
@@ -358,15 +358,15 @@ const deploySpec = {
             // if the code goes here, it means that the Create2 deployment failed
             // and prepareTransactionRequest will throw an error with the underlying revert message
             await runtime.provider.prepareTransactionRequest(
-              _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+              assign(txn, overrides, { account: signer.wallet.account || signer.address }),
             );
 
             throw new Error(
-              'The CREATE2 contract seems to be failing in the constructor. However, we were not able to get a stack trace.'
+              'The CREATE2 contract seems to be failing in the constructor. However, we were not able to get a stack trace.',
             );
           } else {
             const preparedTxn = await runtime.provider.prepareTransactionRequest(
-              _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+              assign(txn, overrides, { account: signer.wallet.account || signer.address }),
             );
 
             const hash = await signer.wallet.sendTransaction(preparedTxn as any);
@@ -402,7 +402,7 @@ const deploySpec = {
           null,
           // note: send zero address since there is no contract address
           viem.zeroAddress,
-          packageState.currentLabel
+          packageState.currentLabel,
         );
 
         return await handleTxnError(contractArtifact, runtime.provider, error);
@@ -416,7 +416,7 @@ const deploySpec = {
   async importExisting(runtime, ctx, config, packageState, existingKeys) {
     if (existingKeys.length != 1) {
       throw new Error(
-        'a contract can only be deployed on one transaction, so you can only supply one hash transaction to import'
+        'a contract can only be deployed on one transaction, so you can only supply one hash transaction to import',
       );
     }
 

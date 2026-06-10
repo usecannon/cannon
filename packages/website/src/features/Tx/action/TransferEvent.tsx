@@ -2,10 +2,11 @@ import InfoTooltip from '@/features/Tx/InfoTooltip';
 import HoverHighlight from '@/features/Tx/HoverHighlight';
 import Link from 'next/link';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
+import { Address } from 'viem';
 
 type TransferEventProps = {
-  fromAddress: string;
-  toAddress: string;
+  fromAddress: Address;
+  toAddress: Address;
   hoverId: string;
   setHoverId: (hoverId: string) => void;
   chainId: number | undefined;

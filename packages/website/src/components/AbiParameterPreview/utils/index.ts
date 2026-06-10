@@ -3,7 +3,7 @@ import { isObject, isNil, isPlainObject } from 'lodash';
 
 // Type guards
 function _hasComponentsKey(
-  item: viem.AbiParameter
+  item: viem.AbiParameter,
 ): item is viem.AbiParameter & { components: readonly viem.AbiParameter[] } {
   return isObject(item) && 'components' in item && Array.isArray(item.components);
 }
@@ -188,7 +188,7 @@ function _parseArgumentValueTooltip(type: string, val: unknown): string {
 
 // Public API
 export function isAbiParameterArray(
-  value: viem.AbiParameter | readonly viem.AbiParameter[]
+  value: viem.AbiParameter | readonly viem.AbiParameter[],
 ): value is readonly viem.AbiParameter[] {
   return Array.isArray(value);
 }

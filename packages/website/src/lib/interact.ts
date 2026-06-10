@@ -50,7 +50,7 @@ export type ContractRow = {
 export const processContracts = (
   allContractsRef: AllContracts[],
   contracts: ChainArtifacts['contracts'],
-  moduleName: string
+  moduleName: string,
 ) => {
   // If no contracts to process, return the array as is
   if (!contracts) return allContractsRef;
@@ -78,7 +78,7 @@ export const processContracts = (
 export const processImports = (
   allContractsRef: AllContracts[],
   imports: ChainArtifacts['imports'],
-  parentModuleName = ''
+  parentModuleName = '',
 ) => {
   if (imports) {
     // Process each imported module
@@ -145,7 +145,7 @@ export const buildInteractPath = (
   variant: string,
   moduleName: string,
   contractName: string,
-  contractAddress: string
+  contractAddress: string,
 ): string => {
   return `/packages/${name}/${tag}/${variant}/interact/${moduleName}/${contractName}/${contractAddress}`;
 };

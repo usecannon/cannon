@@ -1,9 +1,9 @@
 import _ from 'lodash';
-import { validateConfig } from '../actions';
-import action from './invoke';
-import { fakeCtx, fakeRuntime } from './utils.test.helper';
-import { PackageReference } from '../package-reference';
-import { AccessRecorderEngine } from '..';
+import { validateConfig } from '../actions.js';
+import action from './invoke.js';
+import { fakeCtx, fakeRuntime } from './utils.test.helper.js';
+import { PackageReference } from '../package-reference.js';
+import { AccessRecorderEngine } from '../index.js';
 
 describe('steps/invoke.ts', () => {
   const fakeContractInfo = {
@@ -83,7 +83,7 @@ describe('steps/invoke.ts', () => {
 
     it('fails when setting invalid value', () => {
       expect(() => validateConfig(action.validate, { target: 'owner()', invalid: ['something'] })).toThrow(
-        "Unrecognized key(s) in object: 'invalid'"
+        "Unrecognized key(s) in object: 'invalid'",
       );
     });
   });
@@ -127,7 +127,7 @@ describe('steps/invoke.ts', () => {
           target: ['Woot'],
           func: 'something',
         },
-        { ref: null, currentLabel: 'invoke.Invoke' }
+        { ref: null, currentLabel: 'invoke.Invoke' },
       );
 
       expect(result).toContainEqual({
@@ -148,7 +148,7 @@ describe('steps/invoke.ts', () => {
           args: ['split', { wave: 'form' }],
           value: '1234',
         },
-        { ref: null, currentLabel: 'invoke.Invoke' }
+        { ref: null, currentLabel: 'invoke.Invoke' },
       );
 
       expect(result).toContainEqual({
@@ -175,9 +175,9 @@ describe('steps/invoke.ts', () => {
               args: ['<%= contracts.h %>', '<%= contracts.i %>'],
               overrides: { gasLimit: '<%= contracts.j %>' },
             },
-            new AccessRecorderEngine([])
+            new AccessRecorderEngine([]),
           )
-          .accesses.sort()
+          .accesses.sort(),
       ).toEqual([
         'contracts.a',
         'contracts.b',
@@ -203,8 +203,8 @@ describe('steps/invoke.ts', () => {
             factory: { something: { event: 'whoop', arg: 0 } },
             extra: { else: { event: 'arst', arg: 1 } },
           },
-          { ref: new PackageReference('fun:1.0.0'), currentLabel: 'invoke.Hello' }
-        )
+          { ref: new PackageReference('fun:1.0.0'), currentLabel: 'invoke.Hello' },
+        ),
       ).toEqual(['txns.Hello', 'contracts.something', 'something', 'settings.else', 'extras.else']);
     });
   });
@@ -275,7 +275,7 @@ describe('steps/invoke.ts', () => {
             },
           },
         },
-        { ref: new PackageReference('fun:1.0.0'), currentLabel: 'invoke.something' }
+        { ref: new PackageReference('fun:1.0.0'), currentLabel: 'invoke.something' },
       );
 
       expect(result.contracts).toStrictEqual({

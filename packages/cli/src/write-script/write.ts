@@ -1,9 +1,9 @@
 import { ChainBuilderRuntime } from '@usecannon/builder';
 import { ensureFileSync } from 'fs-extra';
-import { createStepsStream } from './stream-steps';
-import { DumpRenderer } from './types';
+import { createStepsStream } from './stream-steps.js';
+import { DumpRenderer } from './types.js';
 import { writeFile } from 'node:fs/promises';
-import * as logger from '../util/console';
+import * as logger from '../util/console.js';
 
 export const WRITE_SCRIPT_FORMATS = ['json', 'ethers', 'foundry', 'foundry-portable', 'cast'] as const;
 
@@ -16,7 +16,7 @@ export type WriteScriptFormat = (typeof WRITE_SCRIPT_FORMATS)[number];
 export async function createWriteScript(
   runtime: ChainBuilderRuntime,
   targetFile: string,
-  format: WriteScriptFormat = 'json'
+  format: WriteScriptFormat = 'json',
 ) {
   if (!WRITE_SCRIPT_FORMATS.includes(format)) {
     throw new Error(`Invalid build dump format "${format}"`);
@@ -24,7 +24,7 @@ export async function createWriteScript(
 
   ensureFileSync(targetFile);
 
-  const createRenderer = (await import(`./render-${format}`)).createRenderer as DumpRenderer;
+  const createRenderer = (await import(`./render-${format}.js`)).createRenderer as DumpRenderer;
 
   const events = createStepsStream(runtime);
   const blockNumber = await runtime.provider.getBlockNumber();

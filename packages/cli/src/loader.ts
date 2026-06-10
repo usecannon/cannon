@@ -1,12 +1,12 @@
 import { CannonLoader, getCannonRepoRegistryUrl, IPFSLoader } from '@usecannon/builder';
-import { compress, getContentCID } from '@usecannon/builder/dist/src/ipfs';
+import { compress, getContentCID } from '@usecannon/builder/dist/src/ipfs.js';
 import crypto from 'crypto';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import path from 'path';
 import prompts from 'prompts';
 import tty from 'tty';
-import { CliSettings } from './settings';
+import { CliSettings } from './settings.js';
 
 const debug = Debug('cannon:cli:loader');
 
@@ -181,7 +181,7 @@ export class CliLoader implements CannonLoader {
 }
 
 export class IPFSLoaderWithRetries extends IPFSLoader {
-  async put(misc: any): Promise<string> {
+  override async put(misc: any): Promise<string> {
     try {
       return super.put(misc);
     } catch (err) {
@@ -200,7 +200,7 @@ export class IPFSLoaderWithRetries extends IPFSLoader {
     }
   }
 
-  async read(url: string) {
+  override async read(url: string) {
     try {
       return super.read(url);
     } catch (err) {
@@ -233,7 +233,7 @@ export function getMainLoader(cliSettings: CliSettings) {
         getCannonRepoRegistryUrl(),
         {},
         cliSettings.ipfsTimeout,
-        cliSettings.ipfsRetries
+        cliSettings.ipfsRetries,
       ),
       fileCacheDir: path.join(cliSettings.cannonDirectory, 'ipfs_cache'),
     }),

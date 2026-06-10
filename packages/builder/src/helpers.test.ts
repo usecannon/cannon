@@ -1,8 +1,8 @@
 import * as viem from 'viem';
-import { getDefaultStorage, getCannonContract, getBlockRetried } from './helpers';
-import { IPFSLoader, InMemoryLoader } from './loader';
-import { InMemoryRegistry, FallbackRegistry } from './registry';
-import { CannonStorage } from './runtime';
+import { getDefaultStorage, getCannonContract, getBlockRetried } from './helpers.js';
+import { IPFSLoader, InMemoryLoader } from './loader.js';
+import { InMemoryRegistry, FallbackRegistry } from './registry.js';
+import { CannonStorage } from './runtime.js';
 
 describe('helpers.test.ts', () => {
   describe('getDefaultStorage()', () => {
@@ -76,7 +76,7 @@ describe('helpers.test.ts', () => {
           package: 'wooted:latest',
           contractName: 'Something',
           chainId: 282,
-        })
+        }),
       ).rejects.toThrow();
     });
 
@@ -87,7 +87,7 @@ describe('helpers.test.ts', () => {
           contractName: 'Something',
           storage: fakeStorage,
           chainId: 282,
-        })
+        }),
       ).rejects.toThrow();
     });
 
@@ -98,7 +98,7 @@ describe('helpers.test.ts', () => {
           contractName: 'SomethingElse',
           storage: fakeStorage,
           chainId: 282,
-        })
+        }),
       ).rejects.toThrow();
     });
 

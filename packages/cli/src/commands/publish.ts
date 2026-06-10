@@ -8,13 +8,13 @@ import {
   PackageReference,
   preparePublishPackage,
 } from '@usecannon/builder';
-import { blueBright, bold, gray } from 'chalk';
+import chalk from 'chalk';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { logSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console';
-import { getMainLoader } from '../loader';
-import { LocalRegistry } from '../registry';
-import { CliSettings } from '../settings';
+import { logSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console.js';
+import { getMainLoader } from '../loader.js';
+import { LocalRegistry } from '../registry.js';
+import { CliSettings } from '../settings.js';
 
 interface Params {
   fullPackageRef: string;
@@ -49,7 +49,7 @@ export async function publish({
       throw new Error('signer not provided in registry');
     }
     if (!quiet) {
-      logSpinner(blueBright(`Publishing with ${onChainRegistry.signer!.address}`));
+      logSpinner(chalk.blueBright(`Publishing with ${onChainRegistry.signer!.address}`));
       logSpinner();
     }
   }
@@ -67,7 +67,7 @@ export async function publish({
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
-      `Could not find any deployments for ${fullPackageRef} with chain id ${chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
+      `Could not find any deployments for ${fullPackageRef} with chain id ${chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`,
     );
   }
 
@@ -142,7 +142,7 @@ export async function publish({
 
   for (const publishCall of publishCalls) {
     const packageName = new PackageReference(publishCall.packagesNames[0]).name;
-    logSpinner(blueBright(`\nThis will publish ${bold(packageName)} to the registry:`));
+    logSpinner(chalk.blueBright(`\nThis will publish ${chalk.bold(packageName)} to the registry:`));
 
     for (const fullPackageRef of publishCall.packagesNames) {
       const { version, preset } = new PackageReference(fullPackageRef);
@@ -162,7 +162,7 @@ export async function publish({
 
     if (totalFees > 0n && totalFees >= balance) {
       throw new Error(
-        `You do not appear to have enough ETH in your wallet to publish (balance: ${viem.formatEther(balance)} ETH)`
+        `You do not appear to have enough ETH in your wallet to publish (balance: ${viem.formatEther(balance)} ETH)`,
       );
     }
   }
@@ -183,14 +183,14 @@ export async function publish({
     }
   }
 
-  logSpinner(bold('Publishing package...'));
-  logSpinner(gray('This may take a few minutes.'));
+  logSpinner(chalk.bold('Publishing package...'));
+  logSpinner(chalk.gray('This may take a few minutes.'));
   logSpinner();
 
   const registrationReceipts = await toStorage.registry.publishMany(publishCalls);
 
   if (!quiet) {
-    logSpinner(blueBright('Transactions:'));
+    logSpinner(chalk.blueBright('Transactions:'));
     for (const tx of registrationReceipts) logSpinner(`  - ${tx}`);
   }
 }

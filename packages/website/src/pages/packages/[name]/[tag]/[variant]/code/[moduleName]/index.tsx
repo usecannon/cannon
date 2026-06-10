@@ -2,8 +2,6 @@ import dynamic from 'next/dynamic';
 import { Address } from 'viem';
 import { useRouter } from 'next/router';
 import { ReactElement } from 'react';
-import { NextSeo } from 'next-seo';
-import defaultSEO from '@/constants/defaultSeo';
 import NameTagVariantLayout from '../../NameTagVariantLayout';
 //import NestedLayout from '../_layout';
 import { PackageReference } from '@usecannon/builder';
@@ -52,16 +50,6 @@ export default function Interact() {
 
   return (
     <>
-      <NextSeo
-        {...defaultSEO}
-        title={metadata.title}
-        description={metadata.description}
-        openGraph={{
-          ...defaultSEO.openGraph,
-          title: metadata.title,
-          description: metadata.description,
-        }}
-      />
       <NoSSRCodePage
         name={decodeURIComponent(params.name as string)}
         tag={decodeURIComponent(params.tag as string)}

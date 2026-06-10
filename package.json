@@ -1,12 +1,13 @@
 {
   "name": "root",
+  "type": "module",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "lint:js": "eslint '{packages,examples}/**/*.{js,ts}'",
+    "lint:js": "NODE_OPTIONS='--max-old-space-size=8192' eslint '{packages,examples}/**/*.{js,ts}'",
     "lint:sol": "solhint '{packages,examples}/*/{contracts,src}/**/*.sol'",
     "lint": "pnpm run '/^lint:(js|sol)/'",
-    "lint:fix:js": "prettier --write '{packages,examples}/**/*.{js,ts}' && eslint --fix '{packages,examples}/**/*.{js,ts}'",
+    "lint:fix:js": "prettier --write '{packages,examples}/**/*.{js,ts}' && NODE_OPTIONS='--max-old-space-size=8192' eslint --fix '{packages,examples}/**/*.{js,ts}'",
     "lint:fix:sol": "prettier --write '{packages,examples}/*/{contracts,src}/**/*.sol' --plugin=prettier-plugin-solidity",
     "lint:fix": "pnpm run '/^lint:fix:(js|sol)/'",
     "clean": "pnpm -r --if-present run clean",
@@ -25,40 +26,33 @@
     "url": "https://github.com/usecannon/cannon.git"
   },
   "devDependencies": {
-    "@babel/core": "^7.22.1",
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@babel/plugin-transform-runtime": "^7.17.0",
-    "@babel/preset-env": "^7.16.11",
-    "@babel/preset-typescript": "^7.16.7",
-    "@typescript-eslint/eslint-plugin": "^5.13.0",
-    "@typescript-eslint/parser": "^5.13.0",
-    "eslint": "^8.10.0",
-    "eslint-config-prettier": "^8.4.0",
-    "eslint-plugin-import": "^2.25.4",
-    "eslint-plugin-prettier": "^4.0.0",
-    "lerna": "^8.0.2",
-    "prettier": "^2.5.1",
-    "prettier-plugin-solidity": "^1.4.1",
-    "react": "^18.2.0",
-    "release-please": "^15.12.0",
-    "solhint": "^3.4.1",
-    "solhint-plugin-prettier": "^0.0.5",
-    "syncpack": "^13.0.4",
+    "@eslint/js": "^9.39.2",
+    "@tsconfig/node22": "^22.0.2",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
+    "depcheck": "^1.4.7",
+    "eslint": "^9.38.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-cypress": "^5.2.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "lerna": "^9.0.0",
+    "prettier": "^3.6.2",
+    "prettier-plugin-solidity": "^2.1.0",
+    "solhint": "^6.0.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   },
   "license": "GNU GPL V3.0",
   "dependencies": {
-    "@changesets/cli": "^2.26.2",
-    "concat-md": "^0.5.1",
-    "react-multi-ref": "^1.0.2",
-    "scroll-into-view-if-needed": "^3.1.0"
+    "@changesets/cli": "^2.29.7"
   },
   "engineStrict": true,
   "engines": {
     "node": ">=18",
     "pnpm": ">=9"
   },
-  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977",
+  "packageManager": "pnpm@10.34.2+sha512.9ae7e3fe477c52bbce1ddc8aa196ff243ed4b48f1ceaa7455820adfa7a48b5f57e817ed2d20e5f3c2c3646dfedba360567693e534572dccd252fb2eb8b7c044c",
   "version": "0.0.1"
 }

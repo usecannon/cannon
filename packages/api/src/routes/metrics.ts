@@ -9,7 +9,7 @@ metrics.get(
   '/metrics',
   basicAuth({
     users: { [config.METRICS_USER]: config.METRICS_PASSWORD },
-  })
+  }),
 );
 
 const metricsMiddleware = prometheus({

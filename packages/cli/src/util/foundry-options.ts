@@ -1,8 +1,8 @@
-import _ from 'lodash';
-import { Option } from '../commands/config/types';
-import { anvilOptions } from '../commands/config/anvil';
-import { forgeTestOptions } from '../commands/config/forge/test';
-import { forgeBuildOptions } from '../commands/config/forge/build';
+import { pick } from 'lodash-es';
+import { Option } from '../commands/config/types.js';
+import { anvilOptions } from '../commands/config/anvil.js';
+import { forgeTestOptions } from '../commands/config/forge/test.js';
+import { forgeBuildOptions } from '../commands/config/forge/build.js';
 
 enum FoundryFlagPrefix {
   FORGE = 'forge.',
@@ -20,7 +20,7 @@ const normalizeFlag = (flag: string): string =>
 const pickFoundryOptions = (
   prefix: FoundryFlagPrefix,
   options: Record<string, any>,
-  cannonOptions: Option[]
+  cannonOptions: Option[],
 ): Record<string, any> => {
   const validKeys = cannonOptions.reduce((accum, curr) => {
     if (curr.flags.startsWith(`--${prefix}`)) {
@@ -31,7 +31,7 @@ const pickFoundryOptions = (
 
   const formattedOptions = Object.fromEntries(Object.entries(options).map(([key, value]) => [normalizeFlag(key), value]));
 
-  return _.pick(formattedOptions, validKeys);
+  return pick(formattedOptions, validKeys);
 };
 
 // helper functions to pick options for specific Foundry tools

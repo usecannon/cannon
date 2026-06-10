@@ -1,11 +1,11 @@
-import { validateConfig } from '../actions';
-import { BUILD_VERSION } from '../constants';
-import { InMemoryRegistry } from '../registry';
-import action from './pull';
-import { fakeCtx, fakeRuntime } from './utils.test.helper';
-import { PackageReference } from '../package-reference';
+import { validateConfig } from '../actions.js';
+import { BUILD_VERSION } from '../constants.js';
+import { InMemoryRegistry } from '../registry.js';
+import action from './pull.js';
+import { fakeCtx, fakeRuntime } from './utils.test.helper.js';
+import { PackageReference } from '../package-reference.js';
 
-jest.mock('../loader');
+jest.mock('../loader.js');
 
 describe('steps/pull.ts', () => {
   const registry = new InMemoryRegistry();
@@ -22,7 +22,7 @@ describe('steps/pull.ts', () => {
 
     it('fails when setting invalid value', () => {
       expect(() => validateConfig(action.validate, { source: 'somesource:1.0.0', invalid: ['something'] })).toThrow(
-        "Unrecognized key(s) in object: 'invalid'"
+        "Unrecognized key(s) in object: 'invalid'",
       );
     });
   });
@@ -53,7 +53,7 @@ describe('steps/pull.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello:1.0.0' },
-        { ref: null, currentLabel: 'pull.Pull' }
+        { ref: null, currentLabel: 'pull.Pull' },
       );
 
       expect(result).toContainEqual({
@@ -69,8 +69,8 @@ describe('steps/pull.ts', () => {
           fakeRuntime,
           fakeCtx,
           { source: 'undefined-deployment:1.0.0' },
-          { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' }
-        )
+          { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' },
+        ),
       ).rejects.toThrowError('deployment not found');
     });
 
@@ -121,10 +121,10 @@ describe('steps/pull.ts', () => {
           fakeRuntime,
           fakeCtx,
           { source: 'package-name-longer-than-32bytes1337:1.0.0' },
-          { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' }
-        )
+          { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' },
+        ),
       ).rejects.toThrow(
-        'Package name for "package-name-longer-than-32bytes1337:1.0.0" is too long. Package name exceeds 32 characters'
+        'Package name for "package-name-longer-than-32bytes1337:1.0.0" is too long. Package name exceeds 32 characters',
       );
     });
 
@@ -175,10 +175,10 @@ describe('steps/pull.ts', () => {
           fakeRuntime,
           fakeCtx,
           { source: 'package:package-version-longer-than-32bytes1337' },
-          { ref: new PackageReference('package:1.0.0'), currentLabel: 'pull.whatever' }
-        )
+          { ref: new PackageReference('package:1.0.0'), currentLabel: 'pull.whatever' },
+        ),
       ).rejects.toThrow(
-        'Package version for "package:package-version-longer-than-32bytes1337" is too long. Package version exceeds 32 characters'
+        'Package version for "package:package-version-longer-than-32bytes1337" is too long. Package version exceeds 32 characters',
       );
     });
 
@@ -226,7 +226,7 @@ describe('steps/pull.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello:1.0.0' },
-        { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' },
       );
 
       expect(result).toStrictEqual({
@@ -253,7 +253,7 @@ describe('steps/pull.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello:1.0.0@main' },
-        { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' },
       );
 
       expect(withPreset).toStrictEqual({
@@ -280,7 +280,7 @@ describe('steps/pull.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello@main' },
-        { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' },
       );
 
       expect(withoutVersion).toStrictEqual({
@@ -307,7 +307,7 @@ describe('steps/pull.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello' },
-        { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'import.something' },
       );
 
       expect(onlyName).toStrictEqual({

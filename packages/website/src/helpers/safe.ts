@@ -33,15 +33,15 @@ export function encodeSafeTransaction(currentSafe: SafeDefinition, txn: SafeTran
         txn.gasToken,
         txn.refundReceiver,
         BigInt(txn._nonce),
-      ]
-    )
+      ],
+    ),
   );
 
   const domainSeparator = keccak256(
     encodeAbiParameters(
       [{ type: 'bytes32' }, { type: 'uint256' }, { type: 'address' }],
-      [SAFE_DOMAIN_SEPARATOR_TYPEHASH, BigInt(currentSafe.chainId), currentSafe.address]
-    )
+      [SAFE_DOMAIN_SEPARATOR_TYPEHASH, BigInt(currentSafe.chainId), currentSafe.address],
+    ),
   );
 
   return encodePacked(['bytes1', 'bytes1', 'bytes32', 'bytes32'], ['0x19', '0x01', domainSeparator, txHash]);

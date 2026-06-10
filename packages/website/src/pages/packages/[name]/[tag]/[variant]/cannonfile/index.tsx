@@ -2,8 +2,6 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import NameTagVariantLayout from '../NameTagVariantLayout';
 import { ReactElement } from 'react';
-import { NextSeo } from 'next-seo';
-import defaultSEO from '@/constants/defaultSeo';
 import { PackageReference } from '@usecannon/builder';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 
@@ -47,21 +45,9 @@ const DynamicCannonfileTab = dynamic(
 
 export default function Cannonfile() {
   const params = useRouter().query;
-  const { getChainById } = useCannonChains();
-  const metadata = generateMetadata({ params: params as any, getChainById });
 
   return (
     <>
-      <NextSeo
-        {...defaultSEO}
-        title={metadata.title}
-        description={metadata.description}
-        openGraph={{
-          ...defaultSEO.openGraph,
-          title: metadata.title,
-          description: metadata.description,
-        }}
-      />
       <DynamicCannonfileTab
         name={decodeURIComponent(params.name as string)}
         tag={decodeURIComponent(params.tag as string)}

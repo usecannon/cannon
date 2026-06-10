@@ -1,12 +1,12 @@
 import { EOL } from 'node:os';
 import { Transform } from 'node:stream';
 
-import _ from 'lodash';
+import { last } from 'lodash-es';
 import { AbiItem, getAddress, isAddress } from 'viem';
 
 function formatSolidityConstructorArg(
   inputType: { name: string; type: string; internalType: string } | undefined,
-  arg: string | string[]
+  arg: string | string[],
 ): [string, string[]] {
   if (inputType && (inputType.type === 'string' || inputType.type === 'bytes')) {
     return [`"${arg}"`, []];
@@ -16,7 +16,7 @@ function formatSolidityConstructorArg(
   ) {
     return [`${getAddress(arg as string)}`, []];
   } else if (inputType && inputType.internalType.endsWith('[]')) {
-    const typeName = _.last(inputType.internalType.split(' '));
+    const typeName = last(inputType.internalType.split(' '));
     const args = arg as string[];
     const priorLines = [`${typeName} memory tmparray${inputType.name} = new ${typeName}(${args.length});`];
     for (let i = 0; i < args.length; i++) {
@@ -26,7 +26,7 @@ function formatSolidityConstructorArg(
 
     return [`tmparray${inputType.name}`, priorLines];
   } else if (inputType && inputType.internalType) {
-    return [`${_.last(inputType.internalType.split(' '))}(  ${arg})`, []];
+    return [`${last(inputType.internalType.split(' '))}(  ${arg})`, []];
   }
   return [arg as string, []];
 }
@@ -65,8 +65,8 @@ export const createRenderer = (blockNumber: number) => {
           lines.push(`${indent}// > CONTRACT DEPLOYED: ${line.result.contracts[c].address}\n`);
           lines.push(
             `${indent}addresses[keccak256("${fullContractPath}")] = address(${getAddress(
-              line.result.contracts[c].address
-            )});\n`
+              line.result.contracts[c].address,
+            )});\n`,
           );
           lines.push(`${indent}vm.label(${getAddress(line.result.contracts[c].address)}, "${fullContractPath}");\n`);
         }
@@ -77,7 +77,7 @@ export const createRenderer = (blockNumber: number) => {
 
         for (const s in line.result.settings) {
           lines.push(
-            `${indent}settings[keccak256("${[...line.cloneNames, s].join('.')}")] = "${line.result.settings[s]}";\n`
+            `${indent}settings[keccak256("${[...line.cloneNames, s].join('.')}")] = "${line.result.settings[s]}";\n`,
           );
         }
       }
@@ -102,7 +102,7 @@ export const createRenderer = (blockNumber: number) => {
         for (const c in line.result?.contracts) {
           if (!line.result.contracts[c].sourceName || !line.result.contracts[c].contractName) {
             lines.push(
-              `${indent}// skip etch for this contract because contract name "${line.result.contracts[c].contractName}" and/or source "${line.result.contracts[c].sourceName}" is not provided.`
+              `${indent}// skip etch for this contract because contract name "${line.result.contracts[c].contractName}" and/or source "${line.result.contracts[c].sourceName}" is not provided.`,
             );
             continue;
           }
@@ -120,7 +120,7 @@ export const createRenderer = (blockNumber: number) => {
           imports.add(`import "../${line.result.contracts[c].sourceName}";`);
 
           const constructorArgs = (line.result.contracts[c].constructorArgs ?? []).map((arg: any, i: number) =>
-            formatSolidityConstructorArg(constructorAbi.inputs[i], arg)
+            formatSolidityConstructorArg(constructorAbi.inputs[i], arg),
           );
 
           for (const a of constructorArgs) {
@@ -131,7 +131,7 @@ export const createRenderer = (blockNumber: number) => {
             `${indent}${indent}tmp = address(new ${line.result.contracts[c].contractName}(${constructorArgs
               // TODO: why do we need a type here
               .map((a: [string, string[]]) => a[0])
-              .join(',')}));\n`
+              .join(',')}));\n`,
           );
           lines.push(`${indent}${indent}vm.etch(${getAddress(line.result.contracts[c].address)}, tmp.code);\n`);
 

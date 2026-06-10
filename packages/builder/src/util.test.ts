@@ -5,13 +5,13 @@ import {
   getMergedAbiFromContractPaths,
   printChainDefinitionProblems,
   printInternalOutputs,
-} from './util';
+} from './util.js';
 
 import 'jest';
 import * as viem from 'viem';
 import { AbiFunction, AbiItem } from 'viem';
 import { ChainBuilderContext } from '.';
-import { makeFakeProvider } from '../test/fixtures';
+import { makeFakeProvider } from '../test/fixtures.js';
 
 describe('util.ts', () => {
   const fakeTransferFragment: AbiFunction = {
@@ -152,13 +152,13 @@ describe('util.ts', () => {
 
     it('works with one layer of depth', async () => {
       expect(getContractFromPath(fakeCtx, 'FakeImport.AnotherFake')?.address).toEqual(
-        '0x0000000000000000000000000000000000000003'
+        '0x0000000000000000000000000000000000000003',
       );
     });
 
     it('works with two layers of depth', async () => {
       expect(getContractFromPath(fakeCtx, 'FakeImport.SuperFake.TheFakest')?.address).toEqual(
-        '0x0000000000000000000000000000000000000002'
+        '0x0000000000000000000000000000000000000002',
       );
     });
   });
@@ -203,7 +203,7 @@ describe('util.ts', () => {
       const signer2 = await getExecutionSigner(
         provider,
         { data: '0xwoot' },
-        'ssssssssssssssssssssssssssssssssssssssssssssssssssssssssss'
+        'ssssssssssssssssssssssssssssssssssssssssssssssssssssssssss',
       );
 
       expect(signer1.address).not.toStrictEqual(signer2.address);

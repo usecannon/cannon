@@ -160,7 +160,7 @@ describe('inspect', () => {
       cliSettings,
       'overview',
       writeDeployments,
-      false
+      false,
     );
 
     expect(result).toEqual(testPkgData);

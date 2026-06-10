@@ -1,6 +1,5 @@
 import PageLoading from '@/components/PageLoading';
 import defaultSEO from '@/constants/defaultSeo';
-import { NextSeo } from 'next-seo';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { ReactElement } from 'react';
@@ -19,16 +18,6 @@ export default function TransactionDetails() {
   const router = useRouter();
   return (
     <>
-      <NextSeo
-        {...defaultSEO}
-        title="Cannon | Transaction Details"
-        description="Transaction Details"
-        openGraph={{
-          ...defaultSEO.openGraph,
-          title: 'Cannon | Transaction Details',
-          description: 'Transaction Details',
-        }}
-      />
       {router.isReady ? <NoSSRTransactionDetailsPage /> : <PageLoading />}
     </>
   );

@@ -1,13 +1,14 @@
 import Debug from 'debug';
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import _ from 'lodash';
+
+import { clone, cloneDeep, merge, uniq } from 'lodash-es';
 import * as viem from 'viem';
-import { ContractMap, DeploymentState, TransactionMap } from './';
-import { BUILD_VERSION } from './constants';
-import { ChainDefinition } from './definition';
-import { ChainBuilderRuntime, Events } from './runtime';
-import { BuildOptions, ChainArtifacts, ChainBuilderContext, PackageState, PreChainBuilderContext } from './types';
-import { printChainDefinitionProblems } from './util';
+import { ContractMap, DeploymentState, TransactionMap } from './index.js';
+import { BUILD_VERSION } from './constants.js';
+import { ChainDefinition } from './definition.js';
+import { ChainBuilderRuntime, Events } from './runtime.js';
+import { BuildOptions, ChainArtifacts, ChainBuilderContext, PackageState, PreChainBuilderContext } from './types.js';
+import { printChainDefinitionProblems } from './util.js';
+import type { CannonAction } from './actions.js';
 
 const debug = Debug('cannon:builder');
 const debugVerbose = Debug('cannon:verbose:builder');
@@ -20,7 +21,7 @@ export async function createInitialContext(
   pkg: any,
   chainId: number,
   opts: BuildOptions,
-  defaultSigner: viem.Address = viem.zeroAddress
+  defaultSigner: viem.Address = viem.zeroAddress,
 ): Promise<ChainBuilderContext> {
   const preCtx: PreChainBuilderContext = {
     package: pkg,
@@ -39,7 +40,7 @@ export async function createInitialContext(
 
     imports: {},
 
-    settings: _.clone(opts),
+    settings: clone(opts),
   };
 }
 
@@ -48,7 +49,7 @@ export async function build(
   def: ChainDefinition,
   state: DeploymentState,
   initialCtx: ChainBuilderContext,
-  skipPreflight?: true
+  skipPreflight?: true,
 ): Promise<DeploymentState> {
   if (!skipPreflight) {
     debug('preflight');
@@ -63,15 +64,15 @@ ${printChainDefinitionProblems(problems)}`);
 
   debug('build', initialCtx.settings);
 
-  // Use awaited imports to prevent import cycle within the builder module
-  const { ActionKinds } = await import('./actions');
+  // ActionKinds type used for type narrowing below
+  // (runtime import at line ~358 where it's actually needed)
 
   // sanity check the network
   await runtime.checkNetwork();
 
   initialCtx.chainId = runtime.chainId;
 
-  state = _.cloneDeep(state);
+  state = cloneDeep(state);
 
   const tainted = new Set<string>();
   const built = new Map<string, ChainArtifacts>();
@@ -86,7 +87,7 @@ ${printChainDefinitionProblems(problems)}`);
   try {
     if (runtime.snapshots) {
       debug('building by layer');
-      ctx = _.clone(initialCtx);
+      ctx = clone(initialCtx);
 
       for (const leaf of def.leaves) {
         await buildLayer(runtime, def, ctx, state, leaf, tainted, built);
@@ -100,7 +101,7 @@ ${printChainDefinitionProblems(problems)}`);
           break;
         }
 
-        ctx = _.cloneDeep(initialCtx);
+        ctx = cloneDeep(initialCtx);
 
         const artifacts: ChainArtifacts = {};
 
@@ -113,7 +114,7 @@ ${printChainDefinitionProblems(problems)}`);
             continue doActions;
           }
 
-          _.merge(artifacts, built.get(dep));
+          merge(artifacts, built.get(dep));
           depsTainted = depsTainted || tainted.has(dep);
         }
 
@@ -157,7 +158,7 @@ ${printChainDefinitionProblems(problems)}`);
             debug('skip isolated', n);
           }
 
-          built.set(n, _.merge(artifacts, state[n].artifacts));
+          built.set(n, merge(artifacts, state[n].artifacts));
 
           // if there is an error then this will ensure the stack trace is printed with the latest
           runtime.updateProviderArtifacts(state[n].artifacts);
@@ -168,7 +169,7 @@ ${printChainDefinitionProblems(problems)}`);
             continue; // will skip saving the build artifacts, which should block any future jobs from finishing
           } else {
             // fake emit the pre step execute so its easier to see what is going on
-            const [type, label] = n.split('.') as [keyof typeof ActionKinds, string];
+            const [type, label] = n.split('.') as [keyof { [label: string]: CannonAction }, string];
             runtime.emit(Events.PreStepExecute, type, label, {}, 0);
             // make sure its possible to debug the original error
             debug('error', err);
@@ -197,12 +198,14 @@ export async function buildLayer(
   state: DeploymentState,
   cur: string,
   tainted: Set<string> = new Set(),
-  built: Map<string, ChainArtifacts> = new Map()
+  built: Map<string, ChainArtifacts> = new Map(),
 ) {
   // Use awaited imports to prevent import cycle within the builder module
-  const { ActionKinds } = await import('./actions');
-
   const layers = def.getStateLayers();
+
+  // ActionKinds only needed as typeof for type narrowing; runtime usage is in getActionExecInfo
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { ActionKinds } = await import('./actions.js');
 
   const layer = layers[cur];
 
@@ -230,12 +233,12 @@ export async function buildLayer(
 
   // do all state layers match? if so, load the layer from cache and continue
   for (const action of layer.actions) {
-    const ctx = _.cloneDeep(baseCtx);
+    const ctx = cloneDeep(baseCtx);
 
     const depArtifacts: ChainArtifacts = {};
 
     for (const dep of def.getDependencies(action)) {
-      _.merge(depArtifacts, built.get(dep));
+      merge(depArtifacts, built.get(dep));
     }
 
     addOutputsToContext(ctx, depArtifacts);
@@ -263,7 +266,7 @@ export async function buildLayer(
         }
 
         // in case we do not need to rebuild this layer we still need to set the built entry
-        built.set(action, _.merge(depArtifacts, state[action].artifacts));
+        built.set(action, merge(depArtifacts, state[action].artifacts));
       }
     } catch (err) {
       // make sure its possible to debug the original error
@@ -292,12 +295,12 @@ export async function buildLayer(
     }
 
     for (const action of layer.actions) {
-      const ctx = _.cloneDeep(baseCtx);
+      const ctx = cloneDeep(baseCtx);
 
       const depArtifacts: ChainArtifacts = {};
 
       for (const dep of def.getDependencies(action)) {
-        _.merge(depArtifacts, built.get(dep));
+        merge(depArtifacts, built.get(dep));
       }
 
       addOutputsToContext(ctx, depArtifacts);
@@ -317,7 +320,7 @@ export async function buildLayer(
           currentLabel: action,
         },
         def.getConfig(action, ctx),
-        _.clone(ctx)
+        clone(ctx),
       );
 
       if (!newArtifacts) {
@@ -335,7 +338,7 @@ export async function buildLayer(
       };
 
       tainted.add(action);
-      built.set(action, _.merge(depArtifacts, state[action].artifacts));
+      built.set(action, merge(depArtifacts, state[action].artifacts));
 
       // if there is an error then this will ensure the stack trace is printed with the latest
       runtime.updateProviderArtifacts(state[action].artifacts);
@@ -355,7 +358,7 @@ export async function buildLayer(
 
 export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageState, cfg: any, ctx: ChainBuilderContext) {
   // Use awaited imports to prevent import cycle within the builder module
-  const { ActionKinds } = await import('./actions');
+  const { ActionKinds } = await import('./actions.js');
 
   const [type, label] = pkgState.currentLabel.split('.') as [keyof typeof ActionKinds, string];
 
@@ -375,7 +378,7 @@ export async function runStep(runtime: ChainBuilderRuntime, pkgState: PackageSta
     {
       timeout: ActionKinds[type].timeout || DEFAULT_STEP_TIMEOUT,
       errorInstance: new Error('timed out without error'),
-    }
+    },
   );
 
   runtime.emit(Events.PostStepExecute, type, label, cfg, ctx, result, 0);
@@ -388,7 +391,7 @@ export function getArtifacts(def: ChainDefinition, state: DeploymentState) {
 
   for (const step of def.topologicalActions) {
     if (state[step] && state[step].artifacts) {
-      _.merge(artifacts, state[step].artifacts);
+      merge(artifacts, state[step].artifacts);
     }
   }
 
@@ -398,12 +401,12 @@ export function getArtifacts(def: ChainDefinition, state: DeploymentState) {
 export async function getOutputs(
   runtime: ChainBuilderRuntime,
   def: ChainDefinition,
-  state: DeploymentState
+  state: DeploymentState,
 ): Promise<ChainArtifacts> {
   const artifacts = getArtifacts(def, state);
   if (runtime.snapshots) {
     // need to load state as well. the states that we want to load are the "leaf" layers
-    const layers = _.uniq(Object.values(def.getStateLayers()));
+    const layers = uniq(Object.values(def.getStateLayers()));
 
     layerSearch: for (const layer of layers) {
       for (const action of layer.actions) {

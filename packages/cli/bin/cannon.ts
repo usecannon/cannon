@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 
-import { red } from 'chalk';
-import cli from '../src';
+import chalk from 'chalk';
+import cli from '../src/index.js';
 
 cli
   .parseAsync()
@@ -10,7 +10,7 @@ cli
   })
   .catch((err) => {
     if (err.message) {
-      err.message = red(err.message);
+      err.message = chalk.red(err.message);
     }
 
     //eslint-disable-next-line no-console

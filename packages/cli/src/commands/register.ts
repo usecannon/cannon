@@ -1,15 +1,15 @@
-import _ from 'lodash';
+import { isEqual, last } from 'lodash-es';
 import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
-import { blueBright, gray, green, bold } from 'chalk';
+import chalk from 'chalk';
 import { OnChainRegistry, prepareMulticall, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
 
-import { CliSettings } from '../settings';
-import { logSpinner, logSpinnerEnd, logSpinnerStart } from '../util/console';
-import { waitForEvent } from '../util/wait-for-event';
-import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
-import { isPackageRegistered } from '../util/register';
+import { CliSettings } from '../settings.js';
+import { logSpinner, logSpinnerEnd, logSpinnerStart } from '../util/console.js';
+import { waitForEvent } from '../util/wait-for-event.js';
+import { resolveProviderAndSigners, ProviderAction } from '../util/provider.js';
+import { isPackageRegistered } from '../util/register.js';
 
 const debug = Debug('cannon:cli:register');
 
@@ -21,7 +21,7 @@ interface Params {
 }
 
 export async function register({ cliSettings, options, packageRefs, fromPublish }: Params) {
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
+  const isDefaultSettings = isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
   // mock provider urls when the execution comes from e2e tests
@@ -37,7 +37,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   // [optimism registry, mainnet registry]
   const [readRegistry, writeRegistry] = cliSettings.registries;
 
-  logSpinner(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+  logSpinner(chalk.bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
 
   const registryProviders = await Promise.all([
     resolveProviderAndSigners({
@@ -71,7 +71,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
           ' isRegisteredOnOptimism: ' +
           isRegisteredOnOptimism +
           ' isRegisteredOnMainnet: ' +
-          isRegisteredOnMainnet
+          isRegisteredOnMainnet,
       );
 
       // Throw an error if the package is registered on both
@@ -80,7 +80,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
       }
 
       return [isRegisteredOnOptimism, isRegisteredOnMainnet];
-    })
+    }),
   );
 
   const overrides: any = {};
@@ -127,7 +127,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
       debug('Should nominate owner for package: ', pkg.name, ' - ', shouldNominateOwner ? 'yes' : 'no');
 
       return mainnetRegistry.prepareSetPackageOwnership(pkg.name, undefined, shouldNominateOwner);
-    })
+    }),
   );
 
   const multicallTx = prepareMulticall(transactions.flat());
@@ -139,7 +139,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
   const cost = estimateGas + registerFee;
   if (cost > userBalance) {
     throw new Error(
-      `Account "${userAddress}" does not have the required ${viem.formatEther(cost)} ETH for gas and registration fee`
+      `Account "${userAddress}" does not have the required ${viem.formatEther(cost)} ETH for gas and registration fee`,
     );
   }
 
@@ -147,10 +147,10 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
 
   logSpinner('');
   logSpinner('You are about to register the following packages:');
-  packageRefs.forEach((pkg: PackageReference) => logSpinner(' - Package:', blueBright(pkg.name)));
+  packageRefs.forEach((pkg: PackageReference) => logSpinner(' - Package:', chalk.blueBright(pkg.name)));
   logSpinner();
   logSpinner(
-    `The transaction will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on ${mainnetRegistryConfig.name}.`
+    `The transaction will cost ~${viem.formatEther(estimateGas * currentGasPrice)} ETH on ${mainnetRegistryConfig.name}.`,
   );
   logSpinner('');
 
@@ -177,12 +177,12 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
       (async () => {
         const hash = await mainnetRegistry.setPackageOwnership(multicallTx);
 
-        logSpinner(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+        logSpinner(`${chalk.green('Success!')} (${chalk.blueBright('Transaction Hash')}: ${hash})`);
         logSpinner('');
         logSpinner(
-          gray(
-            `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`
-          )
+          chalk.gray(
+            `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`,
+          ),
         );
         logSpinner('');
 
@@ -198,7 +198,7 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackageOwnerChanged',
                 abi: mainnetRegistry.contract.abi,
-                rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
+                rpcUrl: last(optimismRegistryConfig.rpcUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   owner: userAddress,
@@ -207,25 +207,25 @@ export async function register({ cliSettings, options, packageRefs, fromPublish 
               waitForEvent({
                 eventName: 'PackagePublishersChanged',
                 abi: mainnetRegistry.contract.abi,
-                rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
+                rpcUrl: last(optimismRegistryConfig.rpcUrl)!,
                 expectedArgs: {
                   name: packageNameHex,
                   publisher: [userAddress],
                 },
               }),
             ]);
-          })
+          }),
         );
       })(),
     ]);
 
-    packageRefs.map(async (pkg) => {
-      logSpinner(green(`Success - Package "${pkg.name}" has been registered.`));
-    });
+    for (const pkg of packageRefs) {
+      logSpinner(chalk.green(`Success - Package "${pkg.name}" has been registered.`));
+    }
 
     if (fromPublish) {
       logSpinner('');
-      logSpinner(gray('We will continue with the publishing process.'));
+      logSpinner(chalk.gray('We will continue with the publishing process.'));
     }
 
     return hash;

@@ -175,7 +175,7 @@ function checkAndNormalizePrivateKeyTestCases() {
     expect(() => {
       checkAndNormalizePrivateKey(invalidPrivateKey);
     }).toThrow(
-      'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your settings file, or check the value supplied to the --private-key flag'
+      'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your settings file, or check the value supplied to the --private-key flag',
     );
   });
 

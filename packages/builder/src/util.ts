@@ -1,11 +1,11 @@
 import crypto from 'crypto';
 import * as viem from 'viem';
 import { Buffer } from 'buffer';
-import _ from 'lodash';
+import { isEqual, sortBy, flatMap } from 'lodash-es';
 
-import { ChainDefinition } from '.';
-import { ChainDefinitionProblems } from './definition';
-import { ChainArtifacts, CannonSigner, Contract } from './types';
+import { ChainDefinition } from './index.js';
+import { ChainDefinitionProblems } from './definition.js';
+import { ChainArtifacts, CannonSigner, Contract } from './types.js';
 
 /**
  * Used as the `getDefaultSigner` implementation if none is specified to the chain builder. Creates a new
@@ -20,7 +20,7 @@ import { ChainArtifacts, CannonSigner, Contract } from './types';
 export async function getExecutionSigner(
   provider: viem.TestClient,
   txn: Omit<viem.SendTransactionParameters, 'account' | 'chain'>,
-  salt = ''
+  salt = '',
 ): Promise<CannonSigner> {
   const hasher = crypto.createHash('sha256');
 
@@ -49,7 +49,7 @@ export async function getExecutionSigner(
 
 export async function passThroughSigner(
   getSigner: (addr: string) => Promise<CannonSigner | null>,
-  addr: string
+  addr: string,
 ): Promise<CannonSigner> {
   const signer = await getSigner(addr);
 
@@ -94,7 +94,7 @@ export function getMergedAbiFromContractPaths(ctx: ChainArtifacts, paths: string
     .filter((a, index, abi) => {
       if (index === 0) return true;
       const alreadyExists = abi.slice(0, index).some((b) => {
-        return _.isEqual(a, b);
+        return isEqual(a, b);
       });
 
       return !alreadyExists;
@@ -118,7 +118,7 @@ export function getContractFromPath(ctx: ChainArtifacts, path: string): Contract
 export function getAllContractPaths(ctx: ChainArtifacts): string[] {
   return [
     ...Object.keys(ctx.contracts || {}),
-    ..._.sortBy(_.flatMap(ctx.imports, (v, k) => getAllContractPaths(v).map((c) => `${k}.${c}`))),
+    ...sortBy(flatMap(ctx.imports, (v, k) => getAllContractPaths(v).map((c) => `${k}.${c}`))),
   ];
 }
 
@@ -177,7 +177,7 @@ ${def.allActionNames.join('\n')}`);
 
   for (const deps of problems.extraneousDeps) {
     str.push(
-      `${counter}: extraneous dependency ${deps.extraneous} in action ${deps.node} (note: already depended upon by ${deps.inDep})`
+      `${counter}: extraneous dependency ${deps.extraneous} in action ${deps.node} (note: already depended upon by ${deps.inDep})`,
     );
 
     counter++;
@@ -186,8 +186,8 @@ ${def.allActionNames.join('\n')}`);
   for (const clash of problems.outputClashes) {
     str.push(
       `${counter}: The following actions output the field '${clash.output}': ${clash.actions.join(
-        ', '
-      )}. (Only one action can occupy a particular output name)`
+        ', ',
+      )}. (Only one action can occupy a particular output name)`,
     );
   }
 

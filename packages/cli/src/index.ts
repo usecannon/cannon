@@ -14,73 +14,73 @@ import {
   PackageReference,
   traceActions,
 } from '@usecannon/builder';
-import { bold, gray, green, red, yellow, yellowBright } from 'chalk';
+import chalk from 'chalk';
 import { Command } from 'commander';
-import _ from 'lodash';
+import { assign, differenceWith, isEqual, pick } from 'lodash-es';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import pkg from '../package.json';
-import { interact } from './commands/interact';
-import commandsConfig from './commands/config';
+import pkg from '../package.json' with { type: 'json' };
+import { interact } from './commands/interact.js';
+import commandsConfig from './commands/config/index.js';
 import {
   checkCannonVersion,
   ensureChainIdConsistency,
   getPackageInfo,
   ensureFoundryCompatibility,
   getPackageReference,
-} from './helpers';
-import { getMainLoader } from './loader';
-import { installPlugin, listInstalledPlugins, removePlugin } from './plugins';
-import { createDefaultReadRegistry } from './registry';
-import { CannonRpcNode, getProvider, runRpc } from './rpc';
-import { DEFAULT_RPC_URL, resolveCliSettings } from './settings';
-import { PackageSpecification } from './types';
+} from './helpers.js';
+import { getMainLoader } from './loader.js';
+import { installPlugin, listInstalledPlugins, removePlugin } from './plugins.js';
+import { createDefaultReadRegistry } from './registry.js';
+import { CannonRpcNode, getProvider, runRpc } from './rpc.js';
+import { DEFAULT_RPC_URL, resolveCliSettings } from './settings.js';
+import { PackageSpecification } from './types.js';
 
-import { doBuild } from './util/build';
-import { setDebugLevel } from './util/debug-level';
-import { log, error, logSpinner, warnSpinner, logSpinnerEnd, spinner } from './util/console';
-import { getContractsRecursive } from './util/contracts-recursive';
-import { applyCommandsConfig } from './util/commands-config';
+import { doBuild } from './util/build.js';
+import { setDebugLevel } from './util/debug-level.js';
+import { log, error, logSpinner, warnSpinner, logSpinnerEnd, spinner } from './util/console.js';
+import { getContractsRecursive } from './util/contracts-recursive.js';
+import { applyCommandsConfig } from './util/commands-config.js';
 import {
   fromFoundryOptionsToArgs,
   pickAnvilOptions,
   pickForgeBuildOptions,
   pickForgeTestOptions,
-} from './util/foundry-options';
-import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProviderAndSigners, resolveProvider } from './util/provider';
-import { isPackageRegistered } from './util/register';
-import { writeModuleDeployments } from './util/write-deployments';
-import './custom-steps/run';
-import { ANVIL_PORT_DEFAULT_VALUE } from './constants';
-import { deprecatedWarn } from './util/deprecated-warn';
+} from './util/foundry-options.js';
+import { getChainIdFromRpcUrl, isURL, ProviderAction, resolveProviderAndSigners, resolveProvider } from './util/provider.js';
+import { isPackageRegistered } from './util/register.js';
+import { writeModuleDeployments } from './util/write-deployments.js';
+import './custom-steps/run.js';
+import { ANVIL_PORT_DEFAULT_VALUE } from './constants.js';
+import { deprecatedWarn } from './util/deprecated-warn.js';
 
-export * from './types';
-export * from './constants';
-export * from './util/params';
-export * from './util/register';
-export * from './util/provider';
+export * from './types.js';
+export * from './constants.js';
+export * from './util/params.js';
+export * from './util/register.js';
+export * from './util/provider.js';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export type { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
-export { alter } from './commands/alter';
-export { build } from './commands/build';
-export { clean } from './commands/clean';
-export { inspect } from './commands/inspect';
-export { publish } from './commands/publish';
-export { unpublish } from './commands/unpublish';
-export { publishers } from './commands/publishers';
-export { run } from './commands/run';
-import { pin } from './commands/pin';
-export { verify } from './commands/verify';
-export { setup } from './commands/setup';
-import { forgeBuildOptions } from './commands/config/forge/build';
-import { forgeTestOptions } from './commands/config/forge/test';
-export { runRpc, getProvider } from './rpc';
-export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
-export { resolveProviderAndSigners } from './util/provider';
-export { resolveCliSettings } from './settings';
-export { getFoundryArtifact } from './foundry';
-export { loadCannonfile, getPackageInfo } from './helpers';
+export { alter } from './commands/alter.js';
+export { build } from './commands/build.js';
+export { clean } from './commands/clean.js';
+export { inspect } from './commands/inspect.js';
+export { publish } from './commands/publish.js';
+export { unpublish } from './commands/unpublish.js';
+export { publishers } from './commands/publishers.js';
+export { run } from './commands/run.js';
+import { pin } from './commands/pin.js';
+export { verify } from './commands/verify.js';
+export { setup } from './commands/setup.js';
+import { forgeBuildOptions } from './commands/config/forge/build.js';
+import { forgeTestOptions } from './commands/config/forge/test.js';
+export { runRpc, getProvider } from './rpc.js';
+export { createDefaultReadRegistry, createDryRunRegistry } from './registry.js';
+export { resolveProviderAndSigners } from './util/provider.js';
+export { resolveCliSettings } from './settings.js';
+export { getFoundryArtifact } from './foundry.js';
+export { loadCannonfile, getPackageInfo } from './helpers.js';
 
 const program = new Command();
 
@@ -101,12 +101,12 @@ function configureRun(program: Command) {
   return applyCommandsConfig(program, commandsConfig.run).action(async function (
     packages: PackageSpecification[],
     options,
-    program
+    program,
   ) {
     try {
-      logSpinner(bold('Starting local node...\n'));
+      logSpinner(chalk.bold('Starting local node...\n'));
 
-      const { run } = await import('./commands/run');
+      const { run } = await import('./commands/run.js');
 
       // backwards compatibility for --port flag
       if (options.port !== ANVIL_PORT_DEFAULT_VALUE) {
@@ -151,8 +151,8 @@ function configureRun(program: Command) {
       }
 
       // Override options with CLI settings
-      const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
-      const mergedOptions = _.assign({}, options, pickedCliSettings);
+      const pickedCliSettings = pick(cliSettings, Object.keys(options));
+      const mergedOptions = assign({}, options, pickedCliSettings);
 
       await run(packages, {
         ...mergedOptions,
@@ -202,7 +202,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
       // throw an error if the chainId is not consistent with the provider's chainId
       await ensureChainIdConsistency(cliSettings.rpcUrl, options.chainId);
 
-      logSpinner(bold('Building the foundry project...'));
+      logSpinner(chalk.bold('Building the foundry project...'));
       if (!options.skipCompile) {
         // use --build-info to output build info
         // ref: https://github.com/foundry-rs/foundry/pull/7197
@@ -231,10 +231,10 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
           });
           forgeBuildProcess.on('exit', (code) => {
             if (code === 0) {
-              logSpinner(gray('forge build succeeded'));
+              logSpinner(chalk.gray('forge build succeeded'));
             } else {
-              logSpinner(red('forge build failed'));
-              logSpinner(red('Make sure "forge build" runs successfully or use the --skip-compile flag.'));
+              logSpinner(chalk.red('forge build failed'));
+              logSpinner(chalk.red('Make sure "forge build" runs successfully or use the --skip-compile flag.'));
               log(`forge stdout:\n${forgeStdout.join('')}`);
               error(`forge stderr:\n${forgeStderr.join('')}`);
               return reject(new Error(`forge build failed with exit code "${code}"`));
@@ -244,14 +244,14 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
           });
         });
       } else {
-        logSpinner(yellow('Skipping forge build...'));
+        logSpinner(chalk.yellow('Skipping forge build...'));
       }
 
       logSpinner(''); // Linebreak in CLI to signify end of compilation.
 
       // Override options with CLI settings
-      const pickedCliSettings = _.pick(cliSettings, Object.keys(options));
-      const mergedOptions = _.assign({}, options, pickedCliSettings);
+      const pickedCliSettings = pick(cliSettings, Object.keys(options));
+      const mergedOptions = assign({}, options, pickedCliSettings);
 
       const [node, pkgSpec, outputs, runtime, deployInfo] = await doBuild(cannonfile, settings, mergedOptions);
 
@@ -267,7 +267,7 @@ applyCommandsConfig(program.command('build'), commandsConfig.build)
       if (options.keepAlive && node) {
         logSpinner(`The local node will continue running at ${node!.host}`);
 
-        const { run } = await import('./commands/run');
+        const { run } = await import('./commands/run.js');
 
         await run([{ ...pkgSpec, settings: {} }], {
           ...mergedOptions,
@@ -291,7 +291,7 @@ applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(asy
   }
   try {
     spinner?.update({ text: 'Verifying...' });
-    const { verify } = await import('./commands/verify');
+    const { verify } = await import('./commands/verify.js');
 
     // Override CLI settings with --api-key value
     options.etherscanApiKey = options.apiKey;
@@ -307,101 +307,94 @@ applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(asy
   }
 });
 
-applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(async function (
-  packageRef,
-  projectDirectory,
-  options
-) {
-  try {
-    spinner?.update({ text: 'Diffing...' });
-    const { diff } = await import('./commands/diff');
+applyCommandsConfig(program.command('diff'), commandsConfig.diff).action(
+  async function (packageRef, projectDirectory, options) {
+    try {
+      spinner?.update({ text: 'Diffing...' });
+      const { diff } = await import('./commands/diff.js');
 
-    const cliSettings = resolveCliSettings(options);
-    const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
+      const cliSettings = resolveCliSettings(options);
+      const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
 
-    const foundDiffs = await diff(
-      fullPackageRef,
-      cliSettings,
-      chainId,
-      projectDirectory,
-      options.matchContract,
-      options.matchSource
-    );
+      const foundDiffs = await diff(
+        fullPackageRef,
+        cliSettings,
+        chainId,
+        projectDirectory,
+        options.matchContract,
+        options.matchSource,
+      );
 
-    logSpinnerEnd();
-    // exit code is the number of differences found--useful for CI checks
-    process.exit(foundDiffs);
-  } catch (err) {
-    logSpinnerEnd();
-    throw err;
-  }
-});
-
-applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
-  packageName,
-  command,
-  options,
-  flags
-) {
-  try {
-    spinner?.update({ text: 'Altering...' });
-    const { alter } = await import('./commands/alter');
-
-    const cliSettings = resolveCliSettings(flags);
-
-    // throw an error if the chainId is not consistent with the provider's chainId
-    await ensureChainIdConsistency(cliSettings.rpcUrl, flags.chainId);
-
-    // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-    const newUrl = await alter(
-      packageName,
-      flags.subpkg ? flags.subpkg.split(',') : [],
-      parseInt(flags.chainId),
-      cliSettings,
-      {},
-      command,
-      options,
-      {},
-      flags.populateMissing || false
-    );
-
-    logSpinner(newUrl);
-    logSpinnerEnd();
-  } catch (err) {
-    logSpinnerEnd();
-    throw err;
-  }
-});
-
-applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async function (
-  givenIpfsUrl,
-  packageRef,
-  options
-) {
-  try {
-    const { fetch } = await import('./commands/fetch');
-
-    let fullPackageRef = null;
-    let chainId = null;
-    if (packageRef) {
-      const refInfo = await getPackageReference(packageRef, options.chainId);
-      fullPackageRef = refInfo.fullPackageRef;
-      chainId = refInfo.chainId;
+      logSpinnerEnd();
+      // exit code is the number of differences found--useful for CI checks
+      process.exit(foundDiffs);
+    } catch (err) {
+      logSpinnerEnd();
+      throw err;
     }
-    const ipfsUrl = getIpfsUrl(givenIpfsUrl);
-    const metaIpfsUrl = getIpfsUrl(options.metaHash) || undefined;
+  },
+);
 
-    if (!ipfsUrl) {
-      throw new Error('IPFS URL is required.');
+applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(
+  async function (packageName, command, options, flags) {
+    try {
+      spinner?.update({ text: 'Altering...' });
+      const { alter } = await import('./commands/alter.js');
+
+      const cliSettings = resolveCliSettings(flags);
+
+      // throw an error if the chainId is not consistent with the provider's chainId
+      await ensureChainIdConsistency(cliSettings.rpcUrl, flags.chainId);
+
+      // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
+      const newUrl = await alter(
+        packageName,
+        flags.subpkg ? flags.subpkg.split(',') : [],
+        parseInt(flags.chainId),
+        cliSettings,
+        {},
+        command,
+        options,
+        {},
+        flags.populateMissing || false,
+      );
+
+      logSpinner(newUrl);
+      logSpinnerEnd();
+    } catch (err) {
+      logSpinnerEnd();
+      throw err;
     }
+  },
+);
 
-    await fetch(fullPackageRef, chainId, ipfsUrl, metaIpfsUrl);
-    logSpinnerEnd();
-  } catch (err) {
-    logSpinnerEnd();
-    throw err;
-  }
-});
+applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(
+  async function (givenIpfsUrl, packageRef, options) {
+    try {
+      const { fetch } = await import('./commands/fetch.js');
+
+      let fullPackageRef = null;
+      let chainId = null;
+      if (packageRef) {
+        const refInfo = await getPackageReference(packageRef, options.chainId);
+        fullPackageRef = refInfo.fullPackageRef;
+        chainId = refInfo.chainId;
+      }
+      const ipfsUrl = getIpfsUrl(givenIpfsUrl);
+      const metaIpfsUrl = getIpfsUrl(options.metaHash) || undefined;
+
+      if (!ipfsUrl) {
+        throw new Error('IPFS URL is required.');
+      }
+
+      await fetch(fullPackageRef, chainId, ipfsUrl, metaIpfsUrl);
+      logSpinnerEnd();
+    } catch (err) {
+      logSpinnerEnd();
+      throw err;
+    }
+  },
+);
 
 applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async function (packageRef, options) {
   try {
@@ -433,11 +426,11 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
 
 applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(async function (
   packageRef,
-  options: { [opt: string]: string }
+  options: { [opt: string]: string },
 ) {
   try {
     spinner?.update({ text: 'Publishing...' });
-    const { publish } = await import('./commands/publish');
+    const { publish } = await import('./commands/publish.js');
 
     const cliSettings = resolveCliSettings(options);
 
@@ -480,9 +473,9 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       logSpinner();
     }
 
-    logSpinner(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+    logSpinner(chalk.bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
 
-    const readRegistry = _.differenceWith(cliSettings.registries, [writeRegistry], _.isEqual)[0];
+    const readRegistry = differenceWith(cliSettings.registries, [writeRegistry], isEqual)[0];
     const registryProviders = await Promise.all([
       // write to picked provider
       resolveProviderAndSigners({
@@ -511,9 +504,9 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       const pkgRef = new PackageReference(fullPackageRef);
       logSpinner();
       logSpinner(
-        gray(
-          `Package "${pkgRef.name}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`
-        )
+        chalk.gray(
+          `Package "${pkgRef.name}" not yet registered, please use "cannon register" to register your package first.\nYou need enough gas on Ethereum Mainnet to register the package on Cannon Registry`,
+        ),
       );
       logSpinner();
 
@@ -531,7 +524,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       }
 
       logSpinner();
-      const { register } = await import('./commands/register');
+      const { register } = await import('./commands/register.js');
       await register({ cliSettings, options, packageRefs: [pkgRef], fromPublish: true });
     }
 
@@ -566,7 +559,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
       }\n - Max Priority Fee Per Gas: ${
         overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
       }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
-        " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
+        " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n",
     );
 
     await publish({
@@ -590,7 +583,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
 applyCommandsConfig(program.command('unpublish'), commandsConfig.unpublish).action(async function (packageRef, options) {
   try {
     spinner?.update({ text: 'Unpublishing...' });
-    const { unpublish } = await import('./commands/unpublish');
+    const { unpublish } = await import('./commands/unpublish.js');
 
     const cliSettings = resolveCliSettings(options);
     const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
@@ -607,7 +600,7 @@ applyCommandsConfig(program.command('unpublish'), commandsConfig.unpublish).acti
 applyCommandsConfig(program.command('register'), commandsConfig.register).action(async function (packageRef, options) {
   try {
     spinner?.update({ text: 'Registering...' });
-    const { register } = await import('./commands/register');
+    const { register } = await import('./commands/register.js');
 
     const cliSettings = resolveCliSettings(options);
 
@@ -622,7 +615,7 @@ applyCommandsConfig(program.command('register'), commandsConfig.register).action
 
 applyCommandsConfig(program.command('publishers'), commandsConfig.publishers).action(async function (packageRef, options) {
   try {
-    const { publishers } = await import('./commands/publishers');
+    const { publishers } = await import('./commands/publishers.js');
 
     const cliSettings = resolveCliSettings(options);
 
@@ -637,13 +630,13 @@ applyCommandsConfig(program.command('publishers'), commandsConfig.publishers).ac
 applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(async function (packageRef, options) {
   try {
     spinner?.update({ text: 'Inspecting...' });
-    const { inspect } = await import('./commands/inspect');
+    const { inspect } = await import('./commands/inspect.js');
 
     const cliSettings = resolveCliSettings(options);
     const { fullPackageRef, chainId, ipfsUrl, deployInfo } = await getPackageInfo(
       packageRef,
       options.chainId,
-      cliSettings.rpcUrl
+      cliSettings.rpcUrl,
     );
 
     await inspect(
@@ -654,7 +647,7 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
       cliSettings,
       options.json ? 'deploy-json' : options.out,
       options.writeDeployments,
-      options.sources
+      options.sources,
     );
 
     logSpinnerEnd();
@@ -666,7 +659,7 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
 
 applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async function (options) {
   try {
-    const { prune } = await import('./commands/prune');
+    const { prune } = await import('./commands/prune.js');
 
     const cliSettings = resolveCliSettings(options);
 
@@ -682,12 +675,12 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
       storage,
       options.filterPackage?.split(',') || '',
       options.filterVariant?.split(',') || '',
-      options.keepAge
+      options.keepAge,
     );
 
     if (pruneUrls.length) {
       logSpinnerEnd();
-      log(bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
+      log(chalk.bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
       log(`Matched with Registry: ${pruneStats.matchedFromRegistry}`);
       log(`Not Expired: ${pruneStats.notExpired}`);
       log(`Not Cannon Package: ${pruneStats.notCannonPackage}`);
@@ -722,7 +715,7 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
 
       log('Done!');
     } else {
-      logSpinner(bold('Nothing to prune.'));
+      logSpinner(chalk.bold('Nothing to prune.'));
     }
     logSpinnerEnd();
   } catch (err) {
@@ -733,7 +726,7 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
 
 applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async function (packageRef, data, options) {
   try {
-    const { trace } = await import('./commands/trace');
+    const { trace } = await import('./commands/trace.js');
 
     const cliSettings = resolveCliSettings(options);
     const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
@@ -759,7 +752,7 @@ applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async
 
 applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(async function (packageRef, data, options) {
   try {
-    const { decode } = await import('./commands/decode');
+    const { decode } = await import('./commands/decode.js');
     const cliSettings = resolveCliSettings(options);
 
     const { fullPackageRef, chainId } = await getPackageInfo(packageRef, options.chainId, cliSettings.rpcUrl);
@@ -788,11 +781,11 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
     if (forgeOptions.length) {
       logSpinner();
       warnSpinner(
-        yellowBright(
-          bold(
-            '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.'
-          )
-        )
+        chalk.yellowBright(
+          chalk.bold(
+            '⚠️  The `--` syntax for passing options to forge or anvil is deprecated. Please use `--forge.*` or `--anvil.*` instead.',
+          ),
+        ),
       );
       logSpinner();
     }
@@ -862,14 +855,14 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
         priorityGasFee: options.maxPriorityFee,
       },
       resolver,
-      getMainLoader(cliSettings)
+      getMainLoader(cliSettings),
     );
 
     const deployData = await runtime.readDeploy(fullPackageRef, runtime.chainId);
 
     if (!deployData) {
       throw new Error(
-        `deployment not found for package: ${fullPackageRef} with chaindId ${chainId}. please make sure it exists for the given preset and current network.`
+        `deployment not found for package: ${fullPackageRef} with chaindId ${chainId}. please make sure it exists for the given preset and current network.`,
       );
     }
 
@@ -877,7 +870,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
     if (!outputs) {
       throw new Error(
-        `no cannon build found for ${fullPackageRef} with chaindId ${chainId}. Did you mean to run the package instead?`
+        `no cannon build found for ${fullPackageRef} with chaindId ${chainId}. Did you mean to run the package instead?`,
       );
     }
 
@@ -908,7 +901,7 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
 
 applyCommandsConfig(program.command('setup'), commandsConfig.setup).action(async function () {
   try {
-    const { setup } = await import('./commands/setup');
+    const { setup } = await import('./commands/setup.js');
     await setup();
 
     logSpinnerEnd();
@@ -924,7 +917,7 @@ applyCommandsConfig(program.command('clean'), commandsConfig.clean).action(async
 }) {
   try {
     logSpinnerEnd();
-    const { clean, cleanOrphanedIpfs } = await import('./commands/clean');
+    const { clean, cleanOrphanedIpfs } = await import('./commands/clean.js');
 
     // With --no-confirm flag, Commander sets confirm to false
     // Without the flag, confirm is undefined (default to true for confirmation)
@@ -949,9 +942,9 @@ const pluginCmd = applyCommandsConfig(program.command('plugin'), commandsConfig.
 
 applyCommandsConfig(pluginCmd.command('list'), commandsConfig.plugin.commands.list).action(async function () {
   try {
-    logSpinner(green(bold('\n=============== Installed Plug-ins ===============')));
+    logSpinner(chalk.green(chalk.bold('\n=============== Installed Plug-ins ===============')));
     const installedPlugins = await listInstalledPlugins();
-    installedPlugins.forEach((plugin) => logSpinner(yellow(plugin)));
+    installedPlugins.forEach((plugin) => logSpinner(chalk.yellow(plugin)));
 
     logSpinnerEnd();
   } catch (err) {

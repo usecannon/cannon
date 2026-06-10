@@ -1,16 +1,16 @@
 import Debug from 'debug';
 import * as Diff from 'diff';
 import * as viem from 'viem';
-import { getFoundryArtifact, buildContracts } from '../foundry';
+import { getFoundryArtifact, buildContracts } from '../foundry.js';
 import { ChainDefinition, ChainBuilderRuntime, DeploymentInfo, getArtifacts } from '@usecannon/builder';
 
-import { CliSettings } from '../settings';
-import { getProvider, runRpc } from '../rpc';
-import { createDefaultReadRegistry } from '../registry';
+import { CliSettings } from '../settings.js';
+import { getProvider, runRpc } from '../rpc.js';
+import { createDefaultReadRegistry } from '../registry.js';
 
-import { getMainLoader } from '../loader';
+import { getMainLoader } from '../loader.js';
 
-import { logSpinner, errorSpinner } from '../util/console';
+import { logSpinner, errorSpinner } from '../util/console.js';
 
 const debug = Debug('cannon:cli:diff');
 
@@ -20,7 +20,7 @@ export async function diff(
   chainId: number,
   projectDirectory: string,
   matchContract = '',
-  matchPath = ''
+  matchPath = '',
 ): Promise<number> {
   // create temporary provider
   // todo: really shouldn't be necessary
@@ -43,14 +43,14 @@ export async function diff(
       allowPartialDeploy: false,
     },
     resolver,
-    getMainLoader(cliSettings)
+    getMainLoader(cliSettings),
   );
 
   const deployData = await runtime.readDeploy(fullPackageRef, chainId);
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and ${chainId} network.`
+      `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and ${chainId} network.`,
     );
   }
 
@@ -67,7 +67,7 @@ async function diffPackage(
   runtime: ChainBuilderRuntime,
   contractsDirectory: string,
   matchContract: string,
-  matchPath: string
+  matchPath: string,
 ) {
   const miscData = await runtime.readBlob(deployData.miscUrl);
 
@@ -110,7 +110,7 @@ async function diffPackage(
     try {
       localArtifact = await getFoundryArtifact(
         `${contractInfo.sourceName}:${contractInfo.contractName}`,
-        contractsDirectory
+        contractsDirectory,
       );
     } catch (err) {
       try {

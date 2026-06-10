@@ -1,21 +1,22 @@
-export type Option = {
+export type Option<T = string> = {
   flags: string;
   description: string;
-  defaultValue?: string | boolean | string[];
+  defaultValue?: T | T[];
+  customFunction?: (value: T, previousValue: T) => T;
   alias?: string;
 };
 
 type Argument = {
   flags: string;
   description: string;
-  defaultValue?: string | boolean | string[];
+  defaultValue?: string | boolean | number | string[];
 };
 
 type BaseCommand = {
   description: string;
   usage?: string;
   arguments?: Argument[];
-  options?: Option[];
+  options?: Option<any>[];
   anvilOptions?: Option[];
   forgeOptions?: Option[];
 };

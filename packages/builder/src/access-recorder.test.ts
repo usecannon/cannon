@@ -1,4 +1,4 @@
-import { AccessRecorderEngine } from './access-recorder';
+import { AccessRecorderEngine } from './access-recorder.js';
 
 describe('access-recorder.ts', () => {
   const engine = new AccessRecorderEngine([]);
@@ -54,7 +54,7 @@ describe('access-recorder.ts', () => {
 
     it('computes dependency with complex math operation', () => {
       expect(
-        engine.computeTemplateAccesses('<%= (settings.value1 + settings.value2) * settings.value3 / settings.value4 %>')
+        engine.computeTemplateAccesses('<%= (settings.value1 + settings.value2) * settings.value3 / settings.value4 %>'),
       ).toEqual({
         accesses: ['settings.value1', 'settings.value2', 'settings.value3', 'settings.value4'],
         unableToCompute: false,
@@ -78,8 +78,8 @@ describe('access-recorder.ts', () => {
     it('computes array dependency', () => {
       expect(
         engine.computeTemplateAccesses(
-          '["<%= settings.camelotSwapPublisherAdmin1 %>","<%= settings.camelotSwapPublisherAdmin2 %>"]'
-        )
+          '["<%= settings.camelotSwapPublisherAdmin1 %>","<%= settings.camelotSwapPublisherAdmin2 %>"]',
+        ),
       ).toEqual({
         accesses: ['settings.camelotSwapPublisherAdmin1', 'settings.camelotSwapPublisherAdmin2'],
         unableToCompute: false,
@@ -96,8 +96,8 @@ describe('access-recorder.ts', () => {
     it('computes dependency using complex CannonHelperContext', () => {
       expect(
         engine.computeTemplateAccesses(
-          '<%= defaultAbiCoder.encode(parseEther(settings.woot)) %> + <%= defaultAbiCoder.decode(contracts.compound) %>'
-        )
+          '<%= defaultAbiCoder.encode(parseEther(settings.woot)) %> + <%= defaultAbiCoder.decode(contracts.compound) %>',
+        ),
       ).toEqual({
         accesses: ['contracts.compound', 'settings.woot'],
         unableToCompute: false,
@@ -180,7 +180,7 @@ describe('access-recorder.ts', () => {
 
     it('prevents overriding console.log', () => {
       expect(
-        engine.computeTemplateAccesses('<%= console.log=function(n){require("fs").writeFileSync("./exploit.log",n)} %>')
+        engine.computeTemplateAccesses('<%= console.log=function(n){require("fs").writeFileSync("./exploit.log",n)} %>'),
       ).toEqual({
         accesses: [],
         unableToCompute: true,

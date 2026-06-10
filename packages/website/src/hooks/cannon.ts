@@ -108,7 +108,7 @@ export function useCannonBuild(safe: SafeDefinition | null) {
 
   const [buildState, dispatch] = useReducer(
     (state: LocalBuildState, partial: Partial<LocalBuildState>): LocalBuildState => ({ ...state, ...partial }),
-    initialState
+    initialState,
   );
 
   const fallbackRegistry = useCannonRegistry();
@@ -126,7 +126,7 @@ export function useCannonBuild(safe: SafeDefinition | null) {
     // Wait until finished loading
     if (!safe || !def || !deployerWalletAddress) {
       throw new Error(
-        `Missing required parameters. has safe: ${!!safe}, def: ${!!def}, deployerWalletAddress: ${deployerWalletAddress}`
+        `Missing required parameters. has safe: ${!!safe}, def: ${!!def}, deployerWalletAddress: ${deployerWalletAddress}`,
       );
     }
 
@@ -215,7 +215,7 @@ export function useCannonBuild(safe: SafeDefinition | null) {
         allowPartialDeploy: true,
       },
       fallbackRegistry,
-      loaders
+      loaders,
     );
 
     const skippedSteps: StepExecutionError[] = [];
@@ -227,7 +227,7 @@ export function useCannonBuild(safe: SafeDefinition | null) {
         stepLabel: string,
         stepOutput: ChainArtifacts,
         _ctx: ChainBuilderContext,
-        result: ChainArtifacts
+        result: ChainArtifacts,
       ) => {
         const stepName = `${stepType}.${stepLabel}`;
 
@@ -257,7 +257,7 @@ export function useCannonBuild(safe: SafeDefinition | null) {
         }
 
         dispatch({ message: `Building ${stepName}...` });
-      }
+      },
     );
 
     currentRuntime.on(Events.SkipDeploy, (stepName: string, err: Error) => {
@@ -278,7 +278,7 @@ export function useCannonBuild(safe: SafeDefinition | null) {
       prevDeploy?.meta || {},
       safe.chainId,
       prevDeploy?.options || {},
-      safe.address
+      safe.address,
     );
 
     const newState = await cannonBuild(currentRuntime, def, _.cloneDeep(prevDeploy?.state) ?? {}, ctx);
@@ -289,7 +289,7 @@ export function useCannonBuild(safe: SafeDefinition | null) {
         if (!executedTx) throw new Error('Invalid operation');
         const tx = await provider.getTransaction({ hash: executedTx.hash as Hex });
         const rx = await provider.getTransactionReceipt({ hash: executedTx.hash as Hex });
-        // eslint-disable-next-line no-console
+
         return {
           name: executedTx.deployedOn,
           gas: rx.gasUsed,
@@ -300,11 +300,10 @@ export function useCannonBuild(safe: SafeDefinition | null) {
             data: tx.input,
           } as BaseTransaction,
         };
-      })
+      }),
     );
     if (fork) await fork.disconnect();
 
-    // eslint-disable-next-line no-console
     return {
       runtime: currentRuntime,
       state: newState,
@@ -316,7 +315,7 @@ export function useCannonBuild(safe: SafeDefinition | null) {
   function doBuild<onSuccessType>(
     def?: ChainDefinition,
     prevDeploy?: DeploymentInfo,
-    onSuccess?: (res: LocalBuildState['result']) => Promise<onSuccessType>
+    onSuccess?: (res: LocalBuildState['result']) => Promise<onSuccessType>,
   ) {
     resetState();
 
@@ -372,14 +371,14 @@ export function useCannonWriteDeployToIpfs() {
     const packageRef = PackageReference.from(
       deployInfo.def.name,
       deployInfo.def.version,
-      deployInfo.def.preset
+      deployInfo.def.preset,
     ).fullPackageRef;
 
     await runtime.registry.publish(
       [packageRef],
       runtime.chainId,
       (await runtime.loaders.mem.put(deployInfo)) ?? '',
-      metaUrl || ''
+      metaUrl || '',
     );
 
     const memoryRegistry = new InMemoryRegistry();
@@ -389,7 +388,7 @@ export function useCannonWriteDeployToIpfs() {
       toStorage: new CannonStorage(
         memoryRegistry,
         { ipfs: new IPFSBrowserLoader(settings.ipfsApiUrl || externalLinks.IPFS_CANNON) },
-        'ipfs'
+        'ipfs',
       ),
       packageRef,
       chainId: runtime.chainId,
@@ -417,7 +416,7 @@ export function useCannonFindUpgradeFromUrl(
   packageRef?: PackageReference,
   chainId?: number,
   deployers?: Address[],
-  upgradeFrom?: string | null // Optional, if not deployers given
+  upgradeFrom?: string | null, // Optional, if not deployers given
 ) {
   const registry = useCannonRegistry();
   const publicClient = usePublicClient();
@@ -433,7 +432,7 @@ export function useCannonFindUpgradeFromUrl(
           publicClient as Parameters<typeof findUpgradeFromPackage>[1],
           packageRef!,
           chainId!,
-          deployers!
+          deployers!,
         );
         return url;
       } else if (upgradeFrom) {
@@ -556,7 +555,7 @@ export function useCannonPackage(urlOrRef?: string | PackageReference, chainId?:
       resolvedPreset: ipfsQuery.data?.resolvedPreset,
       fullPackageRef: ipfsQuery.data?.fullPackageRef,
     }),
-    [registryQuery, ipfsQuery, registryQueryMeta]
+    [registryQuery, ipfsQuery, registryQueryMeta],
   );
 }
 
@@ -638,7 +637,7 @@ export function useCannonPackageContracts(packageRef?: string, chainId?: number)
             allowPartialDeploy: false,
           },
           null as any,
-          { ipfs: loader }
+          { ipfs: loader },
         );
 
         const chainDefinition = await getChainDefinitionFromWorker(info.def);

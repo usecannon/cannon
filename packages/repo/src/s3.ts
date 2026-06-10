@@ -54,7 +54,7 @@ export function getS3Client(config: Params, cache = 10_000) {
           retries: 3,
           minTimeout: 500,
           maxTimeout: 3000,
-        }
+        },
       );
 
       return exists;
@@ -75,7 +75,7 @@ export function getS3Client(config: Params, cache = 10_000) {
           retries: 3,
           minTimeout: 500,
           maxTimeout: 3000,
-        }
+        },
       );
 
       await s3.objectExists.delete(key);
@@ -97,7 +97,7 @@ export function getS3Client(config: Params, cache = 10_000) {
           retries: 3,
           minTimeout: 500,
           maxTimeout: 3000,
-        }
+        },
       );
 
       if (!res.Body) {

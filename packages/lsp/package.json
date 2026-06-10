@@ -20,8 +20,5 @@
     "@taplo/lsp": "^0.8.0",
     "@usecannon/builder": "workspace:*",
     "@usecannon/cli": "workspace:*"
-  },
-  "devDependencies": {
-    "zod-to-json-schema": "^3.21.4"
   }
 }

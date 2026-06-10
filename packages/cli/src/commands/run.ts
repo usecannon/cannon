@@ -11,22 +11,22 @@ import {
   renderTrace,
   TraceEntry,
 } from '@usecannon/builder';
-import { bold, gray, green, greenBright, yellow } from 'chalk';
-import _ from 'lodash';
+import chalk from 'chalk';
+import { entries, fromPairs, map } from 'lodash-es';
 import * as viem from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { ANVIL_FIRST_ADDRESS } from '../constants';
-import { ensureFoundryCompatibility } from '../helpers';
-import { getMainLoader } from '../loader';
-import { createDefaultReadRegistry } from '../registry';
-import { CannonRpcNode, getProvider } from '../rpc';
-import { resolveCliSettings } from '../settings';
-import { PackageSpecification } from '../types';
-import { logSpinner, warnSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console';
-import { getContractsRecursive } from '../util/contracts-recursive';
-import onKeypress from '../util/on-keypress';
-import { build } from './build';
-import { interact } from './interact';
+import { ANVIL_FIRST_ADDRESS } from '../constants.js';
+import { ensureFoundryCompatibility } from '../helpers.js';
+import { getMainLoader } from '../loader.js';
+import { createDefaultReadRegistry } from '../registry.js';
+import { CannonRpcNode, getProvider } from '../rpc.js';
+import { resolveCliSettings } from '../settings.js';
+import { PackageSpecification } from '../types.js';
+import { logSpinner, warnSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console.js';
+import { getContractsRecursive } from '../util/contracts-recursive.js';
+import onKeypress from '../util/on-keypress.js';
+import { build } from './build.js';
+import { interact } from './interact.js';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -47,13 +47,13 @@ export interface RunOptions {
   nonInteractive?: boolean;
 }
 
-const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
-const INSTRUCTIONS = green(
-  `Press ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
-    'i'
-  )} to interact with contracts via the command line.\nPress ${bold(
-    'v'
-  )} to toggle display verbosity of transaction traces as they run.`
+const INITIAL_INSTRUCTIONS = chalk.green(`Press ${chalk.bold('h')} to see help information for this command.`);
+const INSTRUCTIONS = chalk.green(
+  `Press ${chalk.bold('a')} to toggle displaying the logs from your local node.\nPress ${chalk.bold(
+    'i',
+  )} to interact with contracts via the command line.\nPress ${chalk.bold(
+    'v',
+  )} to toggle display verbosity of transaction traces as they run.`,
 );
 
 export async function run(packages: PackageSpecification[], options: RunOptions): Promise<void> {
@@ -108,7 +108,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       allowPartialDeploy: false,
     },
     resolver,
-    getMainLoader(cliSettings)
+    getMainLoader(cliSettings),
   );
 
   for (const pkg of packages) {
@@ -132,7 +132,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
       if (!deployData) {
         throw new Error(
-          `deployment not found: ${fullPackageRef}. please make sure it exists for the network ${basicRuntime.chainId}`
+          `deployment not found: ${fullPackageRef}. please make sure it exists for the network ${basicRuntime.chainId}`,
         );
       }
 
@@ -145,18 +145,18 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       buildOutputs.push({ pkg, outputs });
     }
 
-    logSpinner(greenBright(`${bold(`${name}:${version}@${preset}`)} has been deployed to a local node.`));
+    logSpinner(chalk.greenBright(`${chalk.bold(`${name}:${version}@${preset}`)} has been deployed to a local node.`));
 
     if (node.forkProvider) {
-      logSpinner(gray('Running from fork provider'));
+      logSpinner(chalk.gray('Running from fork provider'));
     }
   }
 
   if (!signers.length) {
     warnSpinner(
-      yellow(
-        '\nWARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).'
-      )
+      chalk.yellow(
+        '\nWARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).',
+      ),
     );
   }
 
@@ -170,7 +170,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     buildOutputs.length == 1
       ? buildOutputs[0].outputs
       : ({
-          imports: _.fromPairs(_.entries(_.map(buildOutputs, 'outputs'))),
+          imports: fromPairs(entries(map(buildOutputs, 'outputs'))),
         } as ChainArtifacts);
 
   let traceLevel = 0;
@@ -215,7 +215,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
   if (options.nonInteractive) {
     await new Promise(() => {
-      logSpinner(gray('Non-interactive mode enabled. Press Ctrl+C to exit.'));
+      logSpinner(chalk.gray('Non-interactive mode enabled. Press Ctrl+C to exit.'));
     });
   } else {
     logSpinner();
@@ -231,12 +231,12 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         logSpinnerStart();
         // Toggle showAnvilLogs when the user presses "a"
         if (nodeLogging.enabled()) {
-          logSpinner(gray('Paused anvil logs...'));
+          logSpinner(chalk.gray('Paused anvil logs...'));
           logSpinner(INSTRUCTIONS);
           logSpinnerEnd();
           nodeLogging.disable();
         } else {
-          logSpinner(gray('Unpaused anvil logs...'));
+          logSpinner(chalk.gray('Unpaused anvil logs...'));
           logSpinnerEnd();
           nodeLogging.enable();
         }
@@ -267,13 +267,13 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         // Toggle showAnvilLogs when the user presses "a"
         if (traceLevel === 0) {
           traceLevel = 1;
-          logSpinner(gray('Enabled display of log events from transactions...'));
+          logSpinner(chalk.gray('Enabled display of log events from transactions...'));
         } else if (traceLevel === 1) {
           traceLevel = 2;
-          logSpinner(gray('Enabled display of full transaction logs...'));
+          logSpinner(chalk.gray('Enabled display of full transaction logs...'));
         } else {
           traceLevel = 0;
-          logSpinner(gray('Disabled transaction tracing...'));
+          logSpinner(chalk.gray('Disabled transaction tracing...'));
         }
         logSpinnerEnd();
       } else if (evt.name === 'h') {
@@ -297,7 +297,7 @@ async function createLoggingInterface(node: CannonRpcNode) {
     const newData = chunk
       .split('\n')
       .map((m: string) => {
-        return gray('anvil: ') + m;
+        return chalk.gray('anvil: ') + m;
       })
       .join('\n');
 

@@ -1,12 +1,12 @@
 import { OnChainRegistry, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
-import { blueBright, green, bold } from 'chalk';
-import _ from 'lodash';
+import chalk from 'chalk';
+import { differenceWith, isEqual } from 'lodash-es';
 import prompts from 'prompts';
 import * as viem from 'viem';
-import { LocalRegistry } from '../registry';
-import { CliSettings } from '../settings';
-import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
-import { logSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console';
+import { LocalRegistry } from '../registry.js';
+import { CliSettings } from '../settings.js';
+import { resolveProviderAndSigners, ProviderAction } from '../util/provider.js';
+import { logSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console.js';
 
 interface Options {
   maxFeePerGas?: string;
@@ -38,7 +38,7 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
   }
 
   // if it's using the default config, prompt the user to choose a registry provider
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
+  const isDefaultSettings = isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Custom registry settings are not supported yet.');
 
   if (cliSettings.isE2E) {
@@ -73,9 +73,9 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
     logSpinnerStart();
   }
 
-  logSpinner(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+  logSpinner(chalk.bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
 
-  const readRegistry = _.differenceWith(cliSettings.registries, [writeRegistry], _.isEqual)[0];
+  const readRegistry = differenceWith(cliSettings.registries, [writeRegistry], isEqual)[0];
   const registryProviders = await Promise.all([
     // write to picked provider
     resolveProviderAndSigners({
@@ -118,14 +118,14 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
 
   if (!deploys || deploys.length === 0) {
     throw new Error(
-      `Could not find any deployments for ${fullPackageRef} with chain id ${chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`
+      `Could not find any deployments for ${fullPackageRef} with chain id ${chainId}. If you have the IPFS hash of the deployment data, use the fetch command. Otherwise, rebuild the package.`,
     );
   }
 
   const onChainResults = await Promise.all(
     deploys.map(async (d) => {
       return [await onChainRegistry.getUrl(d.name, d.chainId), await onChainRegistry.getMetaUrl(d.name, d.chainId)];
-    })
+    }),
   );
 
   const publishedDeploys = deploys.reduce((acc: any[], deploy, index) => {
@@ -180,7 +180,7 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
     }\n - Max Priority Fee Per Gas: ${
       overrides.maxPriorityFeePerGas ? overrides.maxPriorityFeePerGas.toString() : 'default'
     }\n - Gas Limit: ${overrides.gasLimit ? overrides.gasLimit : 'default'}\n` +
-      " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n"
+      " - To alter these settings use the parameters '--max-fee-per-gas', '--max-priority-fee-per-gas', '--gas-limit'.\n",
   );
 
   logSpinner();
@@ -190,11 +190,11 @@ export async function unpublish({ cliSettings, options, fullPackageRef, chainId 
   if (selectedDeploys.length > 1) {
     const [hash] = await onChainRegistry.unpublishMany(selectedDeploys);
 
-    logSpinner(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+    logSpinner(`${chalk.green('Success!')} (${chalk.blueBright('Transaction Hash')}: ${hash})`);
   } else {
     const [deploy] = selectedDeploys;
     const hash = await onChainRegistry.unpublish(deploy.name, deploy.chainId);
 
-    logSpinner(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+    logSpinner(`${chalk.green('Success!')} (${chalk.blueBright('Transaction Hash')}: ${hash})`);
   }
 }

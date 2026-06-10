@@ -1,5 +1,4 @@
 import TTLCache from '@isaacs/ttlcache';
-import { AggregateGroupByReducers, AggregateSteps } from 'redis';
 import * as keys from '../db/keys';
 import { useRedis } from '../redis';
 
@@ -16,14 +15,14 @@ async function _queryChains(withTotal: boolean) {
   const results = (await redis.ft.aggregate(keys.RKEY_PACKAGE_SEARCHABLE, '*', {
     STEPS: [
       {
-        type: AggregateSteps.GROUPBY,
+        type: 'GROUPBY',
         properties: '@chainId',
         REDUCE: withTotal
           ? {
-              type: AggregateGroupByReducers.COUNT,
+              type: 'COUNT',
             }
           : {
-              type: AggregateGroupByReducers.COUNT_DISTINCT,
+              type: 'COUNT_DISTINCT',
               property: '@chainId',
             },
       },

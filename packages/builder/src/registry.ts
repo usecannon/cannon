@@ -1,14 +1,14 @@
-import { blueBright, bold, yellow } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
-import _ from 'lodash';
+import { uniq } from 'lodash-es';
 import EventEmitter from 'promise-events';
 import * as viem from 'viem';
-import CannonRegistryAbi from './abis/CannonRegistry';
-import { getIpfsUrl } from './ipfs';
-import { prepareMulticall, TxData } from './multicall';
-import { PackageReference } from './package-reference';
-import { CannonSigner } from './types';
-import { getBuilderLogger } from './logger';
+import CannonRegistryAbi from './abis/CannonRegistry.js';
+import { prepareMulticall, TxData } from './multicall.js';
+import { PackageReference } from './package-reference.js';
+import { CannonSigner } from './types.js';
+import { getIpfsUrl } from './ipfs.js';
+import { getBuilderLogger } from './logger.js';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -22,7 +22,7 @@ export abstract class CannonRegistry {
       url: string;
       metaUrl: string;
       mutabilityOverride?: 'version' | 'tag';
-    }[]
+    }[],
   ): Promise<string[]> {
     const receipts: string[] = [];
     for (const pub of toPublish) {
@@ -71,7 +71,7 @@ export class InMemoryRegistry extends CannonRegistry {
     chainId: number,
     url: string,
     meta?: string,
-    mutabilityOverride?: 'version' | 'tag'
+    mutabilityOverride?: 'version' | 'tag',
   ): Promise<string[]> {
     const receipts: string[] = [];
     for (const [index, rawName] of packagesNames.entries()) {
@@ -96,9 +96,9 @@ export class InMemoryRegistry extends CannonRegistry {
     return receipts;
   }
 
-  async getUrl(
+  override async getUrl(
     packageOrServiceRef: string,
-    chainId: number
+    chainId: number,
   ): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
     const baseResolved = await super.getUrl(packageOrServiceRef, chainId);
     if (baseResolved.url) return baseResolved;
@@ -111,7 +111,7 @@ export class InMemoryRegistry extends CannonRegistry {
       : { url: null, mutability: '' };
   }
 
-  async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+  override async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
     const { preset, packageRef } = new PackageReference(packageOrServiceRef);
 
     const variant = `${chainId}-${preset}`;
@@ -119,7 +119,7 @@ export class InMemoryRegistry extends CannonRegistry {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getAllUrls(filterPackage?: string, chainId?: number): Promise<Set<string>> {
+  override async getAllUrls(filterPackage?: string, chainId?: number): Promise<Set<string>> {
     return new Set();
   }
 }
@@ -159,7 +159,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
         if (err.error && err.error.data === '0x') {
           throw new Error(
             'JSON-RPC Error: This is likely an error on the RPC provider being used, ' +
-              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
+              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`,
           );
         }
 
@@ -186,7 +186,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
         if (err.error && err.error.data === '0x') {
           throw new Error(
             'JSON-RPC Error: This is likely an error on the RPC provider being used, ' +
-              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`
+              `you can verify this if you have access to the node logs. \n\n ${err} \n ${err.error}`,
           );
         }
 
@@ -209,7 +209,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
     chainId: number,
     url: string,
     metaUrl?: string,
-    mutabilityOverride?: 'version' | 'tag'
+    mutabilityOverride?: 'version' | 'tag',
   ): Promise<string[]> {
     debug('publish to fallback database: ', packagesNames, mutabilityOverride);
     // try to publish to any of the registries
@@ -238,7 +238,7 @@ export class FallbackRegistry extends EventEmitter implements CannonRegistry {
       url: string;
       metaUrl: string;
       mutabilityOverride?: 'version' | 'tag';
-    }[]
+    }[],
   ): Promise<string[]> {
     return this.publishRegistry.publishMany(toPublish);
   }
@@ -305,7 +305,7 @@ export class OnChainRegistry extends CannonRegistry {
 
     if (viem.isAddressEqual(packageOwner, viem.zeroAddress)) {
       throw new Error(
-        `The package "${packageName}" is not registered to be owned by anyone. Please register the package before publishing for the first time.`
+        `The package "${packageName}" is not registered to be owned by anyone. Please register the package before publishing for the first time.`,
       );
     }
 
@@ -323,17 +323,17 @@ export class OnChainRegistry extends CannonRegistry {
     chainId: number,
     url?: string,
     metaUrl?: string,
-    mutabilityOverride?: 'version' | 'tag'
+    mutabilityOverride?: 'version' | 'tag',
   ): PackageData {
     const refs = packagesNames.map((name) => new PackageReference(name));
 
     // Sanity check, all package definitions should have the same name
-    if (_.uniq(refs.map((r) => r.name)).length !== 1) {
+    if (uniq(refs.map((r) => r.name)).length !== 1) {
       throw new Error(`packages should have the same name: ${packagesNames.join(', ')}`);
     }
 
     // Sanity check, all package definitions should have the same preset
-    if (_.uniq(refs.map((r) => r.preset)).length !== 1) {
+    if (uniq(refs.map((r) => r.preset)).length !== 1) {
       throw new Error(`packages should have the same preset: ${packagesNames.join(', ')}`);
     }
 
@@ -441,7 +441,7 @@ export class OnChainRegistry extends CannonRegistry {
             args: [viem.stringToHex(name, { size: 32 }), ownerAddress],
           });
         }
-      })
+      }),
     );
 
     const txData = txs.length === 1 ? txs[0] : prepareMulticall(txs);
@@ -469,42 +469,42 @@ export class OnChainRegistry extends CannonRegistry {
     chainId: number,
     url: string,
     metaUrl?: string,
-    mutabilityOverride?: 'version' | 'tag'
+    mutabilityOverride?: 'version' | 'tag',
   ): Promise<string[]> {
-    getBuilderLogger().log(bold(blueBright('\nPublishing package to the registry on-chain...\n')));
+    getBuilderLogger().log(chalk.bold(chalk.blueBright('\nPublishing package to the registry on-chain...\n')));
     const packageData = this._preparePackageData(packagesNames, chainId, url, metaUrl, mutabilityOverride);
     return [await this._publishPackages([packageData])];
   }
 
-  async publishMany(
+  override async publishMany(
     toPublish: {
       packagesNames: string[];
       chainId: number;
       url: string;
       metaUrl?: string;
       mutabilityOverride?: 'version' | 'tag';
-    }[]
+    }[],
   ): Promise<string[]> {
-    getBuilderLogger().log(bold(blueBright('\nPublishing packages to the registry on-chain...\n')));
+    getBuilderLogger().log(chalk.bold(chalk.blueBright('\nPublishing packages to the registry on-chain...\n')));
     const packageDatas = toPublish.map((p) => this._preparePackageData(p.packagesNames, p.chainId, p.url, p.metaUrl));
     return [await this._publishPackages(packageDatas)];
   }
 
   async unpublish(packagesNames: string[], chainId: number): Promise<string[]> {
-    getBuilderLogger().log(bold(blueBright('\nUnpublishing package to the registry on-chain...\n')));
+    getBuilderLogger().log(chalk.bold(chalk.blueBright('\nUnpublishing package to the registry on-chain...\n')));
     const packageData = this._preparePackageData(packagesNames, chainId);
     return [await this._unpublishPackages([packageData])];
   }
 
   async unpublishMany(toUnpublish: { name: string[]; chainId: number }[]): Promise<string[]> {
-    getBuilderLogger().log(bold(blueBright('\nUnpublishing packages to the registry on-chain...\n')));
+    getBuilderLogger().log(chalk.bold(chalk.blueBright('\nUnpublishing packages to the registry on-chain...\n')));
     const packageDatas = toUnpublish.map((p) => this._preparePackageData(p.name, p.chainId));
     return [await this._unpublishPackages(packageDatas)];
   }
 
-  async getUrl(
+  override async getUrl(
     packageOrServiceRef: string,
-    chainId: number
+    chainId: number,
   ): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
     if (!this.provider) {
       throw new Error('provider not given to getUrl');
@@ -534,7 +534,7 @@ export class OnChainRegistry extends CannonRegistry {
     };
   }
 
-  async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
+  override async getMetaUrl(packageOrServiceRef: string, chainId: number): Promise<string | null> {
     if (!this.provider) {
       throw new Error('provider not given to getUrl');
     }
@@ -558,7 +558,7 @@ export class OnChainRegistry extends CannonRegistry {
     return url || null;
   }
 
-  async getAllUrls(filterPackageRef?: string, chainId?: number): Promise<Set<string>> {
+  override async getAllUrls(filterPackageRef?: string, chainId?: number): Promise<Set<string>> {
     if (!this.provider) {
       throw new Error('no provider');
     }
@@ -589,7 +589,7 @@ export class OnChainRegistry extends CannonRegistry {
           args: [filterName, filterVersion, filterVariant],
           fromBlock: BigInt(i),
           toBlock: BigInt(Math.min(curBlock, i + BLOCK_SCAN_BATCH)),
-        }))
+        })),
       );
     }
 
@@ -812,7 +812,7 @@ export class OnChainRegistry extends CannonRegistry {
 
     if (!userBalance) {
       throw new Error(
-        `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to perform the operation.`
+        `Signer at address ${this.signer.address} is not funded with ETH. Please ensure you have ETH in your wallet in order to perform the operation.`,
       );
     }
 
@@ -825,11 +825,11 @@ export class OnChainRegistry extends CannonRegistry {
 
     if (this.signer && userBalance < transactionFeeWei) {
       getBuilderLogger().warn(
-        bold(
-          yellow(
-            `The address "${this.signer.address}" does not have enough funds to pay for the transaction, the transaction will likely revert.\n`
-          )
-        )
+        chalk.bold(
+          chalk.yellow(
+            `The address "${this.signer.address}" does not have enough funds to pay for the transaction, the transaction will likely revert.\n`,
+          ),
+        ),
       );
     }
   }

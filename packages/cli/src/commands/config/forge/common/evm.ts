@@ -1,4 +1,4 @@
-import type { Option as ForgeEVMOption } from '../../types';
+import type { Option as ForgeEVMOption } from '../../types.js';
 
 export const forgeEvmOptions: ForgeEVMOption[] = [
   {
