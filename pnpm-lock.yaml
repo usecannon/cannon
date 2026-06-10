@@ -3,6 +3,25 @@ lockfileVersion: '9.0'
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
+  onlyBuiltDependencies:
+    - "@badeball/cypress-cucumber-preprocessor"
+    - "@foundry-rs/anvil"
+    - "@parcel/watcher"
+    - "@sentry/cli"
+    - bufferutil
+    - contentlayer2
+    - cypress
+    - es5-ext
+    - esbuild
+    - keccak
+    - msgpackr-extract
+    - nx
+    - protobufjs
+    - redis-memory-server
+    - secp256k1
+    - sharp
+    - unrs-resolver
+    - utf-8-validate
 
 overrides:
   got@<11.8.5: '>=11.8.5'
