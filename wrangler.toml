@@ -1,5 +1,5 @@
 #:schema node_modules/wrangler/config-schema.json
-name = "usecannon"
+name = "cannon"
 compatibility_date = "2026-06-09"
 
 [pages_build_config]
