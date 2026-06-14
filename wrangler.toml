@@ -3,5 +3,4 @@ name = "cannon"
 compatibility_date = "2026-06-09"
 
 [assets]
-#build_command = "cd packages/website && pnpm run build"
 directory = "./packages/website/out"
