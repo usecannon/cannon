@@ -45,7 +45,8 @@
     "solhint-plugin-prettier": "^0.0.5",
     "syncpack": "^13.0.4",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "wrangler": "^4.98.0"
   },
   "license": "GNU GPL V3.0",
   "dependencies": {
