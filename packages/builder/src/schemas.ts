@@ -858,6 +858,31 @@ export const diamondSchema = z
   })
   .strict();
 
+/**
+ * Schema for individual var definitions within a var namespace.
+ * Each var has a required type, optional value, and optional description.
+ */
+const varDefinitionSchema = z.object({
+  /**
+   * The value of the variable. If not provided, must be supplied externally at build time.
+   */
+  value: z.string().optional().describe('The value of the variable. If not provided, must be supplied externally at build time.'),
+  /**
+   * The type of the variable. Required. Used for validation.
+   */
+  type: z.enum(['string', 'address', 'number', 'boolean', 'bytes']).describe('The type of the variable. Used for validation.'),
+  /**
+   * Description of what this variable is used for.
+   */
+  description: z.string().optional().describe('Description of what this variable is used for.'),
+});
+
+/**
+ * Schema for var namespace sections (e.g., [var.main]).
+ * Each namespace contains var definitions keyed by var name.
+ */
+export const varNamespaceSchema = z.record(z.string(), varDefinitionSchema);
+
 export const varSchema = z
   .object({
     /**
@@ -878,7 +903,7 @@ export const varSchema = z
         'List of operations that this operation depends on, which Cannon will execute first. If unspecified, Cannon automatically detects dependencies.'
       ),
   })
-  .catchall(z.string());
+  .catchall(z.union([z.string(), varDefinitionSchema]));
 
 /**
  * Shared schema for cannonfile actions (operations).
@@ -973,7 +998,7 @@ const cannonfileActionsSchema = z.object({
   /**
    * @internal
    */
-  var: z.record(varSchema).describe('Apply a setting or intermediate value.'),
+  var: z.record(varNamespaceSchema).describe('Define namespaced variables with type information and descriptions.'),
   // ... there may be others that come from plugins
 });
 

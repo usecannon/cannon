@@ -90,6 +90,9 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
 
   settings: { [label: string]: string };
 
+  // Namespaced variables (Cannon 3.0+)
+  vars: { [namespace: string]: { [label: string]: string } };
+
   // Legacy
   extras?: { [label: string]: string };
 
@@ -98,7 +101,7 @@ export interface ChainBuilderContext extends PreChainBuilderContext {
   [shortContract: string]: any;
 }
 
-export type CannonContextGlobals = 'imports' | 'contracts' | 'txns' | 'settings' | 'extras';
+export type CannonContextGlobals = 'imports' | 'contracts' | 'txns' | 'settings' | 'vars' | 'extras';
 
 // We do a deepFreeze and deepClone to make sure to not any of the context objects,
 // and not let the user modify them also,
@@ -266,6 +269,10 @@ export function combineCtx(ctxs: ChainBuilderContext[]): ChainBuilderContext {
     ctx.txns = { ...ctx.txns, ...additionalCtx.txns };
     ctx.imports = { ...ctx.imports, ...additionalCtx.imports };
     ctx.settings = { ...ctx.settings, ...additionalCtx.settings };
+    // Merge vars namespaces
+    for (const [ns, vars] of Object.entries(additionalCtx.vars || {})) {
+      ctx.vars[ns] = { ...ctx.vars[ns], ...vars };
+    }
   }
 
   return ctx;
