@@ -1,8 +1,11 @@
 import * as viem from 'viem';
-import { getDefaultStorage, getCannonContract, getBlockRetried } from './helpers';
+import { privateKeyToAccount } from 'viem/accounts';
+import { createNonceManager, jsonRpc } from 'viem/nonce';
+import { getDefaultStorage, getCannonContract, getBlockRetried, sendTransactionWithRetry } from './helpers';
 import { IPFSLoader, InMemoryLoader } from './loader';
 import { InMemoryRegistry, FallbackRegistry } from './registry';
 import { CannonStorage } from './runtime';
+import type { CannonSigner } from './types';
 
 describe('helpers.test.ts', () => {
   describe('getDefaultStorage()', () => {
@@ -112,5 +115,100 @@ describe('helpers.test.ts', () => {
 
       expect(contract.address).toEqual('0x1234123412341234123412341234123412341234');
     });
+  });
+});
+
+describe('sendTransactionWithRetry', () => {
+  // a real viem chain + transport so the test signers are fully typed instead of cast fakes
+  const testChain = viem.defineChain({
+    id: 6343,
+    name: 'test-chain',
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpcUrls: { default: { http: ['http://127.0.0.1:8545'] } },
+  });
+
+  // serves only eth_chainId; the broadcasts themselves are mocked at the closure level
+  const testTransport = () =>
+    viem.custom({
+      async request({ method }: { method: string }): Promise<unknown> {
+        if (method === 'eth_chainId') return viem.numberToHex(testChain.id);
+        throw new Error(`unexpected rpc request: ${method}`);
+      },
+    });
+
+  // anvil dev key #1 (well-known, test-only)
+  const testKey = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d';
+
+  // signer whose wallet account is a real viem local account carrying a nonce manager
+  function makeLocalSigner(withChain = true) {
+    const nonceManager = createNonceManager({ source: jsonRpc() });
+    const reset = jest.spyOn(nonceManager, 'reset');
+    const account = privateKeyToAccount(testKey, { nonceManager });
+    const wallet = withChain
+      ? viem.createWalletClient({ account, chain: testChain, transport: testTransport() })
+      : viem.createWalletClient({ account, transport: testTransport() });
+    const signer: CannonSigner = { address: account.address, wallet };
+    return { signer, reset };
+  }
+
+  // signer backed by a remote (json-rpc) account, e.g. Frame — no nonce manager to reset
+  function makeJsonRpcSigner(): CannonSigner {
+    return {
+      address: '0x000000000000000000000000000000000000abcd',
+      wallet: viem.createWalletClient({ chain: testChain, transport: testTransport() }),
+    };
+  }
+
+  it('retries any failed broadcast, resetting the nonce manager of a local account', async () => {
+    const { signer, reset } = makeLocalSigner();
+    const send = jest.fn().mockRejectedValueOnce(new Error('intermittent rpc failure')).mockResolvedValueOnce('0xhash');
+
+    const hash = await sendTransactionWithRetry(signer, send);
+
+    expect(hash).toBe('0xhash');
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(reset).toHaveBeenCalledWith({ address: signer.address, chainId: testChain.id });
+  });
+
+  it('retries even when the signer has no nonce manager to reset', async () => {
+    const signer = makeJsonRpcSigner();
+    const send = jest.fn().mockRejectedValueOnce(new Error('nonce too low')).mockResolvedValueOnce('0xhash');
+
+    await expect(sendTransactionWithRetry(signer, send)).resolves.toBe('0xhash');
+    expect(send).toHaveBeenCalledTimes(2);
+  });
+
+  it('falls back to eth_chainId when the wallet has no configured chain', async () => {
+    const { signer, reset } = makeLocalSigner(false);
+    const send = jest.fn().mockRejectedValueOnce(new Error('nonce too low')).mockResolvedValueOnce('0xhash');
+
+    await expect(sendTransactionWithRetry(signer, send)).resolves.toBe('0xhash');
+    expect(reset).toHaveBeenCalledWith({ address: signer.address, chainId: testChain.id });
+  });
+
+  it('does not retry when the user explicitly rejected the transaction', async () => {
+    const { signer, reset } = makeLocalSigner();
+    // viem wraps the EIP-1193 rejection a few levels down in the `cause` chain
+    const rejection = new viem.BaseError('could not send transaction', {
+      cause: new viem.UserRejectedRequestError(new Error('User denied transaction signature')),
+    });
+    const send = jest.fn().mockRejectedValue(rejection);
+
+    await expect(sendTransactionWithRetry(signer, send)).rejects.toThrow('could not send transaction');
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(reset).not.toHaveBeenCalled();
+  });
+
+  it('rejects with the last error after all retries are exhausted', async () => {
+    const { signer } = makeLocalSigner();
+    const send = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('nonce too low: next nonce 5, tx nonce 4'))
+      .mockRejectedValueOnce(new Error('nonce too low: next nonce 6, tx nonce 5'))
+      .mockRejectedValueOnce(new Error('nonce too low: next nonce 7, tx nonce 6'))
+      .mockRejectedValueOnce(new Error('nonce too low: next nonce 8, tx nonce 7'));
+
+    await expect(sendTransactionWithRetry(signer, send)).rejects.toThrow('nonce too low: next nonce 8');
+    expect(send).toHaveBeenCalledTimes(4); // 1 initial + 3 retries
   });
 });

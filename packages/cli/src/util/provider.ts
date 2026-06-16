@@ -4,6 +4,7 @@ import prompts from 'prompts';
 import { bold, red, grey } from 'chalk';
 import provider from 'eth-provider';
 import { privateKeyToAccount } from 'viem/accounts';
+import { createNonceManager, jsonRpc } from 'viem/nonce';
 import { CannonSigner, traceActions } from '@usecannon/builder';
 
 import { logSpinner, errorSpinner, logSpinnerStart, logSpinnerEnd } from './console';
@@ -82,6 +83,24 @@ export const getChainIdFromRpcUrl = async (rpcUrl: string) => {
   const provider = viem.createPublicClient({ transport: viem.http(rpcUrl, { timeout: 180000 }) });
   return provider.getChainId();
 };
+
+// Builds a live signer from a private key with a viem nonce manager attached, so that nonce
+// assignment is serialized per (address, chainId) and never regresses below an already-used
+// nonce. This prevents "nonce too low" on strict-ordering / eventually-consistent RPCs where a
+// fresh eth_getTransactionCount('pending') read can lag an already-submitted transaction.
+// The manager's jsonRpc source has no RPC of its own: it issues eth_getTransactionCount through
+// the wallet client created below, i.e. over the same `transport` the transactions are sent on.
+export function createPrivateKeySigner(privateKey: viem.Hex, chainId: number, transport: viem.Transport): CannonSigner {
+  const account = privateKeyToAccount(privateKey, { nonceManager: createNonceManager({ source: jsonRpc() }) });
+  return {
+    address: account.address,
+    wallet: viem.createWalletClient({
+      account,
+      chain: getChainById(chainId),
+      transport,
+    }),
+  };
+}
 
 export async function resolveProvider({
   cliSettings,
@@ -238,17 +257,9 @@ export async function resolveProviderAndSigners({
 
     if (privateKey && action !== ProviderAction.WriteDryRunProvider) {
       signers.push(
-        ...privateKey.split(',').map((k: string) => {
-          const account = privateKeyToAccount(k as viem.Hex);
-          return {
-            address: account.address,
-            wallet: viem.createWalletClient({
-              account,
-              chain: getChainById(chainId),
-              transport: viem.custom(publicClient.transport),
-            }),
-          };
-        })
+        ...privateKey
+          .split(',')
+          .map((k: string) => createPrivateKeySigner(k as viem.Hex, chainId, viem.custom(publicClient.transport)))
       );
     } else {
       debug('no signer supplied for provider');
@@ -271,16 +282,13 @@ export async function resolveProviderAndSigners({
           });
           logSpinnerStart();
           if (keyPrompt.value) {
-            const account = privateKeyToAccount(normalizePrivateKey(keyPrompt.value as viem.Hex));
-
-            signers.push({
-              address: account.address,
-              wallet: viem.createWalletClient({
-                account,
-                chain: getChainById(chainId),
-                transport: viem.custom(publicClient.transport),
-              }),
-            });
+            signers.push(
+              createPrivateKeySigner(
+                normalizePrivateKey(keyPrompt.value as viem.Hex),
+                chainId,
+                viem.custom(publicClient.transport)
+              )
+            );
           }
 
           break;

@@ -4,6 +4,7 @@ import * as viem from 'viem';
 import { z } from 'zod';
 import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
 import { mergeTemplateAccesses } from '../access-recorder';
+import { sendTransactionWithRetry } from '../helpers';
 import { ChainBuilderRuntime } from '../runtime';
 import { diamondSchema } from '../schemas';
 import { ContractArtifact, ContractMap, PackageState } from '../types';
@@ -21,7 +22,7 @@ const debug = Debug('cannon:builder:diamond');
 export type Config = z.infer<typeof diamondSchema>;
 
 // get function selectors from ABI
-function getFacetSelectors(abi: viem.Abi) {
+function getFacetSelectors(abi: viem.Abi): viem.Hex[] {
   const selectors = abi
     .map((item: viem.AbiItem) => {
       if (item.type === 'function') {
@@ -30,9 +31,16 @@ function getFacetSelectors(abi: viem.Abi) {
 
       return null;
     })
-    .filter((v) => v);
+    .filter((v): v is viem.Hex => v !== null);
   return selectors;
 }
+
+// a single entry of the facet cut list passed to diamondCut/diamondWipeAndPave
+type FacetCut = {
+  action: number;
+  facetAddress: viem.Address;
+  functionSelectors: viem.Hex[];
+};
 
 // ensure the specified contract is already deployed
 // if not deployed, deploy the specified hardhat contract with specfied options, export
@@ -170,7 +178,7 @@ const diamondStep = {
     ]);
 
     // finally, do the cut operation
-    const updateFacets = [];
+    const updateFacets: FacetCut[] = [];
 
     for (const facetName of deployedContracts) {
       updateFacets.push({
@@ -194,18 +202,19 @@ const diamondStep = {
 
     // todo: what to do about the owner of the proxy changing unexpectedly?
     try {
-      const preparedTxn = await runtime.provider.prepareTransactionRequest({
-        account: ownerSigner.wallet.account || ownerSigner.address,
-        to: proxyAddress,
-        data: viem.encodeFunctionData({
-          abi: (await import('../abis/diamond/DiamondWipeAndPaveFacet.json')).abi,
-          functionName: 'diamondWipeAndPave',
-          args: [updateFacets, config.diamondArgs.init, config.diamondArgs.initCalldata],
-        }),
-        ...config.overrides,
-      } as any);
-
-      const txn = await ownerSigner.wallet.sendTransaction(preparedTxn as any);
+      const txn = await sendTransactionWithRetry(ownerSigner, async () => {
+        const preparedTxn = await runtime.provider.prepareTransactionRequest({
+          account: ownerSigner.wallet.account || ownerSigner.address,
+          to: proxyAddress,
+          data: viem.encodeFunctionData({
+            abi: (await import('../abis/diamond/DiamondWipeAndPaveFacet.json')).abi,
+            functionName: 'diamondWipeAndPave',
+            args: [updateFacets, config.diamondArgs.init, config.diamondArgs.initCalldata],
+          }),
+          ...config.overrides,
+        } as any);
+        return ownerSigner.wallet.sendTransaction(preparedTxn as any);
+      });
 
       const receipt = await runtime.provider.waitForTransactionReceipt({ hash: txn });
       debug('got receipt', receipt);
@@ -298,8 +307,8 @@ async function firstTimeDeploy(
     const bytecode = await runtime.provider.getCode({ address: addr });
 
     if (!bytecode) {
-      const hash = await signer.wallet.sendTransaction(
-        _.assign({ account: signer.wallet.account || signer.address }, create2Txn as any)
+      const hash = await sendTransactionWithRetry(signer, async () =>
+        signer.wallet.sendTransaction(_.assign({ account: signer.wallet.account || signer.address }, create2Txn as any))
       );
       const receipt = await runtime.provider.waitForTransactionReceipt({ hash });
       const block = await runtime.provider.getBlock({ blockHash: receipt.blockHash });
@@ -345,7 +354,7 @@ async function firstTimeDeploy(
     import('../abis/diamond/DiamondWipeAndPaveFacet.json'),
   ]);
 
-  const addFacets = [];
+  const addFacets: FacetCut[] = [];
   for (const facet of [...baseFacets, ...mutabilityFacets]) {
     // load the diamond proxy contracts which may need to be deployed:
     const deployedAddr = await deployContract(facet as any, stepName + facet.contractName, []);
