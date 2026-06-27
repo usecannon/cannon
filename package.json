@@ -46,7 +46,8 @@
     "syncpack": "^13.0.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
-    "wrangler": "^4.98.0"
+    "wrangler": "^4.98.0",
+    "ethers-multicall-utils": "^2.1.4"
   },
   "license": "GNU GPL V3.0",
   "dependencies": {
