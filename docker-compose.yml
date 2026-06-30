@@ -14,41 +14,112 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-
-  # supersim spins up the necessary OPs chains for the registry, and makes
-  # sure all cross chain messaging works.
-  # registry:
-  #   image: ghcr.io/usecannon/supersim:0.1.0-alpha.25
-  #   restart: always
-  #   environment:
-  #     ANVIL_IP_ADDR: 0.0.0.0
-  #   ports:
-  #     - '0.0.0.0:8545:8545' # L1
-  #     - '0.0.0.0:9545:9545' # L2
-  #   command: --interop.autorelay
-
-  # Deploy the registry on L1
-  registry:
+      start_period: 1s
+    volumes:
+      - redis_data:/data
+  
+  s3:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
     restart: always
-    image: node:22.11.0-alpine
-    # command: npx -y @usecannon/cli build  registry --wipe --rpc-url https://registry:8545
-    command: |
-      curl -L https://foundry.paradigm.xyz | bash
-      PATH="/root/.foundry/bin:${PATH}"
-      foundryup --version nightly-fdd321bac95f0935529164a88faf99d4d5cfa321
-      DEBUG=cannon* npx -y @usecannon/cli run registry --anvil.host 0.0.0.0 --anvil.port 8545 --anvil.chain-id 1
     ports:
-      - '0.0.0.0:8545:8545' # L1
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 60s
+      timeout: 3s
+      retries: 5
+      start_period: 1s
+    volumes:
+      - s3_data:/data
 
+  s3-init:
+    image: minio/mc:latest
+    depends_on:
+      s3:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set usecannon http://s3:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      mc mb --ignore-existing usecannon/cannon;
+      exit 0;"
+  
   repo:
     build:
       context: .
       dockerfile: docker/repo.Dockerfile
     restart: always
     depends_on:
-      - redis
+      s3:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       REDIS_URL: redis://redis:6379
+      IPFS_URL: ${IPFS_URL}
       UPSTREAM_IPFS_URL: http://localhost:9095
+      PINATA_API_JWT: ''
+      PINATA_URL: ''
+      MAINNET_PROVIDER_URL: ${MAINNET_PROVIDER_URL}
+      OPTIMISM_PROVIDER_URL: ${OPTIMISM_PROVIDER_URL}
+      S3_ENDPOINT: 'http://s3:9000'
+      S3_BUCKET: 'cannon'
+      S3_FOLDER: 'repo-v2'
+      S3_REGION: 'us-east-1'
+      S3_KEY: ${MINIO_ROOT_USER}
+      S3_SECRET: ${MINIO_ROOT_PASSWORD}
     ports:
       - '3000:3000'
+
+  indexer:
+    build:
+      context: .
+      dockerfile: docker/indexer.Dockerfile
+    restart: always
+    depends_on:
+      s3:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_URL: redis://redis:6379
+      REPO_URL: http://repo:3000
+      NODE_ENV: production
+      IPFS_URL: ${IPFS_URL}
+      #NOTIFY_PKGS: '',
+      MAINNET_PROVIDER_URL: ${MAINNET_PROVIDER_URL}
+      OPTIMISM_PROVIDER_URL: ${OPTIMISM_PROVIDER_URL}
+      S3_ENDPOINT: 'http://s3:9000'
+      S3_BUCKET: 'cannon'
+      S3_FOLDER: 'repo-v2'
+      S3_REGION: 'us-east-1'
+      S3_KEY: ${MINIO_ROOT_USER}
+      S3_SECRET: ${MINIO_ROOT_PASSWORD}
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    restart: always
+    depends_on:
+      s3:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PORT: 8080
+      REDIS_URL: 'redis://redis:6379'
+      NODE_ENV: production
+      TRUST_PROXY: 'true'
+      METRICS_USER: admin
+      METRICS_PASSWORD: admin
+    ports:
+      - '8080:8080'
+
+volumes:
+  redis_data:
+  s3_data:

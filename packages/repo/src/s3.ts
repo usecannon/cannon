@@ -15,7 +15,7 @@ interface Params {
 
 export function getS3Client(config: Params, cache = 10_000) {
   const client = new S3({
-    forcePathStyle: false, // Configures to use subdomain/virtual calling format.
+    forcePathStyle: true, // required for minio
     endpoint: config.S3_ENDPOINT,
     region: config.S3_REGION,
     credentials: {
