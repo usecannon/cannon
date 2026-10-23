@@ -29,7 +29,7 @@ export class LocalLoader implements CannonLoader {
   }
 
   getLabel(): string {
-    return this.dir;
+    return 'local blobs';
   }
 
   read(url: string): Promise<any> {
@@ -94,7 +94,7 @@ export class CliLoader implements CannonLoader {
       case LoaderAction.read:
         return this.readIpfs ? this.readIpfs.getLabel() : this.repo.getLabel();
       case LoaderAction.local:
-        return this.dir;
+        return 'local cache';
       case LoaderAction.write:
         return this.writeIpfs ? this.writeIpfs.getLabel() : '';
       case LoaderAction.repo:
