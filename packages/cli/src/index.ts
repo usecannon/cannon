@@ -654,7 +654,8 @@ applyCommandsConfig(program.command('inspect'), commandsConfig.inspect).action(a
       cliSettings,
       options.json ? 'deploy-json' : options.out,
       options.writeDeployments,
-      options.sources
+      options.sources,
+      options.matchContract
     );
 
     logSpinnerEnd();

@@ -1,7 +1,9 @@
 import {
+  BundledChainBuilderOutputs,
   ChainArtifacts,
   ChainDefinition,
   ContractData,
+  ContractMap,
   DeploymentInfo,
   DeploymentState,
   fetchIPFSAvailability,
@@ -32,10 +34,16 @@ export async function inspect(
   cliSettings: CliSettings,
   out: FormatType,
   writeDeployments: string,
-  sources: boolean
+  sources: boolean,
+  matchContract = ''
 ) {
   if (out && !formatTypes.includes(out)) {
     throw new Error(`invalid --out value: "${out}". Valid types are: '${formatTypes.join("' | '")}'`);
+  }
+
+  if (matchContract) {
+    const regex = new RegExp(matchContract);
+    deployInfo.state = _filterState(deployInfo.state, regex);
   }
 
   const resolver = await createDefaultReadRegistry(cliSettings);
@@ -79,7 +87,21 @@ export async function inspect(
     const packageOwner = deployInfo.def.setting?.owner?.defaultValue;
     const localSource = getSourceFromRegistry(resolver.registries);
     const ipfsAvailabilityScore = await fetchIPFSAvailability(cliSettings.ipfsUrl, ipfsUrl.replace('ipfs://', ''));
-    const contractsAndDetails = getContractsAndDetails(deployInfo.state);
+    let contractsAndDetails = getContractsAndDetails(deployInfo.state);
+
+    if (matchContract) {
+      const regex = new RegExp(matchContract);
+      const stateContracts = _getNestedStateContracts(deployInfo.state);
+      const filtered: ContractMap = {};
+      for (const [filepath, contractData] of stateContracts.entries()) {
+        const contractName = path.basename(filepath, '.json');
+        if (regex.test(contractName)) {
+          filtered[contractName] = contractData;
+        }
+      }
+      contractsAndDetails = filtered;
+    }
+
     const miscData = await loader.ipfs.read(deployInfo.miscUrl);
     const contractSources = _listSourceCodeContracts(miscData);
 
@@ -162,6 +184,28 @@ function _getNestedStateFiles(artifacts: ChainArtifacts, pathname: string, resul
   }
 
   return result;
+}
+
+function _filterState(state: DeploymentState, regex: RegExp): DeploymentState {
+  return _.pickBy(
+    _.mapValues(state, (val) => ({ ...val, artifacts: _filterArtifacts(val.artifacts, regex) })),
+    (val) => Object.keys(val.artifacts.contracts || {}).length > 0 || Object.keys(val.artifacts.imports || {}).length > 0
+  );
+}
+
+function _filterArtifacts(artifacts: ChainArtifacts, regex: RegExp): ChainArtifacts {
+  const newArtifacts: ChainArtifacts = { ...artifacts };
+  if (newArtifacts.contracts) {
+    newArtifacts.contracts = _.pickBy(newArtifacts.contracts, (v, k) => regex.test(k)) as ContractMap;
+  }
+  if (newArtifacts.imports) {
+    const filteredImports = _.pickBy(
+      _.mapValues(newArtifacts.imports, (i) => _filterArtifacts(i, regex)),
+      (v) => Object.keys(v.contracts || {}).length > 0 || Object.keys(v.imports || {}).length > 0
+    ) as BundledChainBuilderOutputs;
+    newArtifacts.imports = filteredImports;
+  }
+  return newArtifacts;
 }
 
 // TODO: types
