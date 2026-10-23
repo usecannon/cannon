@@ -6,6 +6,7 @@ import { viemContext } from './utils/viem-context';
 import { jsContext } from './utils/js-context';
 import { ethersContext } from './utils/ethers-context';
 import { PackageReference } from './package-reference';
+import type { BroadcastPolicy } from './broadcast';
 
 import type { RawChainDefinition } from './actions';
 
@@ -152,6 +153,9 @@ export interface ChainBuilderRuntimeInfo {
   // Base and Priority gas fee to use for transactions - EIP1559
   gasFee?: bigint;
   priorityGasFee?: bigint;
+
+  // Retry policy for live transaction broadcasts. Defaults to DEFAULT_BROADCAST_POLICY.
+  broadcastPolicy?: BroadcastPolicy;
 }
 
 export interface PackageState {

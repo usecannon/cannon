@@ -46,6 +46,10 @@ describe('steps/router.ts', () => {
   });
 
   describe('exec()', () => {
+    beforeEach(() => {
+      jest.mocked(fakeRuntime.sendTransaction).mockClear();
+    });
+
     it('throws an error on missing contract file', async () => {
       const contracts = { Greeter: fixtureContractData('Greeter') };
       const step = {
@@ -100,6 +104,12 @@ describe('steps/router.ts', () => {
           gasUsed: Number(rx.gasUsed.toString()),
         },
       });
+
+      // plain deploy: no `to` (contract creation), no gas override configured
+      const [, sentRequest] = jest.mocked(fakeRuntime.sendTransaction).mock.calls[0];
+      expect(sentRequest.to).toBeUndefined();
+      expect(sentRequest.data).toEqual(expect.stringMatching(/^0x[0-9a-f]+$/));
+      expect(sentRequest.gas).toBeUndefined();
     });
 
     it('generates and deploys Router with create2', async () => {
@@ -148,6 +158,16 @@ describe('steps/router.ts', () => {
           gasUsed: Number(rx.gasUsed.toString()),
         },
       });
+
+      // create2 deploy: `to` is the arachnid deployer, no gas override configured
+      expect(fakeRuntime.sendTransaction).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          to: create2Module.ARACHNID_DEFAULT_DEPLOY_ADDR,
+          data: expect.stringMatching(/^0x[0-9a-f]+$/),
+          gas: undefined,
+        })
+      );
     });
 
     it('continues when create2 contract already exists with ifExists', async () => {
@@ -220,6 +240,7 @@ describe('steps/router.ts', () => {
         contracts: ['Greeter'],
         create2: customDeployer,
         salt: 'test',
+        overrides: { gasLimit: '77000' },
       };
 
       const runtime = fakeRuntime;
@@ -247,6 +268,16 @@ describe('steps/router.ts', () => {
 
       // Verify ensureArachnidCreate2Exists was called with custom address
       expect(create2Module.ensureArachnidCreate2Exists).toHaveBeenCalledWith(runtime, customDeployer);
+
+      // create2 deploy: `to` is the custom deployer, gas is the parsed overrides.gasLimit
+      expect(fakeRuntime.sendTransaction).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          to: customDeployer,
+          data: expect.stringMatching(/^0x[0-9a-f]+$/),
+          gas: BigInt(77000),
+        })
+      );
     });
   });
 });

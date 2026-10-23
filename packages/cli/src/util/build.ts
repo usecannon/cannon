@@ -16,6 +16,7 @@ import { createDryRunRegistry } from '../registry';
 import { CannonRpcNode, getProvider, runRpc } from '../rpc';
 import { CliSettings, resolveCliSettings } from '../settings';
 import { execPromise, filterSettings, loadCannonfile } from '../helpers';
+import { parseBroadcastPolicy } from './broadcast-policy';
 import { warn } from './console';
 import { parseSettings } from './params';
 import { pickAnvilOptions } from './foundry-options';
@@ -382,6 +383,7 @@ async function prepareBuildConfig(
     gasPrice: parseGwei(options.gasPrice),
     gasFee: parseGwei(options.maxGasFee),
     priorityGasFee: parseGwei(options.maxPriorityGasFee),
+    broadcastPolicy: parseBroadcastPolicy(options.broadcastRetries),
   };
 }
 

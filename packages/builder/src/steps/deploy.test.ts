@@ -9,6 +9,9 @@ import { AccessRecorderEngine } from '..';
 
 const DEFAULT_ARACHNID_ADDRESS = '0x4e59b44847b379578588920cA78FbF26c0B4956C';
 
+// shared across the exec() happy-path cases below: they all deploy the same fakeAbi with the same args
+const DEPLOY_ARGS = [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }];
+
 describe('steps/deploy.ts', () => {
   const fakeAbi = [
     {
@@ -39,6 +42,9 @@ describe('steps/deploy.ts', () => {
     },
   ];
   const fakeRx = fixtureTransactionReceipt();
+  // shared expected `data` for every plain (non-create2) deploy exec() case below: they all deploy
+  // fakeAbi/'0xabcd' with DEPLOY_ARGS
+  const expectedPlainDeployData = viem.encodeDeployData({ abi: fakeAbi, bytecode: '0xabcd', args: DEPLOY_ARGS });
 
   beforeAll(async () => {
     jest.mocked(fakeRuntime.getArtifact).mockResolvedValue({
@@ -188,6 +194,10 @@ describe('steps/deploy.ts', () => {
   });
 
   describe('exec()', () => {
+    beforeEach(() => {
+      jest.mocked(fakeRuntime.sendTransaction).mockClear();
+    });
+
     describe('when create2 = true', () => {
       it('fails if contract already deployed', async () => {
         jest.mocked(fakeRuntime.provider.getCode).mockResolvedValue('0xabcdef');
@@ -265,7 +275,7 @@ describe('steps/deploy.ts', () => {
           {
             artifact: 'hello',
             create2: true,
-            args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
+            args: DEPLOY_ARGS,
             salt: 'wohoo',
             value: '1234',
           },
@@ -297,6 +307,14 @@ describe('steps/deploy.ts', () => {
         });
 
         expect((await fakeRuntime.getDefaultSigner({}, '')).wallet.sendTransaction).toHaveBeenCalled();
+
+        // pin the create2 request handed to the pipeline: arachnid deployer as `to`, salted initcode as `data`
+        const initcode = viem.encodeDeployData({ abi: fakeAbi, bytecode: '0xabcd', args: DEPLOY_ARGS });
+        const expectedCreate2Data = viem.concatHex([viem.keccak256(viem.toBytes('wohoo')), initcode]);
+        expect(fakeRuntime.sendTransaction).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({ to: DEFAULT_ARACHNID_ADDRESS, data: expectedCreate2Data })
+        );
       });
     });
 
@@ -308,7 +326,7 @@ describe('steps/deploy.ts', () => {
           {
             artifact: 'hello',
             highlight: true,
-            args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
+            args: DEPLOY_ARGS,
             salt: 'wohoo',
             value: '1234',
           },
@@ -338,6 +356,11 @@ describe('steps/deploy.ts', () => {
             },
           },
         });
+
+        // plain deploy: no `to` (contract creation), data is the encoded deploy bytecode
+        const [, sentRequest] = jest.mocked(fakeRuntime.sendTransaction).mock.calls[0];
+        expect(sentRequest.to).toBeUndefined();
+        expect(sentRequest.data).toEqual(expectedPlainDeployData);
       });
 
       it('deploys with specified signer fromCall', async () => {
@@ -355,7 +378,7 @@ describe('steps/deploy.ts', () => {
           {
             artifact: 'hello',
             from: '0x1234123412341234123412341234123412341234',
-            args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
+            args: DEPLOY_ARGS,
             salt: 'wohoo',
             value: '1234',
           },
@@ -385,6 +408,11 @@ describe('steps/deploy.ts', () => {
             },
           },
         });
+
+        // plain deploy: no `to` (contract creation), data is the encoded deploy bytecode
+        const [, sentRequest] = jest.mocked(fakeRuntime.sendTransaction).mock.calls[0];
+        expect(sentRequest.to).toBeUndefined();
+        expect(sentRequest.data).toEqual(expectedPlainDeployData);
       });
 
       it('deploys with default signer', async () => {
@@ -393,9 +421,10 @@ describe('steps/deploy.ts', () => {
           fakeCtx,
           {
             artifact: 'hello',
-            args: [viem.stringToHex('one', { size: 32 }), viem.stringToHex('two', { size: 32 }), { three: 'four' }],
+            args: DEPLOY_ARGS,
             salt: 'wohoo',
             value: '1234',
+            overrides: { gasLimit: '123000' },
           },
           { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
         );
@@ -423,6 +452,13 @@ describe('steps/deploy.ts', () => {
             },
           },
         });
+
+        // plain deploy: no `to` (contract creation), data is the encoded deploy bytecode, gas is the
+        // parsed overrides.gasLimit
+        const [, sentRequest] = jest.mocked(fakeRuntime.sendTransaction).mock.calls[0];
+        expect(sentRequest.to).toBeUndefined();
+        expect(sentRequest.data).toEqual(expectedPlainDeployData);
+        expect(sentRequest.gas).toBe(BigInt(123000));
       });
     });
   });

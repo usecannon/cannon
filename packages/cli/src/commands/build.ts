@@ -1,5 +1,6 @@
 import {
   build as cannonBuild,
+  BroadcastPolicy,
   CANNON_CHAIN_ID,
   CannonRegistry,
   CannonSigner,
@@ -57,6 +58,7 @@ interface Params {
   gasPrice?: bigint;
   gasFee?: bigint;
   priorityGasFee?: bigint;
+  broadcastPolicy?: BroadcastPolicy;
   writeScript?: string;
   writeScriptFormat?: WriteScriptFormat;
 }
@@ -81,6 +83,7 @@ export async function build({
   gasPrice,
   gasFee,
   priorityGasFee,
+  broadcastPolicy,
   writeScript,
   writeScriptFormat = 'ethers',
 }: Params): Promise<{
@@ -137,6 +140,7 @@ export async function build({
     gasPrice,
     gasFee,
     priorityGasFee,
+    broadcastPolicy,
   };
 
   const onChainOnlyResolver = await createOnChainOnlyRegistry(cliSettings);
@@ -282,6 +286,14 @@ export async function build({
   });
   runtime.on(Events.Notice, (n, msg) => {
     warnSpinner(yellowBright(`WARN: ${n}: ${msg}`));
+  });
+  runtime.on(Events.BroadcastRetry, (attempt, maxAttempts, err, d) => {
+    const reason = err instanceof viem.BaseError ? err.shortMessage : String(err);
+    warnSpinner(
+      yellowBright(
+        `${'  '.repeat(d)}  ⚠️  Transaction broadcast failed (attempt ${attempt}/${maxAttempts}), retrying: ${reason}`
+      )
+    );
   });
   runtime.on(Events.PostStepExecute, (t, n, c, ctx, o, d) => {
     for (const txnKey in o.txns) {

@@ -9,6 +9,7 @@ import { mergeTemplateAccesses } from '../access-recorder';
 import { routerSchema } from '../schemas';
 import { ContractMap } from '../types';
 import { getBlockRetried } from '../helpers';
+import { parseGasLimit } from '../broadcast';
 import {
   encodeDeployData,
   getContractDefinitionFromPath,
@@ -226,23 +227,7 @@ const routerStep = {
       }),
     };
 
-    const overrides: any = {};
-
-    if (config.overrides?.gasLimit) {
-      overrides.gasLimit = config.overrides.gasLimit;
-    }
-
-    if (runtime.gasPrice) {
-      overrides.gasPrice = runtime.gasPrice;
-    }
-
-    if (runtime.gasFee) {
-      overrides.maxFeePerGas = runtime.gasFee;
-    }
-
-    if (runtime.priorityGasFee) {
-      overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
-    }
+    const gas = parseGasLimit(config.overrides?.gasLimit);
 
     let receipt: viem.TransactionReceipt | null;
     let deployAddress: viem.Address;
@@ -276,13 +261,7 @@ const routerStep = {
           ? await runtime.getSigner(config.from as viem.Address)
           : await runtime.getDefaultSigner!(txn, config.salt);
 
-        const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
-        debug('final create2 txn', fullCreate2Txn);
-
-        const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
-
-        const hash = await signer.wallet.sendTransaction(preparedTxn as any);
-        receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+        receipt = await runtime.sendTransaction(signer, { ...create2Txn, gas });
         debug('arachnid create2 complete', receipt);
       }
     } else {
@@ -291,12 +270,7 @@ const routerStep = {
         : await runtime.getDefaultSigner!(txn, config.salt);
       debug('using deploy signer with address', signer.address);
 
-      const preparedTxn = await signer.wallet.prepareTransactionRequest(
-        _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
-      );
-
-      const hash = await signer.wallet.sendTransaction(preparedTxn as any);
-      receipt = await runtime.provider.waitForTransactionReceipt({ hash });
+      receipt = await runtime.sendTransaction(signer, { ...txn, gas });
       deployAddress = receipt.contractAddress!;
     }
 

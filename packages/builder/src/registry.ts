@@ -9,6 +9,7 @@ import { prepareMulticall, TxData } from './multicall';
 import { PackageReference } from './package-reference';
 import { CannonSigner } from './types';
 import { getBuilderLogger } from './logger';
+import { broadcastTransaction, BroadcastFees, BroadcastPolicy } from './broadcast';
 
 const debug = Debug('cannon:builder:registry');
 
@@ -257,17 +258,20 @@ export class OnChainRegistry extends CannonRegistry {
   signer?: CannonSigner | null;
   contract: { address: viem.Address; abi: typeof CannonRegistryAbi };
   overrides: any;
+  broadcastPolicy?: BroadcastPolicy;
 
   constructor({
     address,
     signer,
     provider,
     overrides = {},
+    broadcastPolicy,
   }: {
     address: viem.Address;
     signer?: CannonSigner;
     provider?: viem.PublicClient;
     overrides?: any;
+    broadcastPolicy?: BroadcastPolicy;
   }) {
     super();
 
@@ -276,6 +280,7 @@ export class OnChainRegistry extends CannonRegistry {
 
     this.contract = { address, abi: CannonRegistryAbi };
     this.overrides = overrides;
+    this.broadcastPolicy = broadcastPolicy;
 
     debug(`created registry on address "${address}"`);
   }
@@ -396,10 +401,9 @@ export class OnChainRegistry extends CannonRegistry {
 
     await this._logEstimatedGas(simulatedGas);
 
-    const tx = await this.provider.simulateContract(params);
+    await this.provider.simulateContract(params);
 
-    const hash = await this.signer.wallet.writeContract(tx.request as any);
-    const receipt = await this.provider.waitForTransactionReceipt({ hash });
+    const receipt = await this._broadcast(params);
 
     return receipt.transactionHash;
   }
@@ -456,10 +460,9 @@ export class OnChainRegistry extends CannonRegistry {
 
     await this._logEstimatedGas(simulatedGas);
 
-    const tx = await this.provider.simulateContract(params);
+    await this.provider.simulateContract(params);
 
-    const hash = await this.signer.wallet.writeContract(tx.request as any);
-    const receipt = await this.provider.waitForTransactionReceipt({ hash });
+    const receipt = await this._broadcast(params);
 
     return receipt.transactionHash;
   }
@@ -749,11 +752,9 @@ export class OnChainRegistry extends CannonRegistry {
     // note: hardcoded gas to make sure the transaction goes through
     params.gas = BigInt(2_500_000);
 
-    const tx = await this.provider.simulateContract(params);
+    await this.provider.simulateContract(params);
 
-    const hash = await this.signer.wallet.writeContract(tx.request as any);
-
-    const receipt = await this.provider.waitForTransactionReceipt({ hash });
+    const receipt = await this._broadcast(params);
 
     if (receipt.status !== 'success') {
       throw new Error(`Something went wrong. Transaction failed: ${receipt.transactionHash}`);
@@ -790,17 +791,48 @@ export class OnChainRegistry extends CannonRegistry {
       throw new Error(`Account "${this.signer.address}" does not have the required ${viem.formatEther(cost)} ETH for gas`);
     }
 
-    const tx = await this.provider.simulateContract(params);
+    await this.provider.simulateContract(params);
 
-    const hash = await this.signer.wallet.writeContract(tx.request as any);
-
-    const rx = await this.provider.waitForTransactionReceipt({ hash });
+    const rx = await this._broadcast(params);
 
     if (rx.status !== 'success') {
       throw new Error(`Something went wrong. Transaction failed: ${rx.transactionHash}`);
     }
 
     return rx.transactionHash;
+  }
+
+  // Every registry write goes through the builder's broadcast pipeline. `params` is the same object
+  // that was just simulated, so a revert has already surfaced with a decoded reason by the time we get here.
+  private async _broadcast(params: {
+    address: viem.Address;
+    abi: viem.Abi;
+    functionName: string;
+    args?: readonly unknown[];
+    value?: string | bigint | number;
+    gas?: bigint;
+    gasPrice?: bigint;
+    maxFeePerGas?: bigint;
+    maxPriorityFeePerGas?: bigint;
+  }): Promise<viem.TransactionReceipt> {
+    if (!this.signer || !this.provider) {
+      throw new Error('Missing signer for executing registry operations');
+    }
+
+    const fees: BroadcastFees = params.gasPrice
+      ? { gasPrice: params.gasPrice }
+      : { maxFeePerGas: params.maxFeePerGas, maxPriorityFeePerGas: params.maxPriorityFeePerGas };
+
+    return broadcastTransaction(
+      { signer: this.signer, provider: this.provider, policy: this.broadcastPolicy },
+      {
+        ...fees,
+        to: params.address,
+        data: viem.encodeFunctionData({ abi: params.abi, functionName: params.functionName, args: params.args }),
+        value: params.value === undefined ? undefined : BigInt(params.value),
+        gas: params.gas,
+      }
+    );
   }
 
   private async _logEstimatedGas(simulatedGas: bigint): Promise<void> {

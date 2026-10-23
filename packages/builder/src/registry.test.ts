@@ -1,6 +1,7 @@
 import * as viem from 'viem';
 import { fixtureAddress, fixtureSigner, fixtureTransactionReceipt, makeFakeProvider } from '../test/fixtures';
 import { CannonSigner } from './';
+import { prepareMulticall } from './multicall';
 import { CannonRegistry, OnChainRegistry } from './registry';
 
 describe('registry.ts', () => {
@@ -111,17 +112,18 @@ describe('registry.ts', () => {
 
         jest.mocked(provider.getChainId).mockResolvedValue(12341234);
         jest.mocked(provider.simulateContract).mockResolvedValue({ request: {} } as any);
-        jest
-          .mocked(provider.readContract)
-          .mockResolvedValueOnce('0x69D36DFe281136ef662ED1A2E80a498A5461226D')
-          .mockResolvedValueOnce(['0x69D36DFe281136ef662ED1A2E80a498A5461226D']);
-
-        jest
-          .mocked(signer.wallet.writeContract)
-          .mockResolvedValueOnce({} as any)
-          .mockResolvedValueOnce({} as any);
+        // getPackageOwner()/getAdditionalPublishers() are overridden directly on the instance above,
+        // so the only real provider.readContract call on this path is getPublishFee() -- a single
+        // mock covers it. (A prior version of this test queued a second mockResolvedValueOnce meant
+        // for getAdditionalPublishers, but that call never reaches provider.readContract because the
+        // instance override short-circuits it; the unconsumed queued value silently leaked into
+        // whichever later test called readContract next.)
+        jest.mocked(provider.readContract).mockResolvedValue('0x69D36DFe281136ef662ED1A2E80a498A5461226D');
 
         const rx = fixtureTransactionReceipt();
+
+        jest.mocked(provider.prepareTransactionRequest).mockImplementation(async (args) => args as any);
+        jest.mocked(signer.wallet.sendTransaction).mockResolvedValue(rx.transactionHash);
 
         jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
 
@@ -151,14 +153,16 @@ describe('registry.ts', () => {
 
         jest.mocked(provider.getChainId).mockResolvedValue(12341234);
         jest.mocked(provider.simulateContract).mockResolvedValue({ request: {} } as any);
-        jest.mocked(provider.readContract).mockResolvedValue(signer.address);
-
-        jest
-          .mocked(signer.wallet.writeContract)
-          .mockResolvedValueOnce({} as any)
-          .mockResolvedValueOnce({} as any);
+        // getPublishFee() is the only readContract call on this path (ownership check is skipped
+        // because _isPackageRegistered is stubbed above); a clear literal keeps the value assertion
+        // below legible instead of depending on BigInt(signer.address).
+        jest.mocked(provider.readContract).mockResolvedValue(BigInt(1234));
 
         const rx = fixtureTransactionReceipt();
+
+        jest.mocked(provider.prepareTransactionRequest).mockImplementation(async (args) => args as any);
+        jest.mocked(signer.wallet.sendTransaction).mockResolvedValue(rx.transactionHash);
+
         jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
         jest.mocked(provider.getGasPrice).mockResolvedValue(100n);
         jest.mocked(provider.estimateContractGas).mockResolvedValue(100n);
@@ -172,7 +176,132 @@ describe('registry.ts', () => {
         // should only return the first receipt because its a multicall
         expect(retValue).toStrictEqual([rx.transactionHash]);
 
-        // TODO: check the transaction which was sent (its hard to do here because it comes in as the signed txn)
+        // This scenario combines 2 calls (setPackageOwnership + publish, both tags batched into one
+        // multicall) -- _preparePackageData folds both package refs into a single PackageData with
+        // two tags, so _publishPackages emits one 'publish' sub-call plus the unshifted
+        // 'setPackageOwnership' sub-call. The send target is the multicall aggregator address
+        // (`prepareMulticall`'s constant), not `fakeRegistryAddress` directly -- the registry address
+        // only appears as a `target` inside the encoded calldata. The multicall's outer `value` is the
+        // sum of its sub-calls' values; only the 'publish' sub-call carries one (`getPublishFee()`,
+        // mocked to 1234 above), so the aggregate value is 1234.
+        expect(signer.wallet.sendTransaction).toHaveBeenCalledTimes(1);
+        expect(signer.wallet.sendTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({
+            to: prepareMulticall([]).address,
+            data: expect.stringMatching(/^0x/),
+            value: BigInt(1234),
+          })
+        );
+      });
+    });
+
+    describe('setPackageOwnership()', () => {
+      const buildTxData = (registry: OnChainRegistry) => ({
+        ...registry.contract,
+        functionName: 'setPackageOwnership',
+        value: BigInt(0),
+        args: [viem.stringToHex('dummy-package', { size: 32 }), fixtureAddress()],
+      });
+
+      it('broadcasts with the hard-coded gas limit and returns the tx hash on success', async () => {
+        const registry = createRegistry();
+
+        jest.mocked(provider.estimateContractGas).mockResolvedValue(100n);
+        jest.mocked(provider.getBalance).mockResolvedValue(viem.parseEther('1'));
+        jest.mocked(provider.getGasPrice).mockResolvedValue(100n);
+        jest.mocked(provider.simulateContract).mockResolvedValue({ request: {} } as any);
+        jest.mocked(provider.prepareTransactionRequest).mockImplementation(async (args) => args as any);
+
+        const rx = fixtureTransactionReceipt();
+        jest.mocked(signer.wallet.sendTransaction).mockResolvedValue(rx.transactionHash);
+        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
+
+        const result = await registry.setPackageOwnership(buildTxData(registry));
+
+        expect(result).toBe(rx.transactionHash);
+        expect(signer.wallet.sendTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({ to: fakeRegistryAddress, gas: BigInt(2_500_000) })
+        );
+      });
+
+      it('throws if the transaction reverts', async () => {
+        const registry = createRegistry();
+
+        jest.mocked(provider.estimateContractGas).mockResolvedValue(100n);
+        jest.mocked(provider.getBalance).mockResolvedValue(viem.parseEther('1'));
+        jest.mocked(provider.getGasPrice).mockResolvedValue(100n);
+        jest.mocked(provider.simulateContract).mockResolvedValue({ request: {} } as any);
+        jest.mocked(provider.prepareTransactionRequest).mockImplementation(async (args) => args as any);
+
+        const rx = fixtureTransactionReceipt({ status: 'reverted' });
+        jest.mocked(signer.wallet.sendTransaction).mockResolvedValue(rx.transactionHash);
+        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
+
+        await expect(registry.setPackageOwnership(buildTxData(registry))).rejects.toThrow(/Transaction failed/);
+      });
+    });
+
+    describe('setAdditionalPublishers()', () => {
+      it('broadcasts with the hard-coded gas limit and returns the tx hash on success', async () => {
+        const registry = createRegistry();
+
+        jest.mocked(provider.estimateContractGas).mockResolvedValue(100n);
+        jest.mocked(provider.getBalance).mockResolvedValue(viem.parseEther('1'));
+        jest.mocked(provider.getGasPrice).mockResolvedValue(100n);
+        jest.mocked(provider.simulateContract).mockResolvedValue({ request: {} } as any);
+        jest.mocked(provider.prepareTransactionRequest).mockImplementation(async (args) => args as any);
+
+        const rx = fixtureTransactionReceipt();
+        jest.mocked(signer.wallet.sendTransaction).mockResolvedValue(rx.transactionHash);
+        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
+
+        const result = await registry.setAdditionalPublishers('dummy-package', [], [fixtureAddress()]);
+
+        expect(result).toBe(rx.transactionHash);
+        expect(signer.wallet.sendTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({ to: fakeRegistryAddress, gas: BigInt(2_000_000) })
+        );
+      });
+
+      it('throws if the transaction reverts', async () => {
+        const registry = createRegistry();
+
+        jest.mocked(provider.estimateContractGas).mockResolvedValue(100n);
+        jest.mocked(provider.getBalance).mockResolvedValue(viem.parseEther('1'));
+        jest.mocked(provider.getGasPrice).mockResolvedValue(100n);
+        jest.mocked(provider.simulateContract).mockResolvedValue({ request: {} } as any);
+        jest.mocked(provider.prepareTransactionRequest).mockImplementation(async (args) => args as any);
+
+        const rx = fixtureTransactionReceipt({ status: 'reverted' });
+        jest.mocked(signer.wallet.sendTransaction).mockResolvedValue(rx.transactionHash);
+        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
+
+        await expect(registry.setAdditionalPublishers('dummy-package', [], [fixtureAddress()])).rejects.toThrow(
+          /Transaction failed/
+        );
+      });
+    });
+
+    describe('unpublish()', () => {
+      it('broadcasts a single (non-multicall) tx and returns the tx hash', async () => {
+        const registry = createRegistry();
+
+        jest.mocked(provider.estimateContractGas).mockResolvedValue(100n);
+        jest.mocked(provider.getBalance).mockResolvedValue(viem.parseEther('1'));
+        jest.mocked(provider.getGasPrice).mockResolvedValue(100n);
+        jest.mocked(provider.simulateContract).mockResolvedValue({ request: {} } as any);
+        jest.mocked(provider.prepareTransactionRequest).mockImplementation(async (args) => args as any);
+
+        const rx = fixtureTransactionReceipt();
+        jest.mocked(signer.wallet.sendTransaction).mockResolvedValue(rx.transactionHash);
+        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
+
+        const result = await registry.unpublish(['dummy-package:0.0.1@main'], 1);
+
+        expect(result).toStrictEqual([rx.transactionHash]);
+        expect(signer.wallet.sendTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({ to: fakeRegistryAddress, data: expect.stringMatching(/^0x/) })
+        );
       });
     });
 

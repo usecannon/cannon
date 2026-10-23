@@ -159,6 +159,11 @@ export const commandsConfig: CommandsConfig = {
         description: 'Specify max fee per gas (EIP-1559) for all transactions processed by this build. Expressed in GWEI.',
       },
       {
+        flags: '--broadcast-retries <count>',
+        description:
+          'Number of times a failed transaction broadcast is retried before the build aborts. Set to 0 to disable retries. Default: 3',
+      },
+      {
         flags: '--skip-compile',
         description: 'Skip the compilation step and use the existing artifacts',
       },

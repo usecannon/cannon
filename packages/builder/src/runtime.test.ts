@@ -3,7 +3,7 @@ import { IPFSLoader } from './loader';
 import { ChainBuilderRuntime, Events } from './runtime';
 import { ContractArtifact } from './types';
 import { InMemoryRegistry } from './registry';
-import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
+import { fixtureSigner, fixtureTransactionReceipt, makeFakeProvider } from '../test/fixtures';
 
 jest.mock('./loader');
 
@@ -173,6 +173,109 @@ describe('runtime.ts', () => {
         }
 
         expect(receiver).toHaveBeenCalledTimes(Object.keys(Events).length);
+      });
+
+      it('increments BroadcastRetry depth across nested derive() calls', () => {
+        const child = runtime.derive({});
+        const grandchild = child.derive({});
+        const receiver = jest.fn();
+        runtime.on(Events.BroadcastRetry, receiver);
+
+        grandchild.emit(Events.BroadcastRetry, 1, 4, new Error('x'), 0);
+
+        expect(receiver).toHaveBeenCalledWith(1, 4, expect.any(Error), 2);
+      });
+    });
+
+    describe('sendTransaction()', () => {
+      it('defaults broadcastPolicy when none is given', () => {
+        expect(runtime.broadcastPolicy).toEqual({ retries: 3, minTimeout: 250, factor: 2 });
+      });
+
+      it('applies the runtime gas settings and returns the receipt', async () => {
+        const gasFee = viem.parseGwei('10');
+        const priorityGasFee = viem.parseGwei('1');
+        const gasRuntime = runtime.derive({ gasFee, priorityGasFee });
+        const signer = fixtureSigner();
+        const rx = fixtureTransactionReceipt();
+
+        jest.mocked(provider.prepareTransactionRequest).mockImplementation(async (args) => args as any);
+        jest.mocked(signer.wallet.sendTransaction).mockResolvedValue(rx.transactionHash);
+        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
+
+        const receipt = await gasRuntime.sendTransaction(signer, { to: signer.address, data: '0x' });
+
+        expect(receipt).toBe(rx);
+        expect(provider.prepareTransactionRequest).toHaveBeenCalledWith(
+          expect.objectContaining({
+            to: signer.address,
+            data: '0x',
+            maxFeePerGas: gasFee,
+            maxPriorityFeePerGas: priorityGasFee,
+          })
+        );
+        expect(signer.wallet.sendTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({ maxFeePerGas: gasFee, maxPriorityFeePerGas: priorityGasFee })
+        );
+        expect(provider.waitForTransactionReceipt).toHaveBeenCalledWith({ hash: rx.transactionHash });
+      });
+
+      it('applies a legacy gas price', async () => {
+        const gasPrice = viem.parseGwei('3');
+        const gasRuntime = runtime.derive({ gasPrice });
+        const signer = fixtureSigner();
+        const rx = fixtureTransactionReceipt();
+
+        jest.mocked(provider.prepareTransactionRequest).mockImplementation(async (args) => args as any);
+        jest.mocked(signer.wallet.sendTransaction).mockResolvedValue(rx.transactionHash);
+        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
+
+        await gasRuntime.sendTransaction(signer, { to: signer.address });
+
+        expect(provider.prepareTransactionRequest).toHaveBeenCalledWith(
+          expect.objectContaining({ gasPrice, type: 'legacy' })
+        );
+      });
+
+      it('applies no fee override when neither gasFee nor gasPrice is set', async () => {
+        const bareRuntime = runtime.derive({});
+        const signer = fixtureSigner();
+        const rx = fixtureTransactionReceipt();
+
+        jest.mocked(provider.prepareTransactionRequest).mockImplementation(async (args) => args as any);
+        jest.mocked(signer.wallet.sendTransaction).mockResolvedValue(rx.transactionHash);
+        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
+
+        await bareRuntime.sendTransaction(signer, { to: signer.address });
+
+        expect(provider.prepareTransactionRequest).toHaveBeenCalledWith(
+          expect.not.objectContaining({ gasPrice: expect.anything() })
+        );
+        expect(provider.prepareTransactionRequest).toHaveBeenCalledWith(
+          expect.not.objectContaining({ maxFeePerGas: expect.anything() })
+        );
+        expect(provider.prepareTransactionRequest).toHaveBeenCalledWith(
+          expect.not.objectContaining({ maxPriorityFeePerGas: expect.anything() })
+        );
+      });
+
+      it('emits BroadcastRetry when a broadcast is retried', async () => {
+        const retryRuntime = runtime.derive({ broadcastPolicy: { retries: 1, minTimeout: 1, factor: 1 } });
+        const signer = fixtureSigner();
+        const rx = fixtureTransactionReceipt();
+
+        jest.mocked(provider.prepareTransactionRequest).mockImplementation(async (args) => args as any);
+        jest
+          .mocked(signer.wallet.sendTransaction)
+          .mockRejectedValueOnce(new Error('rpc glitch'))
+          .mockResolvedValueOnce(rx.transactionHash);
+        jest.mocked(provider.waitForTransactionReceipt).mockResolvedValue(rx);
+        const receiver = jest.fn();
+        retryRuntime.on(Events.BroadcastRetry, receiver);
+
+        await retryRuntime.sendTransaction(signer, { to: signer.address });
+
+        expect(receiver).toHaveBeenCalledWith(1, 2, expect.any(Error), 0);
       });
     });
 

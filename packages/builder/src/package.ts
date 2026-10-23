@@ -272,6 +272,7 @@ export async function writeUpgradeFromInfo(runtime: ChainBuilderRuntime, package
     runtime.provider,
     await runtime.getDefaultSigner({}),
     viem.keccak256(viem.stringToBytes(`${packageRef.name}@${packageRef.preset}`)),
-    `${Math.floor(Date.now() / 1000)}_${deployUrl}`
+    `${Math.floor(Date.now() / 1000)}_${deployUrl}`,
+    runtime.broadcastPolicy
   );
 }

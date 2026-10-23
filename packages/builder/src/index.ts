@@ -31,6 +31,7 @@ export * from './ipfs';
 export * from './access-recorder';
 export * from './definition';
 export * from './helpers';
+export * from './broadcast';
 export * from './package-reference';
 export * from './util';
 export * from './types';

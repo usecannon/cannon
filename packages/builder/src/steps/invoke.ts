@@ -22,8 +22,10 @@ import {
 } from '../util';
 import { template, getTemplateMatches, isTemplateString } from '../utils/template';
 import { getBlockRetried } from '../helpers';
+import { parseGasLimit } from '../broadcast';
 import { isStepPath, isStepName } from '../utils/matchers';
 import { CannonAction } from '../actions';
+import { ChainBuilderRuntime } from '../runtime';
 
 const debug = Debug('cannon:builder:invoke');
 
@@ -56,13 +58,13 @@ function assembleFunctionSignatures(abi: viem.Abi): [viem.AbiFunction, string][]
 }
 
 async function runTxn(
-  runtime: ChainBuilderRuntimeInfo,
+  runtime: ChainBuilderRuntime,
   config: Config,
   contract: Contract,
   signer: CannonSigner,
   packageState: PackageState
 ): Promise<[viem.TransactionReceipt, EncodedTxnEvents]> {
-  let txn: viem.Hash;
+  let receipt: viem.TransactionReceipt;
 
   // sanity check the contract we are calling has code defined
   // we check here because a missing contract will not revert when provided with data, leading to confusing situations
@@ -71,28 +73,6 @@ async function runTxn(
     throw new Error(
       `contract ${contract.address} for ${packageState.currentLabel} has no bytecode. This is most likely a missing dependency or bad state.`
     );
-  }
-
-  const overrides: any = {};
-
-  if (config.overrides?.gasLimit) {
-    overrides.gasLimit = config.overrides.gasLimit;
-  }
-
-  if (config.value) {
-    overrides.value = config.value;
-  }
-
-  if (runtime.gasPrice) {
-    overrides.gasPrice = runtime.gasPrice;
-  }
-
-  if (runtime.gasFee) {
-    overrides.maxFeePerGas = runtime.gasFee;
-  }
-
-  if (runtime.priorityGasFee) {
-    overrides.maxPriorityFeePerGas = runtime.priorityGasFee;
   }
 
   // Attempt to encode data so that if any arguments have any type mismatches, we can catch them and present them to the user.
@@ -111,6 +91,13 @@ async function runTxn(
         )}\n\nIf this is a proxy contract, make sure you've specified abiOf for the contract action in the cannonfile that deploys it. If you’re calling an overloaded function, update func to include parentheses.`
     );
   }
+
+  const request = {
+    to: contract.address,
+    data: encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
+    value: config.value ? BigInt(config.value) : undefined,
+    gas: parseGasLimit(config.overrides?.gasLimit),
+  };
 
   if (config.fromCall && config.fromCall.func) {
     debug('resolve from address', contract.address);
@@ -142,26 +129,10 @@ async function runTxn(
 
     const callSigner = await runtime.getSigner(address);
 
-    const preparedTxn = await runtime.provider.prepareTransactionRequest({
-      account: callSigner.wallet.account || callSigner.address,
-      to: contract.address,
-      data: encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
-      value: config.value,
-      ...overrides,
-    });
-    txn = await callSigner.wallet.sendTransaction(preparedTxn as any);
+    receipt = await runtime.sendTransaction(callSigner, request);
   } else {
-    const preparedTxn = await runtime.provider.prepareTransactionRequest({
-      account: signer.wallet.account || signer.address,
-      to: contract.address,
-      data: encodeFunctionData({ abi: [neededFuncAbi], functionName: neededFuncAbi.name, args: config.args }),
-      value: config.value,
-      ...overrides,
-    });
-    txn = await signer.wallet.sendTransaction(preparedTxn as any);
+    receipt = await runtime.sendTransaction(signer, request);
   }
-
-  const receipt = await runtime.provider.waitForTransactionReceipt({ hash: txn });
 
   debug('got receipt', receipt);
 

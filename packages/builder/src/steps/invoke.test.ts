@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import * as viem from 'viem';
 import { validateConfig } from '../actions';
 import action from './invoke';
 import { fakeCtx, fakeRuntime } from './utils.test.helper';
@@ -210,6 +211,10 @@ describe('steps/invoke.ts', () => {
   });
 
   describe('exec()', () => {
+    beforeEach(() => {
+      jest.mocked(fakeRuntime.sendTransaction).mockClear();
+    });
+
     // TODO: reenable once I better understand transaction event parsing in viem
     it('works and parses all information from transaction result', async () => {
       jest.mocked(fakeRuntime.provider.simulateContract).mockResolvedValue({ request: {} } as any);
@@ -260,6 +265,7 @@ describe('steps/invoke.ts', () => {
           target: ['Woot'],
           func: 'something',
           args: ['foo', { bar: 'baz' }, 'foobar'],
+          overrides: { gasLimit: '150000' },
           factory: {
             Whoof: {
               event: 'SomethingHappened',
@@ -317,6 +323,24 @@ describe('steps/invoke.ts', () => {
       ]);
       expect(result.txns!.something.hash).toEqual('0x1234');
       expect(result.txns!.something.deployedOn).toEqual('invoke.something');
+
+      // pin the request handed to the pipeline: target address, encoded call data and gas limit
+      const wootSomethingAbi = fakeContractInfo.contracts.Woot.abi.find(
+        (v) => v.type === 'function' && v.name === 'something'
+      );
+      const expectedData = viem.encodeFunctionData({
+        abi: [wootSomethingAbi],
+        functionName: 'something',
+        args: ['foo', { bar: 'baz' }, 'foobar'],
+      });
+      expect(fakeRuntime.sendTransaction).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          to: fakeContractInfo.contracts.Woot.address,
+          data: expectedData,
+          gas: BigInt(150000),
+        })
+      );
 
       // try again if one of the events is unnamed in the api (changes how viem handles it)
     });

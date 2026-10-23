@@ -4,6 +4,13 @@ import { EventEmitter } from 'events';
 import _ from 'lodash';
 import * as viem from 'viem';
 import { CannonSigner, ChainArtifacts } from './types';
+import {
+  broadcastTransaction,
+  BroadcastPolicy,
+  BroadcastRequest,
+  BroadcastRequestBase,
+  DEFAULT_BROADCAST_POLICY,
+} from './broadcast';
 import { PackageReference } from './package-reference';
 import { traceActions } from './error';
 import { CannonLoader, IPFSLoader } from './loader';
@@ -23,6 +30,7 @@ export enum Events {
   ResolveDeploy = 'resolve-deploy',
   DownloadDeploy = 'download-deploy',
   Notice = 'notice', // used when there is some warning from the build output
+  BroadcastRetry = 'broadcast-retry', // attempt, max attempts, error, depth
 }
 
 export class CannonStorage extends EventEmitter {
@@ -109,6 +117,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly snapshots: boolean;
   readonly allowPartialDeploy: boolean;
   readonly subpkgDepth: number;
+  readonly broadcastPolicy: BroadcastPolicy;
   currentStep: string | null;
   ctx: ChainBuilderContext | null;
   private publicSourceCode: boolean | undefined;
@@ -162,6 +171,8 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
 
     this.subpkgDepth = subpkgDepth;
 
+    this.broadcastPolicy = info.broadcastPolicy ?? DEFAULT_BROADCAST_POLICY;
+
     this.misc = { artifacts: {} };
 
     this.currentStep = null;
@@ -197,6 +208,28 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   }
   get priorityGasFee(): bigint | undefined {
     return this._priorityGasFee;
+  }
+
+  // Entry point for the transactions the step implementations send themselves (create2 bootstrap and
+  // the on-chain upgrade record call the pipeline directly): applies the gas settings of this
+  // runtime, then broadcasts through the retrying pipeline and reports retries as BroadcastRetry events.
+  async sendTransaction(signer: CannonSigner, request: BroadcastRequestBase): Promise<viem.TransactionReceipt> {
+    // the constructor drops gasPrice when gasFee is set, so at most one fee model is active
+    const withFees: BroadcastRequest = this.gasFee
+      ? { ...request, maxFeePerGas: this.gasFee, maxPriorityFeePerGas: this.priorityGasFee }
+      : this.gasPrice
+      ? { ...request, gasPrice: this.gasPrice }
+      : request;
+
+    return broadcastTransaction(
+      {
+        signer,
+        provider: this.provider,
+        policy: this.broadcastPolicy,
+        onRetry: (attempt, maxAttempts, err) => this.emit(Events.BroadcastRetry, attempt, maxAttempts, err, 0),
+      },
+      withFees
+    );
   }
 
   isCancelled() {
@@ -310,6 +343,9 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     );
     newRuntime.on(Events.DownloadDeploy, (hash, gateway, d) => this.emit(Events.DownloadDeploy, hash, gateway, d + 1));
     newRuntime.on(Events.Notice, (n, msg, d) => this.emit(Events.Notice, n, msg, d + 1));
+    newRuntime.on(Events.BroadcastRetry, (attempt, maxAttempts, err, d) =>
+      this.emit(Events.BroadcastRetry, attempt, maxAttempts, err, d + 1)
+    );
 
     return newRuntime;
   }

@@ -1,6 +1,7 @@
 import { makeFakeProvider } from '../../test/fixtures';
+import { BroadcastRequestBase } from '../broadcast';
 import { ChainBuilderRuntime } from '../runtime';
-import { ChainBuilderContext } from '../types';
+import { CannonSigner, ChainBuilderContext } from '../types';
 
 import * as viem from 'viem';
 
@@ -36,3 +37,9 @@ export function makeFakeSigner(address: string, provider: viem.WalletClient = ma
   .fn()
   .mockResolvedValue(makeFakeSigner('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', fakeRuntime.provider as any));
 (fakeRuntime.getArtifact as any) = jest.fn().mockResolvedValue(null);
+// the runtime class is auto-mocked; route sendTransaction through the signer wallet and the fake provider
+// so step tests keep asserting on the same mocks as before
+(fakeRuntime.sendTransaction as any) = jest.fn(async (signer: CannonSigner, request: BroadcastRequestBase) => {
+  const hash = await signer.wallet.sendTransaction(request as any);
+  return fakeRuntime.provider.waitForTransactionReceipt({ hash });
+});
