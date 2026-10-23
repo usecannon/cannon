@@ -35,6 +35,7 @@ export const fixtureCtx = (overrides: Partial<ChainBuilderContext> = {}) =>
   _.merge(
     {
       settings: {},
+      vars: {},
       contracts: {},
       txns: {},
       extras: {},
@@ -42,6 +43,8 @@ export const fixtureCtx = (overrides: Partial<ChainBuilderContext> = {}) =>
       chainId: 1234,
       package: {},
       timestamp: 1234123412,
+      overrideSettings: {},
+      defaultSigner: '0x0000000000000000000000000000000000000000',
     },
     overrides
   ) as ChainBuilderContext;

@@ -40,6 +40,8 @@ export async function createInitialContext(
     imports: {},
 
     settings: _.clone(opts),
+
+    vars: {},
   };
 }
 
