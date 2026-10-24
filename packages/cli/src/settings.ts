@@ -269,9 +269,13 @@ export const getCliSettings = (overrides: Partial<CliSettings> = {}): CliSetting
 
 export const resolveCliSettings = getCliSettings;
 export const resolveCliSettingsNoCache = computeCliSettings;
-function oneOf(value: string | undefined, options: string[]): any {
-  if (value && options.includes(value)) {
-    return value as keyof typeof options;
+function oneOf(value: string | undefined, options: string[]): string | undefined {
+  if (!value) {
+    // fall back to the default when unset (mirrors the old z.enum(...).default(...) schema)
+    return undefined;
+  }
+  if (options.includes(value)) {
+    return value;
   }
   throw new Error(`Value must be one of: ${options.join(', ')}`);
 }

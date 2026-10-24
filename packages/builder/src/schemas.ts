@@ -210,6 +210,13 @@ export const deploySchema = z
   })
   .strict();
 
+// zod v4 defines schema methods (parse, safeParse, ...) lazily as prototype accessors, which are
+// invisible to jest's automocker (it only mocks non-accessor properties). Reading a method once
+// materializes it as a plain own property, so modules that export this schema can still have it
+// automocked and replaced in tests. `deploySchema` is exported through the `deploy` action, which
+// `clone.test.ts` automocks and stubs via `deployAction.validate.safeParse`.
+const _materializeSafeParse = deploySchema.safeParse;
+
 export const pullSchema = z
   .object({
     /**

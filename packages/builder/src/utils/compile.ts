@@ -28,7 +28,7 @@ export async function compileContract(
   compilerVersion = '0.8.27',
 ) {
   const solc = await import('@usecannon/web-solc');
-  const { compile, stopWorker } = await solc.default.fetchSolc(compilerVersion);
+  const { compile, stopWorker } = await solc.fetchSolc(compilerVersion);
 
   const sourceName = `${contractName}.sol`;
 

@@ -3,7 +3,7 @@ import axiosRetry from 'axios-retry';
 import { Buffer } from 'buffer';
 import Debug from 'debug';
 import FormData from 'form-data';
-import pako from 'pako';
+import * as pako from 'pako'; // pako v3 ESM has no default export
 import Hash from 'typestub-ipfs-only-hash';
 
 export interface Headers {
@@ -12,12 +12,19 @@ export interface Headers {
 
 const debug = Debug('cannon:builder:ipfs');
 
+// Detect the browser via `globalThis` instead of `typeof Blob`: Node >= 18 also exposes a global
+// `Blob`, but form-data v4 can only append strings, Buffers and streams (a `Blob` is treated as a
+// stream and fails with `source.on is not a function`), so the Buffer may only be swapped for a
+// `Blob` when actually running in a browser, where the polyfilled Buffer is not concatenated correctly.
+const IS_BROWSER = 'window' in globalThis;
+
 export function compress(data: string) {
   return pako.deflate(data);
 }
 
 export function uncompress(data: any) {
-  return pako.inflate(data, { to: 'string' });
+  // pako v3 dropped the `{ to: 'string' }` option — inflate always returns Uint8Array
+  return new TextDecoder().decode(pako.inflate(data));
 }
 
 export async function getContentCID(value: string | Buffer): Promise<string> {
@@ -61,9 +68,9 @@ export async function prepareFormData(info: any) {
 
   const formData = new FormData();
 
-  // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
-  // But, for node we still wanna keep using Buffer
-  const content = typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
+  // In the browser we use a Blob (the Buffer polyfill is not concatenated correctly);
+  // in node we always use the Buffer, which form-data handles natively
+  const content = IS_BROWSER ? new Blob([buf]) : Buffer.from(buf);
   formData.append('data', content);
 
   return { cid, formData, content };
@@ -73,9 +80,9 @@ export async function prepareRawFormData(data: Buffer) {
   const cid = await getContentCID(data);
   const formData = new FormData();
 
-  // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
-  // But, for node we still wanna keep using Buffer
-  const content = typeof Blob !== 'undefined' ? new Blob([new Uint8Array(data)]) : data;
+  // In the browser we use a Blob (the Buffer polyfill is not concatenated correctly);
+  // in node we always use the Buffer, which form-data handles natively
+  const content = IS_BROWSER ? new Blob([new Uint8Array(data)]) : data;
 
   formData.append('data', content);
 

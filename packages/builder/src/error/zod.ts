@@ -52,9 +52,13 @@ export const customErrorMap: z.ZodErrorMap = (error) => {
       return {
         message: `Enum must be one of the following options ${error.options}`,
       };
+    case 'unrecognized_keys':
+      return {
+        message: `Unrecognized key(s) in object: '${(error.keys as string[]).join("', '")}'`,
+      };
     default:
-      // fall back to default message
-      return { message: error.code };
+      // fall back to zod's default (localized) message
+      return undefined;
   }
 };
 
