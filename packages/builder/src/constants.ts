@@ -9,25 +9,19 @@ export const BUILD_VERSION = 7;
 // Production settings (OP Mainnet & ETH Mainnet)
 export const DEFAULT_REGISTRY_ADDRESS: Address = '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba';
 
-// the below RPC configuration is our public infura, but it only allows for requests against the cannon registry contract
+// public RPC endpoints used for reads against the cannon registry contract
+// (previous shared infura/alchemy keys removed: infura is deprecated and both return 429)
 export const DEFAULT_REGISTRY_CONFIG = [
   {
     name: 'OP Mainnet',
     chainId: 10,
-    rpcUrl: [
-      'https://mainnet.optimism.io',
-      'https://optimism-mainnet.infura.io/v3/9f7e95d07f4e42e7a54d4dc90f57fd5d',
-      'https://opt-mainnet.g.alchemy.com/v2/2c6Mq72inJF0FBlKPMK8pe6TolJMar6G',
-    ],
+    rpcUrl: ['https://mainnet.optimism.io', 'https://optimism-rpc.publicnode.com'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
   {
     name: 'Ethereum Mainnet',
     chainId: 1,
-    rpcUrl: [
-      'https://mainnet.infura.io/v3/9f7e95d07f4e42e7a54d4dc90f57fd5d',
-      'https://eth-mainnet.g.alchemy.com/v2/2c6Mq72inJF0FBlKPMK8pe6TolJMar6G',
-    ],
+    rpcUrl: ['https://ethereum-rpc.publicnode.com', 'https://eth.drpc.org'],
     address: DEFAULT_REGISTRY_ADDRESS,
   },
 ];

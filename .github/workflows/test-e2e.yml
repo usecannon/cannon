@@ -28,6 +28,12 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
+        with:
+          # v1.8.x toolchains fail the greeter e2e builds: cannon-std and forge-std
+          # both put a `Vm` interface in scope and the newer resolver errors with
+          # "identifier Vm already declared". v1.7.1 is the last-known-good stable.
+          # Proper fix (single-source Vm in cannon-std) tracked separately.
+          version: v1.7.1
 
       - name: Cache used IPFS files
         uses: actions/cache@v4

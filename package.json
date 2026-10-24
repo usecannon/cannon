@@ -42,7 +42,8 @@
     "prettier-plugin-solidity": "^2.1.0",
     "solhint": "^6.0.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wrangler": "^4.98.0"
   },
   "license": "GNU GPL V3.0",
   "dependencies": {
