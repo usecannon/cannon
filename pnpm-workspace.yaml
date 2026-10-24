@@ -23,6 +23,9 @@ overrides:
   browserslist: '4.29.3'
   got@<11.8.5: '>=11.8.5'
   fast-xml-parser@<4.1.2: '>=4.1.2'
+  # s3rver 3.7.1 (test-only S3 mock, latest available) requires the fast-xml-parser v3 API;
+  # scope its copy back to v3 - it only parses local fixture XML in unit tests
+  s3rver>fast-xml-parser: '3.21.1'
   tar@<6.2.1: '>=6.2.1'
   tough-cookie@<4.1.3: '>=4.1.3'
   ws@>=8.0.0 <8.17.1: '>=8.17.1'
