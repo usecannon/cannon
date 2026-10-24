@@ -26,28 +26,28 @@
     "url": "https://github.com/usecannon/cannon.git"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
-    "@tsconfig/node22": "^22.0.2",
-    "@typescript-eslint/eslint-plugin": "^8.46.2",
-    "@typescript-eslint/parser": "^8.46.2",
+    "@eslint/js": "^10.0.1",
+    "@tsconfig/node22": "^22.0.6",
+    "@typescript-eslint/eslint-plugin": "^8.72.0",
+    "@typescript-eslint/parser": "^8.72.0",
     "depcheck": "^1.4.7",
-    "eslint": "^9.38.0",
+    "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-cypress": "^5.2.0",
+    "eslint-plugin-cypress": "^7.0.2",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-prettier": "^5.5.4",
-    "eslint-plugin-react-hooks": "^7.0.0",
-    "lerna": "^9.0.0",
-    "prettier": "^3.6.2",
-    "prettier-plugin-solidity": "^2.1.0",
-    "solhint": "^6.0.1",
+    "eslint-plugin-prettier": "^5.5.7",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "lerna": "^10.1.1",
+    "prettier": "^3.9.10",
+    "prettier-plugin-solidity": "^2.4.1",
+    "solhint": "^6.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "wrangler": "^4.98.0"
+    "wrangler": "^4.152.0"
   },
   "license": "GNU GPL V3.0",
   "dependencies": {
-    "@changesets/cli": "^2.29.7"
+    "@changesets/cli": "^3.0.3"
   },
   "engineStrict": true,
   "engines": {

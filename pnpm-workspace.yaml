@@ -1,7 +1,26 @@
+minimumReleaseAge: 10080  # only resolve package versions published >= 1 week ago (supply-chain caution)
+
+minimumReleaseAgeExclude:  # platform binaries: exact-pinned to (gated) parent, republished on rebuilds
+  - '@next/swc-*'
+  - '@rollup/rollup-*'
+  - '@esbuild/*'
+  - '@swc/*'
+  - '@lightningcss/*'
+  - '@cloudflare/workerd-*'
+  - '@tailwindcss/oxide-*'
+  - '@img/sharp-*'
+  - '@biomejs/biome-*'
+  - '@nx/nx-*'
 packages:
   - packages/*
   - examples/*
 overrides:
+  protobufjs@<7.6.3: '>=7.6.3'  # GHSA-xq3m-2v4x-88gg (critical RCE) + 10 more advisories; clears the vulnerable 6.11.6 chain under ipfs-only-hash
+  wrangler: '4.151.1'
+  sass: '1.105.2'
+  '@tanstack/query-core': '5.104.3'
+  '@opentelemetry/api': '1.9.1'
+  browserslist: '4.29.3'
   got@<11.8.5: '>=11.8.5'
   fast-xml-parser@<4.1.2: '>=4.1.2'
   tar@<6.2.1: '>=6.2.1'

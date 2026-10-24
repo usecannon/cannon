@@ -103,6 +103,18 @@ export default {
 
   // A preset that is used as a base for Jest's configuration
   preset: 'ts-jest',
+  moduleNameMapper: {
+    // repo uses node16-style `.js`-suffixed relative imports; map them back for jest-resolve
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+    // lodash-es is ESM-only; jest 29 CJS mode uses lodash instead
+    '^lodash-es$': 'lodash/lodash.js',
+  },
+  globals: {
+    'ts-jest': {
+      // emit CJS regardless of the node16 base tsconfig (jest 29 runs CJS)
+      tsconfig: { module: 'CommonJS', moduleResolution: 'bundler' },
+    },
+  },
 
   // Run tests from one or more projects
   // projects: undefined,

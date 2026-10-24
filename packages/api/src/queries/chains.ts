@@ -1,4 +1,4 @@
-import TTLCache from '@isaacs/ttlcache';
+import { TTLCache } from '@isaacs/ttlcache'; // v2 is ESM named-export only
 import * as keys from '../db/keys';
 import { useRedis } from '../redis';
 
@@ -12,7 +12,7 @@ const cache = new TTLCache<string, Promise<ChainsResponse>>({ max: 10, ttl: 60 *
 async function _queryChains(withTotal: boolean) {
   const redis = await useRedis();
 
-  const results = (await redis.ft.aggregate(keys.RKEY_PACKAGE_SEARCHABLE, '*', {
+  const results = (await redis.ft.aggregate(keys.RKEY_PACKAGE_SEARCHABLE, '*', ({
     STEPS: [
       {
         type: 'GROUPBY',
@@ -27,7 +27,7 @@ async function _queryChains(withTotal: boolean) {
             },
       },
     ],
-  })) as any;
+  } as any))) as any;
 
   return {
     total: results.total as number,

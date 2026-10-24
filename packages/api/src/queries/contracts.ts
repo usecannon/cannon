@@ -21,7 +21,7 @@ async function _aggregateContracts(query: string): Promise<ContractQueryResult[]
 
   const data: ContractQueryResult[] = [];
 
-  const res = (await redis.ft.aggregate(keys.RKEY_ABI_SEARCHABLE, query, {
+  const res = (await redis.ft.aggregate(keys.RKEY_ABI_SEARCHABLE, query, ({
     LOAD: { identifier: '@package' },
     STEPS: [
       {
@@ -33,7 +33,7 @@ async function _aggregateContracts(query: string): Promise<ContractQueryResult[]
         },
       },
     ],
-  })) as {
+  } as any))) as {
     total: number;
     results: ContractQueryResult[];
   };

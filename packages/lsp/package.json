@@ -20,5 +20,8 @@
     "@taplo/lsp": "^0.8.0",
     "@usecannon/builder": "workspace:*",
     "@usecannon/cli": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0"
   }
 }

@@ -20,7 +20,7 @@ async function _queryPackages(params: { query: string; limit?: number; includeNa
   });
 
   if (params.includeNamespaces) {
-    batch.ft.aggregate(keys.RKEY_PACKAGE_SEARCHABLE, params.query, {
+    batch.ft.aggregate(keys.RKEY_PACKAGE_SEARCHABLE, params.query, ({
       STEPS: [
         {
           type: 'GROUPBY',
@@ -31,7 +31,7 @@ async function _queryPackages(params: { query: string; limit?: number; includeNa
           },
         },
       ],
-    });
+    } as any));
   }
 
   const [packagesResults, namespacesResults] = (await batch.exec()) as any[];
