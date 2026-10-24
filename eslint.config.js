@@ -18,7 +18,6 @@ export default [
       'node_modules/**',
       'packages/*/dist/**',
       'packages/contracts/lib/**',
-      'packages/hardhat-cannon/dist/**',
       'packages/website/out/**',
       'packages/website/.contentlayer/**',
       'typechain-types/**',
@@ -129,7 +128,7 @@ export default [
     },
   },
   {
-    files: ['packages/hardhat-cannon/**/*.ts', 'packages/repo/**/*.ts', 'packages/safe-app-backend/**/*.ts', 'examples/**/*.ts'],
+    files: ['packages/repo/**/*.ts', 'packages/safe-app-backend/**/*.ts', 'examples/**/*.ts'],
     rules: {
       'no-console': 'off',
     },

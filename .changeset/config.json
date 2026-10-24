@@ -10,8 +10,7 @@
   "fixed": [
     [
       "@usecannon/cli",
-      "@usecannon/builder",
-      "hardhat-cannon"
+      "@usecannon/builder"
     ]
   ],
   "access": "public",

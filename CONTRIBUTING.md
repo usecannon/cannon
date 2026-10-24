@@ -117,7 +117,6 @@ For extra reference, the following is a list of supported scopes:
 
 - **builder**
 - **cli**
-- **hardhat-cannon**
 
 ### Subject
 
