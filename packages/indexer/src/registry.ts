@@ -99,7 +99,7 @@ function addHexastoreToBatch(
   relationKey: string,
   subject: string,
   predicate: string,
-  object: string
+  object: string,
 ) {
   batch.zAdd(relationKey, [
     { score: 0, value: `spo:${subject}:${predicate}:${object}` },
@@ -118,7 +118,7 @@ const recordDeployStep: {
     def: ChainDefinition,
     pkg: any,
     packageRef: string,
-    stepName: string
+    stepName: string,
   ) => Promise<void>;
 } = {
   provision: async (
@@ -127,7 +127,7 @@ const recordDeployStep: {
     def: ChainDefinition,
     pkg: any,
     packageRef: string,
-    name: string
+    name: string,
   ) => {
     const batch = redis.multi();
 
@@ -149,7 +149,7 @@ const recordDeployStep: {
     def: ChainDefinition,
     pkg: any,
     packageRef: string,
-    name: string
+    name: string,
   ) => {
     const batch = redis.multi();
 
@@ -205,7 +205,7 @@ export async function handleCannonPublish(
   publishEvent: viem.Log & { args: { [name: string]: any } },
   packageRef: string,
   chainId: number,
-  timestamp: number
+  timestamp: number,
 ) {
   const deployInfo = (await ctx.readBlob(publishEvent.args.deployUrl)) as DeploymentInfo;
 
@@ -240,7 +240,7 @@ export async function handleCannonPublish(
           batch.zAdd(
             rkey.RKEY_ADDRESS_TO_PACKAGE,
             { score: timestamp, value: `${contract.address.toLowerCase()}:${chainId}` },
-            { NX: true }
+            { NX: true },
           );
 
           batch.hSetNX(rkey.RKEY_ADDRESS_TO_PACKAGE + ':' + chainId, contract.address.toLowerCase(), packageRef);
@@ -320,7 +320,7 @@ export async function initializeIndexes(redis: RedisClientType) {
       timestamp: { type: SchemaFieldTypes.NUMERIC, SORTABLE: true },
       chainId: { type: SchemaFieldTypes.TAG },
     },
-    { PREFIX: rkey.RKEY_PACKAGE_SEARCHABLE + ':' }
+    { PREFIX: rkey.RKEY_PACKAGE_SEARCHABLE + ':' },
   );
 
   await redis.ft.alter(rkey.RKEY_PACKAGE_SEARCHABLE, {
@@ -339,7 +339,7 @@ export async function initializeIndexes(redis: RedisClientType) {
       chainId: { type: SchemaFieldTypes.TAG },
       timestamp: { type: SchemaFieldTypes.NUMERIC, SORTABLE: true },
     },
-    { PREFIX: rkey.RKEY_ABI_SEARCHABLE + ':' }
+    { PREFIX: rkey.RKEY_ABI_SEARCHABLE + ':' },
   );
 }
 
@@ -353,7 +353,7 @@ export async function getNewEvents(
   client: viem.PublicClient,
   registryChainId: number,
   redis: RedisClientType,
-  registryContract: CannonContract
+  registryContract: CannonContract,
 ) {
   const currentBlock = Number(await client.getBlockNumber()) - 5;
   const lastIndexedBlock =
@@ -402,7 +402,7 @@ export async function scanChain(
   optimismClient: viem.PublicClient,
   registryContract: CannonContract,
   redis: ActualRedisClientType,
-  queue: Queue
+  queue: Queue,
 ) {
   await createIndexesIfNedeed(redis as any);
 
@@ -411,7 +411,7 @@ export async function scanChain(
     {
       // shorter than usual timeout becuase we need to move on if its not resolving well
       ipfs: new IPFSLoader(config.IPFS_URL, {}, 15000),
-    }
+    },
   );
 
   let consecutiveFailures = 0;
@@ -433,11 +433,11 @@ export async function scanChain(
 
       const [usableEvents, unusableEvents] = _.partition(
         [...mainnetScan.events, ...optimismScan.events],
-        (e) => e.timestamp! < earliestScanTime
+        (e) => e.timestamp! < earliestScanTime,
       );
 
       // add any events from process later events that may exist
-      // eslint-disable-next-line no-constant-condition
+
       while (true) {
         const e = await redis.lPop(rkey.RKEY_PROCESS_LATER_EVENTS);
         if (!e) {
@@ -459,7 +459,7 @@ export async function scanChain(
         console.log('[REG] push to later events:', unusableEvents.length);
         await redis.rPush(
           rkey.RKEY_PROCESS_LATER_EVENTS,
-          unusableEvents.map((v) => JSON.stringify(v))
+          unusableEvents.map((v) => JSON.stringify(v)),
         );
       } else {
         console.log('[REG] no push later events');
@@ -553,7 +553,7 @@ export async function scanChain(
                 `[REG] processing package publish (registry ${event.chainId}):`,
                 packageRef,
                 chainId,
-                event.transactionHash
+                event.transactionHash,
               );
               // TODO: event types here are dumb
               await handleCannonPublish(storageCtx, redis, event as any, packageRef, chainId, event.timestamp * 1000);
@@ -593,7 +593,7 @@ export async function scanChain(
                 `[REG] unpublished package (registry ${event.chainId}):`,
                 packageRef,
                 chainId,
-                event.transactionHash
+                event.transactionHash,
               );
 
               await redis.del(`${rkey.RKEY_PACKAGE_SEARCHABLE}:${packageRef}#${chainId}`);
@@ -645,7 +645,7 @@ export async function loop() {
       abi: CannonRegistryAbi,
     },
     redis,
-    queue
+    queue,
   );
 
   console.error('error limit exceeded');

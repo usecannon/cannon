@@ -1,14 +1,21 @@
 import Debug from 'debug';
-/* eslint-disable no-case-declarations */
+
 import * as viem from 'viem';
 import { estimateContractGas, estimateGas, prepareTransactionRequest, simulateContract } from 'viem/actions';
-import { parseContractErrorReason, renderTrace, TraceEntry } from '../trace';
-import { ChainArtifacts, ContractData } from '../types';
+import { parseContractErrorReason, renderTrace, TraceEntry } from '../trace.js';
+import { ChainArtifacts, ContractData } from '../types.js';
 
 const UNKNOWN_ERROR = 'UNKNOWN_ERROR';
 const debug = Debug('cannon:builder:error');
 
-export function traceActions(artifacts: ChainArtifacts) {
+export function traceActions(artifacts: ChainArtifacts): (client: viem.Client) => {
+  estimateGas: (args: viem.EstimateGasParameters) => Promise<bigint | undefined>;
+  estimateContractGas: (args: viem.EstimateContractGasParameters) => Promise<bigint | undefined>;
+  prepareTransactionRequest: (
+    args: viem.PrepareTransactionRequestParameters,
+  ) => Promise<viem.PrepareTransactionRequestReturnType | undefined>;
+  simulateContract: (args: viem.SimulateContractParameters) => Promise<viem.SimulateContractReturnType | undefined>;
+} {
   return (client: viem.Client) => {
     return {
       estimateGas: async (args: viem.EstimateGasParameters) => {
@@ -59,7 +66,7 @@ export async function handleTxnError(
   artifacts: ChainArtifacts,
   provider: viem.Client,
   err: any,
-  txnData?: viem.PrepareTransactionRequestParameters
+  txnData?: viem.PrepareTransactionRequestParameters,
 ): Promise<any> {
   if (err instanceof CannonTraceError || (err?.toString() as string).includes('CannonTraceError')) {
     // error already parsed
@@ -152,7 +159,7 @@ class CannonTraceError extends CannonError {
           try {
             viem.decodeErrorResult({ abi, data: errorCodeHex });
             return true;
-          } catch (_) {
+          } catch (err) {
             // intentionally empty
           }
 
@@ -188,7 +195,7 @@ async function isAnvil(provider: viem.Client) {
 export function findContract(
   ctx: ChainArtifacts,
   condition: (v: { address: viem.Address; abi: viem.Abi }) => boolean,
-  prefix = ''
+  prefix = '',
 ): { name: string; contract: ContractData } | null {
   for (const name in ctx.contracts) {
     if (condition(ctx.contracts[name])) {

@@ -1,12 +1,12 @@
 import 'ses';
-import _ from 'lodash';
+import { isPlainObject, template as lodashTemplate } from 'lodash-es';
 import Debug from 'debug';
 import Fuse from 'fuse.js';
 import rfdc from 'rfdc';
 import * as acorn from 'acorn';
 import { Node, Identifier, Property, MemberExpression } from 'acorn';
-import { CannonHelperContext } from '../types';
-import { getGlobalVars } from './get-global-vars';
+import { CannonHelperContext } from '../types.js';
+import { getGlobalVars } from './get-global-vars.js';
 
 const deepClone = rfdc();
 const debug = Debug('cannon:builder:template');
@@ -93,7 +93,7 @@ export function getTemplateMatches(str: string, includeTags = true) {
  * It adds a fuzzy search for the keys in the data object in case the user made a typo.
  */
 export function renderTemplate(templateStr: string, templateContext: any = {}, safeContext = false) {
-  if (!_.isPlainObject(templateContext)) {
+  if (!isPlainObject(templateContext)) {
     throw new Error('Missing template context');
   }
 
@@ -124,7 +124,7 @@ export function renderTemplate(templateStr: string, templateContext: any = {}, s
       }
     }
 
-    return _.template(templateStr, { imports: CannonHelperContext })(ctx);
+    return lodashTemplate(templateStr, { imports: CannonHelperContext })(ctx);
   } catch (err) {
     if (err instanceof Error) {
       err.message += ` at ${templateStr}`;
@@ -135,8 +135,8 @@ export function renderTemplate(templateStr: string, templateContext: any = {}, s
         const match = err.message.includes('Cannot read properties of undefined')
           ? err.message.match(/\(reading '([^']+)'\)/)
           : err.message.includes(' is not defined ')
-          ? err.message.match(/([^']+) is not defined at /)
-          : null;
+            ? err.message.match(/([^']+) is not defined at /)
+            : null;
 
         if (match?.[1]) {
           const desiredKey = match[1];
@@ -195,7 +195,7 @@ function _getAllKeys(obj: { [key: string]: any }, parentKey = '', keys: Set<stri
   for (const key of Object.keys(obj)) {
     const fullKey = parentKey ? `${parentKey}.${key}` : key;
     keys.add(fullKey);
-    if (_.isPlainObject(obj[key])) _getAllKeys(obj[key], fullKey, keys);
+    if (isPlainObject(obj[key])) _getAllKeys(obj[key], fullKey, keys);
   }
 
   return keys;

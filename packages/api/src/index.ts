@@ -29,7 +29,7 @@ app.use(
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     validate: { trustProxy: !config.TRUST_PROXY },
-  })
+  }),
 );
 
 app.use(routes.selector);

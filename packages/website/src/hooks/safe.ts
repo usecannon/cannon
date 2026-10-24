@@ -166,10 +166,10 @@ export function useWalletPublicSafes() {
             console.error(
               `Error fetching safes for chain ${chain.id}
             `,
-              e
+              e,
             );
           }
-        })
+        }),
       );
       return results;
     },
@@ -239,7 +239,7 @@ export const useSafeTransactionStatus = (chainId: number, transactionHash: Hash 
 
         const isExecutionFailed = completeLogs.some(
           // @ts-ignore: log.eventName is not typed :/
-          (log) => log.eventName === SafeTransactionStatus.EXECUTION_FAILURE
+          (log) => log.eventName === SafeTransactionStatus.EXECUTION_FAILURE,
         );
 
         setStatus(isExecutionFailed ? SafeTransactionStatus.EXECUTION_FAILURE : SafeTransactionStatus.EXECUTION_SUCCESS);

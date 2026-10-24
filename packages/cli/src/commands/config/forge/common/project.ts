@@ -1,4 +1,4 @@
-import type { Option as ForgeProjectOption } from '../../types';
+import type { Option as ForgeProjectOption } from '../../types.js';
 
 export const forgeProjectOptions: ForgeProjectOption[] = [
   {

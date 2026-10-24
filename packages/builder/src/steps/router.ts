@@ -1,23 +1,23 @@
 import Debug from 'debug';
-import _ from 'lodash';
+import { cloneDeep, map, isUndefined, assign, omit } from 'lodash-es';
 import * as viem from 'viem';
 import { z } from 'zod';
 import { generateRouter } from '@usecannon/router';
-import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2';
-import { CannonError } from '../error';
-import { mergeTemplateAccesses } from '../access-recorder';
-import { routerSchema } from '../schemas';
-import { ContractMap } from '../types';
-import { getBlockRetried } from '../helpers';
+import { ARACHNID_DEFAULT_DEPLOY_ADDR, ensureArachnidCreate2Exists, makeArachnidCreate2Txn } from '../create2.js';
+import { CannonError } from '../error/index.js';
+import { mergeTemplateAccesses } from '../access-recorder.js';
+import { routerSchema } from '../schemas.js';
+import { ContractMap } from '../types.js';
 import {
   encodeDeployData,
   getContractDefinitionFromPath,
   removeConstructorFromAbi,
   getMergedAbiFromContractPaths,
-} from '../util';
-import { template } from '../utils/template';
-import { compileContract } from '../utils/compile';
-import { CannonAction } from '../actions';
+} from '../util.js';
+import { template } from '../utils/template.js';
+import { compileContract } from '../utils/compile.js';
+import { CannonAction } from '../actions.js';
+import { getBlockRetried } from '../helpers.js';
 
 const debug = Debug('cannon:builder:router');
 
@@ -85,20 +85,20 @@ const routerStep = {
       {
         contractAbis,
         contractAddresses,
-        config: _.omit(newConfig, 'includeDiamondCompatibility'),
+        config: omit(newConfig, 'includeDiamondCompatibility'),
       },
       {
         contractAbis,
         contractAddresses,
-        config: _.omit(newConfig, 'includeReceive', 'includeDiamondCompatibility'),
+        config: omit(newConfig, 'includeReceive', 'includeDiamondCompatibility'),
       },
     ];
   },
 
   configInject(ctx, config) {
-    config = _.cloneDeep(config);
+    config = cloneDeep(config);
 
-    config.contracts = _.map(config.contracts, (n) => template(n, ctx));
+    config.contracts = map(config.contracts, (n) => template(n, ctx));
 
     if (config.from) {
       config.from = template(config.from, ctx);
@@ -119,7 +119,7 @@ const routerStep = {
       config.overrides.gasLimit = template(config.overrides.gasLimit, ctx);
     }
 
-    if (_.isUndefined(config.includeDiamondCompatibility)) {
+    if (isUndefined(config.includeDiamondCompatibility)) {
       config.includeDiamondCompatibility = true;
     }
 
@@ -131,10 +131,10 @@ const routerStep = {
     accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.salt));
     accesses = mergeTemplateAccesses(
       accesses,
-      engine.computeTemplateAccesses(typeof config.create2 === 'string' ? config.create2 : '')
+      engine.computeTemplateAccesses(typeof config.create2 === 'string' ? config.create2 : ''),
     );
     accesses.accesses.push(
-      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`))
+      ...config.contracts.map((c) => (c.includes('.') ? `imports.${c.split('.')[0]}` : `contracts.${c}`)),
     );
 
     if (config?.overrides) {
@@ -250,7 +250,7 @@ const routerStep = {
     if (config.create2) {
       const arachnidDeployerAddress = await ensureArachnidCreate2Exists(
         runtime,
-        typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR
+        typeof config.create2 === 'string' ? (config.create2 as viem.Address) : ARACHNID_DEFAULT_DEPLOY_ADDR,
       );
 
       debug('performing arachnid create2');
@@ -267,7 +267,7 @@ const routerStep = {
         if (config.ifExists !== 'continue') {
           throw new CannonError(
             `The contract at the create2 destination ${addr} is already deployed, but the Cannon state does not recognize that this contract has already been deployed. This typically indicates incorrect upgrade configuration. Please confirm if this contract should already be deployed or not, and if you want to continue the build as-is, add 'ifExists = "continue"' to the step definition`,
-            'CREATE2_COLLISION'
+            'CREATE2_COLLISION',
           );
         }
         receipt = null;
@@ -276,7 +276,7 @@ const routerStep = {
           ? await runtime.getSigner(config.from as viem.Address)
           : await runtime.getDefaultSigner!(txn, config.salt);
 
-        const fullCreate2Txn = _.assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
+        const fullCreate2Txn = assign(create2Txn, overrides, { account: signer.wallet.account || signer.address });
         debug('final create2 txn', fullCreate2Txn);
 
         const preparedTxn = await runtime.provider.prepareTransactionRequest(fullCreate2Txn);
@@ -292,7 +292,7 @@ const routerStep = {
       debug('using deploy signer with address', signer.address);
 
       const preparedTxn = await signer.wallet.prepareTransactionRequest(
-        _.assign(txn, overrides, { account: signer.wallet.account || signer.address })
+        assign(txn, overrides, { account: signer.wallet.account || signer.address }),
       );
 
       const hash = await signer.wallet.sendTransaction(preparedTxn as any);

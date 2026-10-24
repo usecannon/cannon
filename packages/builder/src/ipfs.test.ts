@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { deleteIpfs, fetchIPFSAvailability, listPinsIpfs, readIpfs, writeIpfs } from './ipfs';
+import { deleteIpfs, fetchIPFSAvailability, listPinsIpfs, readIpfs, writeIpfs } from './ipfs.js';
 
 jest.mock('axios');
 

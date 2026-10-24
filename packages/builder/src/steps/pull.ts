@@ -1,14 +1,14 @@
 import Debug from 'debug';
-import _ from 'lodash';
+import { cloneDeep } from 'lodash-es';
 import { z } from 'zod';
-import { Events } from '../runtime';
-import { mergeTemplateAccesses } from '../access-recorder';
-import { getOutputs } from '../builder';
-import { ChainDefinition } from '../definition';
-import { PackageReference } from '../package-reference';
-import { pullSchema } from '../schemas';
-import { template } from '../utils/template';
-import { CannonAction } from '../actions';
+import { Events } from '../runtime.js';
+import { mergeTemplateAccesses } from '../access-recorder.js';
+import { getOutputs } from '../builder.js';
+import { ChainDefinition } from '../definition.js';
+import { PackageReference } from '../package-reference.js';
+import { pullSchema } from '../schemas.js';
+import { template } from '../utils/template.js';
+import { CannonAction } from '../actions.js';
 
 const debug = Debug('cannon:builder:pull');
 
@@ -49,7 +49,7 @@ const pullSpec = {
   },
 
   configInject(ctx, config) {
-    config = _.cloneDeep(config);
+    config = cloneDeep(config);
 
     const packageRef = new PackageReference(template(config.source, ctx));
 
@@ -82,7 +82,7 @@ const pullSpec = {
       runtime.emit(
         Events.Notice,
         packageState.currentLabel,
-        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.'
+        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.',
       );
     }
 
@@ -92,13 +92,13 @@ const pullSpec = {
 
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${source}. please make sure it exists for the ${chainId} network and ${preset} preset.`
+        `deployment not found: ${source}. please make sure it exists for the ${chainId} network and ${preset} preset.`,
       );
     }
 
     if (deployInfo.status === 'partial') {
       throw new Error(
-        `deployment status is incomplete for ${source}. cannot generate artifacts safely. please complete deployment to continue import.`
+        `deployment status is incomplete for ${source}. cannot generate artifacts safely. please complete deployment to continue import.`,
       );
     }
 

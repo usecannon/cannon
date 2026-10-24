@@ -1,10 +1,10 @@
-import { makeFakeProvider } from '../../test/fixtures';
-import { ChainBuilderRuntime } from '../runtime';
-import { ChainBuilderContext } from '../types';
+import { makeFakeProvider } from '../../test/fixtures.js';
+import { ChainBuilderRuntime } from '../runtime.js';
+import { ChainBuilderContext } from '../types.js';
 
 import * as viem from 'viem';
 
-jest.mock('../runtime');
+jest.mock('../runtime.js');
 
 export const fakeCtx = {
   settings: {

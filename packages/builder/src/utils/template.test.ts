@@ -1,4 +1,4 @@
-import { TemplateValidationError, validateTemplate, renderTemplate, template } from './template';
+import { TemplateValidationError, validateTemplate, renderTemplate, template } from './template.js';
 
 describe('template.ts', () => {
   describe('validateTemplate()', () => {

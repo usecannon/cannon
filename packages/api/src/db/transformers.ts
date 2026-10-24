@@ -10,7 +10,7 @@ export function findPackageByTag(documents: { value: RedisDocument }[], tag: Red
       item.value.name === tag.name &&
       item.value.preset === tag.preset &&
       item.value.chainId === tag.chainId &&
-      item.value.version === tag.versionOfTag
+      item.value.version === tag.versionOfTag,
   );
 
   if (!result) return;

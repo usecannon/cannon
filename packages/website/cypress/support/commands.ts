@@ -1,4 +1,3 @@
-import 'cypress-xpath';
 import { slowRequestTracker } from '../utils/slow-request-tracker';
 import '@cypress/code-coverage/support';
 

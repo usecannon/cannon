@@ -14,24 +14,24 @@ import {
   RawChainDefinition,
 } from '@usecannon/builder';
 import { AbiEvent } from 'abitype';
-import { bold, magentaBright, red, yellowBright } from 'chalk';
+import chalk from 'chalk';
 import { exec, spawnSync } from 'child_process';
 import Debug from 'debug';
 import fs from 'fs-extra';
-import _ from 'lodash';
+import { mergeWith, omit } from 'lodash-es';
 import os from 'os';
 import path from 'path';
 import prompts from 'prompts';
 import semver from 'semver';
 import * as viem from 'viem';
-import { getMainLoader } from './loader';
+import { getMainLoader } from './loader.js';
 import { privateKeyToAccount } from 'viem/accounts';
-import { getChainById, chains } from './chains';
-import { resolveCliSettings } from './settings';
-import { logSpinner, warnSpinner } from './util/console';
-import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider';
-import { createDefaultReadRegistry } from './registry';
+import { getChainById, chains } from './chains.js';
+import { resolveCliSettings } from './settings.js';
+import { logSpinner, warnSpinner } from './util/console.js';
+import { isConnectedToInternet } from './util/is-connected-to-internet.js';
+import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider.js';
+import { createDefaultReadRegistry } from './registry.js';
 
 const debug = Debug('cannon:cli:helpers');
 
@@ -96,7 +96,7 @@ export async function ensureFoundryCompatibility(): Promise<void> {
       });
 
       if (anvilResponse.confirmation) {
-        logSpinner(magentaBright('Upgrading Foundry to the latest version...'));
+        logSpinner(chalk.magentaBright('Upgrading Foundry to the latest version...'));
         await execPromise('foundryup');
       } else {
         process.exit(1);
@@ -111,7 +111,7 @@ export async function ensureFoundryCompatibility(): Promise<void> {
     });
 
     if (response.confirmation) {
-      logSpinner(magentaBright('Installing Foundry...'));
+      logSpinner(chalk.magentaBright('Installing Foundry...'));
       await execPromise('curl -L https://foundry.paradigm.xyz | bash');
       await execPromise(os.homedir() + '/.foundry/bin/foundryup');
     } else {
@@ -198,15 +198,27 @@ export async function checkCannonVersion(currentVersion: string): Promise<void> 
   const latestVersion = await resolveCannonVersion();
 
   if (latestVersion && currentVersion && semver.lt(currentVersion, latestVersion)) {
-    warnSpinner(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
+    warnSpinner(chalk.yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
   }
 }
 
 function loadPackageJson(filepath: string): { name: string; version: string } {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require(filepath);
-  } catch (_) {
+  } catch (err) {
     return { name: '', version: '' };
+  }
+}
+
+function stripSymbols(obj: any) {
+  if (typeof obj === 'object' && !Array.isArray(obj)) {
+    return Object.entries(obj).reduce((acc, [k, v]) => {
+      (acc as any)[k] = stripSymbols(v);
+      return acc;
+    }, {});
+  } else {
+    return obj;
   }
 }
 
@@ -265,7 +277,7 @@ export async function loadCannonfile(filepath: string) {
 async function loadChainDefinitionToml(filepath: string, trace: string[]): Promise<[Partial<RawChainDefinition>, Buffer]> {
   if (!fs.existsSync(filepath)) {
     throw new Error(
-      `Chain definition TOML '${filepath}' not found. Include trace:\n${trace.map((p) => ' => ' + p).join('\n')}`
+      `Chain definition TOML '${filepath}' not found. Include trace:\n${trace.map((p) => ' => ' + p).join('\n')}`,
     );
   }
 
@@ -273,7 +285,8 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
 
   let rawDef: Partial<RawChainDefinition> & { include?: string[] };
   try {
-    rawDef = toml.parse(buf.toString('utf8'));
+    // have to strip symbols because zod makes it really hard if we leave them in
+    rawDef = stripSymbols(toml.parse(buf.toString('utf8')));
   } catch (err: any) {
     throw new Error(`error encountered while parsing toml file ${filepath}: ${err.toString()}`);
   }
@@ -292,10 +305,10 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
   for (const additionalFilepath of rawDef.include || []) {
     const abspath = path.join(path.dirname(filepath), additionalFilepath);
 
-    _.mergeWith(assembledDef, (await loadChainDefinitionToml(abspath, [filepath].concat(trace)))[0], customMerge);
+    mergeWith(assembledDef, (await loadChainDefinitionToml(abspath, [filepath].concat(trace)))[0], customMerge);
   }
 
-  _.mergeWith(assembledDef, _.omit(rawDef, 'include'), customMerge);
+  mergeWith(assembledDef, omit(rawDef, 'include'), customMerge);
 
   return [assembledDef, buf];
 }
@@ -334,13 +347,13 @@ export async function ensureChainIdConsistency(rpcUrl?: string, chainId?: number
       // throw an expected error if the chainId is not consistent with the provider's chainId
       if (Number(chainId) !== Number(providerChainId)) {
         logSpinner(
-          red(
-            `Error: The chainId (${providerChainId}) obtained from the ${bold('--rpc-url')} does not match with ${bold(
-              '--chain-id'
-            )} value (${chainId}). Please ensure that the ${bold(
-              '--chain-id'
-            )} value matches the network your RPC is connected to.`
-          )
+          chalk.red(
+            `Error: The chainId (${providerChainId}) obtained from the ${chalk.bold('--rpc-url')} does not match with ${chalk.bold(
+              '--chain-id',
+            )} value (${chainId}). Please ensure that the ${chalk.bold(
+              '--chain-id',
+            )} value matches the network your RPC is connected to.`,
+          ),
         );
 
         process.exit(1);
@@ -454,7 +467,7 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
   normalizedPrivateKeys.forEach((key: viem.Hex) => {
     if (!isPrivateKey(key)) {
       throw new Error(
-        'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your settings file, or check the value supplied to the --private-key flag'
+        'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your settings file, or check the value supplied to the --private-key flag',
       );
     }
   });
@@ -462,17 +475,10 @@ export function checkAndNormalizePrivateKey(privateKey: string | viem.Hex | unde
   return normalizedPrivateKeys.join(',') as viem.Hex;
 }
 
-interface PackageReferenceResult {
-  fullPackageRef: string;
-  chainId: number;
-  ipfsUrl: string;
-  deployInfo: DeploymentInfo;
-}
-
 export async function getPackageReference(
   packageRef: string,
   givenChainId: any,
-  givenRpcUrl?: string
+  givenRpcUrl?: string,
 ): Promise<{
   fullPackageRef: string;
   chainId: number;
@@ -498,7 +504,7 @@ export async function getPackageReference(
 export async function getPackageInfo(
   packageRef: string,
   givenChainId: any,
-  givenRpcUrl: string
+  givenRpcUrl: string,
 ): Promise<{
   fullPackageRef: string;
   chainId: number;

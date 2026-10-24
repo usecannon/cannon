@@ -13,13 +13,13 @@ import {
   addOutputsToContext,
 } from '@usecannon/builder';
 import Debug from 'debug';
-import _ from 'lodash';
+import { assign, difference, last, mapKeys } from 'lodash-es';
 import * as viem from 'viem';
-import { getMainLoader } from '../loader';
-import { createDefaultReadRegistry } from '../registry';
-import { CliSettings } from '../settings';
-import { warnSpinner } from '../util/console';
-import { ProviderAction, resolveProvider } from '../util/provider';
+import { getMainLoader } from '../loader.js';
+import { createDefaultReadRegistry } from '../registry.js';
+import { CliSettings } from '../settings.js';
+import { warnSpinner } from '../util/console.js';
+import { ProviderAction, resolveProvider } from '../util/provider.js';
 
 const debug = Debug('cannon:cli:alter');
 
@@ -40,7 +40,7 @@ export async function alter(
     | 'clean-unused',
   targets: string[],
   runtimeOverrides: Partial<ChainBuilderRuntime>,
-  populateMissing = false
+  populateMissing = false,
 ) {
   const { fullPackageRef } = new PackageReference(packageRef);
 
@@ -68,7 +68,7 @@ export async function alter(
       ...runtimeOverrides,
     },
     resolver,
-    loader
+    loader,
   );
 
   const startDeployInfo = [await runtime.readDeploy(fullPackageRef, chainId)];
@@ -85,11 +85,11 @@ export async function alter(
 
   for (const pathItem of subpkg) {
     debug('load subpkg', pathItem);
-    const parentDeployInfo = _.last(startDeployInfo);
+    const parentDeployInfo = last(startDeployInfo);
     if (!parentDeployInfo?.state[pathItem]) {
       if (!populateMissing) {
         throw new Error(
-          'subpkg path name not found: ' + pathItem + '. Use --populate-missing to auto-populate missing subpackages.'
+          'subpkg path name not found: ' + pathItem + '. Use --populate-missing to auto-populate missing subpackages.',
         );
       }
       debug('auto-populating missing subpkg', pathItem);
@@ -110,7 +110,7 @@ export async function alter(
       });
     } else {
       startDeployInfo.push(
-        await runtime.readBlob(parentDeployInfo.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url)
+        await runtime.readBlob(parentDeployInfo.state[pathItem].artifacts.imports![pathItem.split('.')[1]].url),
       );
     }
   }
@@ -145,7 +145,7 @@ export async function alter(
         for (const imp in deployInfo.state[actionStep].artifacts.imports) {
           // try to find the equivalent deployment for this network
           const thisNetworkState: DeploymentInfo = await runtime.readBlob(
-            deployInfo.state[actionStep].artifacts.imports![imp].url
+            deployInfo.state[actionStep].artifacts.imports![imp].url,
           );
 
           const thisNetworkDefinition = new ChainDefinition(thisNetworkState.def);
@@ -164,9 +164,9 @@ export async function alter(
             throw new Error(`could not find network deployment for dependency package: ${name}:${version}`);
           }
 
-          deployInfo.state[actionStep].artifacts.imports![imp] = _.assign(
+          deployInfo.state[actionStep].artifacts.imports![imp] = assign(
             { url: '' },
-            await getOutputs(runtime, new ChainDefinition(newNetworkDeployment.def), newNetworkDeployment.state)
+            await getOutputs(runtime, new ChainDefinition(newNetworkDeployment.def), newNetworkDeployment.state),
           );
         }
       }
@@ -183,7 +183,7 @@ export async function alter(
     case 'import':
       if (targets.length !== 2) {
         throw new Error(
-          'incorrect number of arguments for import. Should be <operationName> <existingArtifacts (comma separated)>'
+          'incorrect number of arguments for import. Should be <operationName> <existingArtifacts (comma separated)>',
         );
       }
 
@@ -195,7 +195,7 @@ export async function alter(
 
         if (!stepAction.importExisting) {
           throw new Error(
-            `The given operation ${stepName} does not support import. Consider using mark-complete, mark-incomplete`
+            `The given operation ${stepName} does not support import. Consider using mark-complete, mark-incomplete`,
           );
         }
 
@@ -214,7 +214,7 @@ export async function alter(
         // importExisting can still record the txns (events won't be decoded).
         if (!configResolved && !config.target && populateMissing) {
           const receipts = await Promise.all(
-            existingKeys.map((key) => runtime.provider.getTransactionReceipt({ hash: key as `0x${string}` }))
+            existingKeys.map((key) => runtime.provider.getTransactionReceipt({ hash: key as `0x${string}` })),
           );
           config.target = receipts.map((r) => r.to);
           config.abi = '[]';
@@ -237,7 +237,7 @@ export async function alter(
           ctx,
           config,
           { currentLabel: stepName, ref: pkgRef },
-          existingKeys
+          existingKeys,
         );
 
         if (deployInfo.state[stepName]) {
@@ -266,7 +266,7 @@ export async function alter(
               ctx,
               config,
               { currentLabel: stepName, ref: pkgRef },
-              existingKeys
+              existingKeys,
             );
 
             // Recompute hash for this step in case there is a mismatch
@@ -275,10 +275,10 @@ export async function alter(
           } catch (err) {
             throw new Error(
               `Operation ${stepName} not found in deployment state and could not be populated by Cannon, here are the available operation options: \n ${Object.keys(
-                deployInfo.state
+                deployInfo.state,
               )
                 .map((s) => `\n ${s}`)
-                .join('\n')}`
+                .join('\n')}`,
             );
           }
         }
@@ -288,7 +288,7 @@ export async function alter(
     case 'set-contract-address': {
       if (targets.length !== 2) {
         throw new Error(
-          'incorrect number of arguments for set-contract-address. Should be <operationName> <contract address>'
+          'incorrect number of arguments for set-contract-address. Should be <operationName> <contract address>',
         );
       }
       const [targetContractName, targetAddress] = targets;
@@ -299,7 +299,7 @@ export async function alter(
 
       // find the step that deploy contract
       const [targetStep] = Object.values(deployInfo.state).filter(
-        (step) => !!step.artifacts?.contracts?.[targetContractName]
+        (step) => !!step.artifacts?.contracts?.[targetContractName],
       );
 
       if (!targetStep) {
@@ -322,7 +322,7 @@ export async function alter(
       for (const target of targets) {
         if (!deployInfo.state[target]) {
           warnSpinner(
-            `WARN: action ${target} does not exist in the cannon state for the given package. Setting dummy empty state.`
+            `WARN: action ${target} does not exist in the cannon state for the given package. Setting dummy empty state.`,
           );
           deployInfo.state[target] = {
             artifacts: { contracts: {}, txns: {}, extras: {} },
@@ -346,7 +346,7 @@ export async function alter(
       break;
     case 'clean-unused': {
       const def = new ChainDefinition(deployInfo.def);
-      for (const notDefinedState of _.difference(Object.keys(deployInfo.state), def.topologicalActions)) {
+      for (const notDefinedState of difference(Object.keys(deployInfo.state), def.topologicalActions)) {
         debug('delete undefined state', notDefinedState, deployInfo.state[notDefinedState]);
         delete deployInfo.state[notDefinedState];
       }
@@ -359,14 +359,14 @@ export async function alter(
           const oldUrl = deployInfo.state[k].artifacts.imports![k.split('.')[1]].url;
 
           const newUrl = await alter(
-            `@${oldUrl.split(':')[0]}:${_.last(oldUrl.split('/'))}`,
+            `@${oldUrl.split(':')[0]}:${last(oldUrl.split('/'))}`,
             [],
             chainId,
             cliSettings,
             meta,
             'migrate-212',
             targets,
-            runtimeOverrides
+            runtimeOverrides,
           );
 
           deployInfo.state[k].artifacts.imports![k.split('.')[1]].url = newUrl;
@@ -377,7 +377,7 @@ export async function alter(
       // `import` steps renamed to `pull`
       // `provision` steps renamed to `clone`
       // we just need to update the key that the state for these releases is stored on
-      deployInfo.state = _.mapKeys(deployInfo.state, (_v, k) => {
+      deployInfo.state = mapKeys(deployInfo.state, (_v, k) => {
         return k
           .replace(/^contract\./, 'deploy.')
           .replace(/^import\./, 'pull.')

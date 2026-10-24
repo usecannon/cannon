@@ -1,5 +1,4 @@
 import { PackageReference } from '@usecannon/builder';
-import { AggregateGroupByReducers, AggregateSteps } from 'redis';
 import * as viem from 'viem';
 import * as keys from '../db/keys';
 import { isChainId, isContractName } from '../helpers';
@@ -22,19 +21,19 @@ async function _aggregateContracts(query: string): Promise<ContractQueryResult[]
 
   const data: ContractQueryResult[] = [];
 
-  const res = (await redis.ft.aggregate(keys.RKEY_ABI_SEARCHABLE, query, {
+  const res = (await redis.ft.aggregate(keys.RKEY_ABI_SEARCHABLE, query, ({
     LOAD: { identifier: '@package' },
     STEPS: [
       {
-        type: AggregateSteps.GROUPBY,
+        type: 'GROUPBY',
         properties: ['@contractName', '@package', '@chainId', '@address'],
         REDUCE: {
-          type: AggregateGroupByReducers.FIRST_VALUE,
+          type: 'FIRST_VALUE',
           property: '@contractName',
         },
       },
     ],
-  })) as {
+  } as any))) as {
     total: number;
     results: ContractQueryResult[];
   };
@@ -46,8 +45,8 @@ async function _aggregateContracts(query: string): Promise<ContractQueryResult[]
       // eslint-disable-next-line no-console
       console.warn(
         new Error(
-          `Could not parse "${doc && JSON.stringify(doc)}" on query "FT.AGGREGATE ${keys.RKEY_ABI_SEARCHABLE} ${query}"`
-        )
+          `Could not parse "${doc && JSON.stringify(doc)}" on query "FT.AGGREGATE ${keys.RKEY_ABI_SEARCHABLE} ${query}"`,
+        ),
       );
       continue;
     }

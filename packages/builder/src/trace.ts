@@ -1,8 +1,8 @@
-import { ChainArtifacts, Contract, ContractData } from './types';
-import { ConsoleLogs } from './consoleLog';
+import { ChainArtifacts, Contract, ContractData } from './types.js';
+import { ConsoleLogs } from './consoleLog.js';
 import * as viem from 'viem';
 import { Abi, Address, Hash, Hex, decodeAbiParameters } from 'viem';
-import { green, grey, bold, red } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
 
 const debug = Debug('cannon:cli:trace');
@@ -59,22 +59,22 @@ export function renderTraceEntry(ctx: ChainArtifacts, trace: TraceEntry): string
         ctx,
         callTraceAction.to,
         callTraceAction.input,
-        trace.result?.output ?? '0x'
+        trace.result?.output ?? '0x',
       );
 
-      const actionStr = bold(`${callTraceAction.callType.toUpperCase()} `);
-      const gasStr = grey(` (${parseInt(callTraceAction.gas).toLocaleString()} gas)`);
+      const actionStr = chalk.bold(`${callTraceAction.callType.toUpperCase()} `);
+      const gasStr = chalk.grey(` (${parseInt(callTraceAction.gas).toLocaleString()} gas)`);
 
       const txStr =
         (contractName || callTraceAction.to) +
         '.' +
         (parsedInput || callTraceAction.input) +
         (BigInt(callTraceAction.value || '0') != BigInt(0)
-          ? red(`{value:${viem.formatEther(BigInt(callTraceAction.value))}}`)
+          ? chalk.red(`{value:${viem.formatEther(BigInt(callTraceAction.value))}}`)
           : '') +
         (parsedOutput ? ' => ' + parsedOutput : '');
 
-      str = actionStr + (contractName ? green(txStr) : txStr) + gasStr;
+      str = actionStr + (contractName ? chalk.green(txStr) : txStr) + gasStr;
       break;
     case 'create':
       //const createTraceAction = trace.action as CreateTraceAction;
@@ -94,7 +94,7 @@ export function parseFunctionData(
   ctx: ChainArtifacts,
   contractAddress: Address,
   input: Hex,
-  output: Hex
+  output: Hex,
 ): {
   contractName: string;
   parsedInput: string;
@@ -115,8 +115,8 @@ export function parseFunctionData(
       renderResult(
         decodeAbiParameters(
           ConsoleLogs[parseInt(input.slice(0, 10)) as keyof typeof ConsoleLogs].map((v) => ({ type: v })),
-          ('0x' + input.slice(10)) as Hex
-        )
+          ('0x' + input.slice(10)) as Hex,
+        ),
       );
 
     // console logs have no output
@@ -156,7 +156,7 @@ export function parseFunctionData(
           debug('parse function result error', err);
           // if we found an address but the transaction cannot be parsed, it could be decodable error
           try {
-            parsedOutput = bold(red(parseContractErrorReason(info.contract, output)));
+            parsedOutput = chalk.bold(chalk.red(parseContractErrorReason(info.contract, output)));
             isReverted = true;
           } catch (err) {
             parsedOutput = output;
@@ -167,7 +167,7 @@ export function parseFunctionData(
 
         // figure out if we can still find the selector (maybe just the following calldata is mangled)
         const foundFunction = info.contract.abi.find(
-          (item) => item.type === 'function' && viem.toFunctionSelector(item)
+          (item) => item.type === 'function' && viem.toFunctionSelector(item),
         ) as viem.AbiFunction | null;
         if (foundFunction) {
           parsedInput = foundFunction.name + `(<invalid function calldata ${input.slice(10)}>)`;
@@ -194,7 +194,7 @@ export function parseFunctionData(
 export function findContract(
   ctx: ChainArtifacts,
   condition: (v: { address: Address; abi: Abi }) => boolean,
-  prefix = ''
+  prefix = '',
 ): { name: string; contract: Contract } | null {
   for (const name in ctx.contracts) {
     if (condition(ctx.contracts[name])) {

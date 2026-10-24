@@ -9,20 +9,20 @@ import {
 } from '@usecannon/builder';
 import Debug from 'debug';
 import * as viem from 'viem';
-import { PackageSpecification } from '../types';
-import { getFoundryArtifact } from '../foundry';
-import { ANVIL_FIRST_ADDRESS } from '../constants';
-import { createDryRunRegistry } from '../registry';
-import { CannonRpcNode, getProvider, runRpc } from '../rpc';
-import { CliSettings, resolveCliSettings } from '../settings';
-import { execPromise, filterSettings, loadCannonfile } from '../helpers';
-import { warn } from './console';
-import { parseSettings } from './params';
-import { pickAnvilOptions } from './foundry-options';
-import { setDebugLevel } from './debug-level';
-import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider';
+import { PackageSpecification } from '../types.js';
+import { getFoundryArtifact } from '../foundry.js';
+import { ANVIL_FIRST_ADDRESS } from '../constants.js';
+import { createDryRunRegistry } from '../registry.js';
+import { CannonRpcNode, getProvider, runRpc } from '../rpc.js';
+import { CliSettings, resolveCliSettings } from '../settings.js';
+import { execPromise, filterSettings, loadCannonfile } from '../helpers.js';
+import { warn } from './console.js';
+import { parseSettings } from './params.js';
+import { pickAnvilOptions } from './foundry-options.js';
+import { setDebugLevel } from './debug-level.js';
+import { ProviderAction, resolveProvider, isURL, getChainIdFromRpcUrl } from './provider.js';
 
-import { yellow, bold, italic } from 'chalk';
+import chalk from 'chalk';
 
 const debug = Debug('cannon:cli:build');
 
@@ -41,7 +41,7 @@ type SignerConfiguration = {
 export async function doBuild(
   cannonfile: string,
   settings: string[],
-  options: Record<string, any>
+  options: Record<string, any>,
 ): Promise<[CannonRpcNode | null, PackageSpecification, ChainArtifacts, ChainBuilderRuntime, DeploymentInfo]> {
   // Set debug level
   setDebugLevel(options);
@@ -68,7 +68,7 @@ export async function doBuild(
     cliSettings,
     provider!,
     getSigner,
-    getDefaultSigner
+    getDefaultSigner,
   );
 
   const deployers = buildConfig.def.getDeployers();
@@ -77,16 +77,16 @@ export async function doBuild(
 
   if (defaultSigner && deployers.includes(defaultSigner.address)) {
     warn(
-      yellow(
-        bold(
-          'WARN: For proper record of version history, we reccomend including all signers for your package as part of the `deployers` configuration in your cannonfile.'
-        )
-      )
+      chalk.yellow(
+        chalk.bold(
+          'WARN: For proper record of version history, we reccomend including all signers for your package as part of the `deployers` configuration in your cannonfile.',
+        ),
+      ),
     );
-    warn(yellow('This can be safely done after the build is finished.'));
+    warn(chalk.yellow('This can be safely done after the build is finished.'));
   }
 
-  const { build } = await import('../commands/build');
+  const { build } = await import('../commands/build.js');
 
   const { outputs, runtime, deployInfo } = await build(buildConfig);
 
@@ -157,7 +157,7 @@ async function configureProvider(options: Record<string, any>, cliSettings: CliS
       },
       {
         forkProvider: provider,
-      }
+      },
     );
 
     provider = getProvider(node)!;
@@ -179,7 +179,7 @@ async function configureSigners(
   options: Record<string, any>,
   cliSettings: CliSettings,
   provider: viem.PublicClient & viem.TestClient & viem.WalletClient,
-  signers: CannonSigner[] | undefined
+  signers: CannonSigner[] | undefined,
 ): Promise<SignerConfiguration> {
   const isBuildOnCannonNetwork = !options.chainId && !isURL(cliSettings.rpcUrl) && !options.dryRun;
   if (isBuildOnCannonNetwork) {
@@ -234,7 +234,7 @@ const configureLocalBuildSigners = (provider: viem.PublicClient & viem.TestClien
  */
 function configureDryRunSigners(
   provider: viem.PublicClient & viem.TestClient & viem.WalletClient,
-  signers: CannonSigner[] | undefined
+  signers: CannonSigner[] | undefined,
 ): SignerConfiguration {
   const getDefaultSigner = async (): Promise<CannonSigner> => {
     const addr = signers?.[0]?.address ?? ANVIL_FIRST_ADDRESS;
@@ -280,8 +280,8 @@ function configureLiveSigners(signers: CannonSigner[] | undefined): SignerConfig
     if (!signer) {
       throw new Error(
         `Signer not found for address ${viem.getAddress(
-          address
-        )}. Please add the private key for this address to your command line.`
+          address,
+        )}. Please add the private key for this address to your command line.`,
       );
     }
     return signer;
@@ -313,7 +313,7 @@ async function prepareBuildConfig(
   cliSettings: CliSettings,
   provider: viem.PublicClient,
   getSigner: (address: viem.Address) => Promise<CannonSigner>,
-  getDefaultSigner?: () => Promise<CannonSigner>
+  getDefaultSigner?: () => Promise<CannonSigner>,
 ) {
   const { name, version, preset, def } = await loadCannonfile(cannonfile);
 
@@ -321,8 +321,8 @@ async function prepareBuildConfig(
     const neededDeps = Array.from(def.danglingDependencies).map((v) => v.split(':'));
     throw new CannonError(
       `Unknown template access found. Please ensure the following references are defined:\n${neededDeps
-        .map(([input, node]) => `${bold(input)} in ${italic(node)}`)
-        .join('\n')}`
+        .map(([input, node]) => `${chalk.bold(input)} in ${chalk.italic(node)}`)
+        .join('\n')}`,
     );
   }
 

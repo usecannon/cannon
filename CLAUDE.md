@@ -10,7 +10,6 @@ Cannon is a DevOps tool for EVM chains designed for testing, deploying, and publ
 
 ### Development Setup
 - `pnpm i` - Install all dependencies (requires Node.js ≥18 and pnpm ≥9)
-- `pnpm build` - Build core packages (@usecannon/builder, @usecannon/cli, hardhat-cannon, @usecannon/api)
 - `pnpm build:website` - Build website and dependencies
 - `pnpm watch` - Watch mode for builder and CLI packages
 - `pnpm clean` - Clean all dist folders
@@ -61,7 +60,6 @@ Each package has its own scripts:
 ### Core Packages
 - **@usecannon/builder** - Core engine that processes cannonfiles and builds chain data
 - **@usecannon/cli** - Command-line interface providing cannon commands
-- **hardhat-cannon** - Hardhat plugin wrapping CLI with project defaults
 - **@usecannon/api** - Backend API for the website
 - **@usecannon/website** - Next.js website at usecannon.com
 - **@usecannon/registry** - Smart contracts for the package registry
@@ -121,7 +119,6 @@ source = "external-package:1.0.0"
 packages/
 ├── builder/        # Core deployment engine
 ├── cli/           # Command-line interface
-├── hardhat-cannon/ # Hardhat integration
 ├── api/           # Website backend
 ├── website/       # Frontend application
 ├── registry/      # Registry smart contracts
@@ -135,7 +132,6 @@ examples/          # Sample projects and usage demos
 ### Commit Conventions
 - Follow ConventionalCommits format: `<type>(scope): <subject>`
 - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-- Scopes: `builder`, `cli`, `hardhat-cannon`, `api`, `website`, `registry`
 - Breaking changes: Use `!` suffix (e.g., `feat!:`, `fix!:`)
 
 ### Code Style

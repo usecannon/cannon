@@ -33,7 +33,7 @@ export function createApp(ctx: RepoContext): { app: Express; start: () => Promis
       standardHeaders: 'draft-7',
       legacyHeaders: false,
       validate: { trustProxy: !ctx.config.TRUST_PROXY },
-    })
+    }),
   );
 
   app.use(connectBusboy({ immediate: true }));

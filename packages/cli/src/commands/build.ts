@@ -17,24 +17,24 @@ import {
   findUpgradeFromPackage,
   writeUpgradeFromInfo,
 } from '@usecannon/builder';
-import { bold, cyanBright, gray, green, magenta, red, yellow, yellowBright } from 'chalk';
+import chalk from 'chalk';
 import fs from 'fs-extra';
-import _ from 'lodash';
+import { assign, isEmpty, pick, pickBy } from 'lodash-es';
 import path from 'path';
 import { table } from 'table';
 import * as viem from 'viem';
-import pkg from '../../package.json';
-import { getChainById } from '../chains';
-import { filterSettings, saveToMetadataCache } from '../helpers';
-import { getMainLoader } from '../loader';
-import { listInstalledPlugins, loadPlugins } from '../plugins';
-import { createDefaultReadRegistry, createLocalOnlyRegistry, createOnChainOnlyRegistry } from '../registry';
-import { resolveCliSettings } from '../settings';
-import { PackageSpecification } from '../types';
-import { logSpinner, warnSpinner, errorSpinner } from '../util/console';
-import { hideApiKey } from '../util/provider';
-import { createWriteScript, WriteScriptFormat } from '../write-script/write';
-import { mergeErrors } from '../util/merge-errors';
+import pkg from '../../package.json' with { type: 'json' };
+import { getChainById } from '../chains.js';
+import { filterSettings, saveToMetadataCache } from '../helpers.js';
+import { getMainLoader } from '../loader.js';
+import { listInstalledPlugins, loadPlugins } from '../plugins.js';
+import { createDefaultReadRegistry, createLocalOnlyRegistry, createOnChainOnlyRegistry } from '../registry.js';
+import { resolveCliSettings } from '../settings.js';
+import { PackageSpecification } from '../types.js';
+import { logSpinner, warnSpinner, errorSpinner, logSpinnerEnd } from '../util/console.js';
+import { hideApiKey } from '../util/provider.js';
+import { createWriteScript, WriteScriptFormat } from '../write-script/write.js';
+import { mergeErrors } from '../util/merge-errors.js';
 
 interface Params {
   provider: viem.PublicClient;
@@ -95,7 +95,9 @@ export async function build({
 
   if (dryRun && rpcUrl) {
     logSpinner(
-      yellowBright(bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
+      chalk.yellowBright(
+        chalk.bold('⚠️ This is a simulation. No changes will be made to the chain. No package data will be saved.\n'),
+      ),
     );
   }
 
@@ -104,7 +106,7 @@ export async function build({
   const packageReference = PackageReference.from(
     packageDefinition.name,
     packageDefinition.version,
-    packageDefinition.preset
+    packageDefinition.preset,
   );
 
   const { fullPackageRef, packageRef } = packageReference;
@@ -155,13 +157,13 @@ export async function build({
     const isPackageAlreadyPublished = await onChainOnlyResolver.getUrl(fullPackageRef, chainId);
     if (isPackageAlreadyPublished.url) {
       throw new Error(
-        'The package ${fullPackageRef} is already published on the registry. Please bump the `version` field in your cannonfile.'
+        'The package ${fullPackageRef} is already published on the registry. Please bump the `version` field in your cannonfile.',
       );
     }
   }
 
   if (!wipe) {
-    logSpinner(bold('Checking for existing package...'));
+    logSpinner(chalk.bold('Checking for existing package...'));
 
     if (upgradeFrom) {
       oldDeployData = await runtime.readDeploy(upgradeFrom, runtime.chainId);
@@ -174,10 +176,10 @@ export async function build({
         runtime.provider,
         packageReference,
         runtime.chainId,
-        def.getDeployers()
+        def.getDeployers(),
       );
       if (oldDeployHash) {
-        logSpinner(green(bold(`Found deployment state via on-chain store: ${oldDeployHash}`)));
+        logSpinner(chalk.green(chalk.bold(`Found deployment state via on-chain store: ${oldDeployHash}`)));
         oldDeployData = (await runtime.readBlob(oldDeployHash)) as DeploymentInfo;
       }
     }
@@ -185,16 +187,16 @@ export async function build({
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData) {
-    logSpinner(gray(`  ${fullPackageRef} (Chain ID: ${chainId}) found`));
+    logSpinner(chalk.gray(`  ${fullPackageRef} (Chain ID: ${chainId}) found`));
     if (!wipe) {
       await runtime.restoreMisc(oldDeployData.miscUrl);
       pkgInfo = pkgInfo || oldDeployData.meta;
     }
   } else {
-    logSpinner(gray('Starting fresh build...'));
+    logSpinner(chalk.gray('Starting fresh build...'));
   }
 
-  const resolvedSettings = _.pickBy(_.assign((!wipe && oldDeployData?.options) || {}, packageDefinition.settings));
+  const resolvedSettings = pickBy(assign((!wipe && oldDeployData?.options) || {}, packageDefinition.settings));
 
   def = def || (oldDeployData ? new ChainDefinition(oldDeployData!.def) : undefined);
 
@@ -207,7 +209,7 @@ export async function build({
     pkgInfo,
     chainId,
     resolvedSettings,
-    getDefaultSigner ? (await getDefaultSigner()).address : viem.zeroAddress
+    getDefaultSigner ? (await getDefaultSigner()).address : viem.zeroAddress,
   );
 
   const pkgName = name || def.getName(initialCtx);
@@ -216,43 +218,45 @@ export async function build({
   logSpinner('');
   if (oldDeployData && wipe) {
     logSpinner('Wiping existing package...');
-    logSpinner(bold('Initializing new package...'));
+    logSpinner(chalk.bold('Initializing new package...'));
     oldDeployData = null;
   } else if (oldDeployData && !upgradeFrom) {
-    logSpinner(bold('Continuing with existing package...'));
+    logSpinner(chalk.bold('Continuing with existing package...'));
   } else {
-    logSpinner(bold('Initializing new package...'));
+    logSpinner(chalk.bold('Initializing new package...'));
   }
-  logSpinner('Name: ' + cyanBright(`${pkgName}`));
-  logSpinner('Version: ' + cyanBright(`${pkgVersion}`));
-  logSpinner('Preset: ' + cyanBright(`${preset}`) + (preset == 'main' ? gray(' (default)') : ''));
-  logSpinner('Chain ID: ' + cyanBright(`${chainId}`));
+  logSpinner('Name: ' + chalk.cyanBright(`${pkgName}`));
+  logSpinner('Version: ' + chalk.cyanBright(`${pkgVersion}`));
+  logSpinner('Preset: ' + chalk.cyanBright(`${preset}`) + (preset == 'main' ? chalk.gray(' (default)') : ''));
+  logSpinner('Chain ID: ' + chalk.cyanBright(`${chainId}`));
   if (!privateSourceCode) {
-    logSpinner(`Private Source Code: ${cyanBright('false')} ${gray('(source code will be included in the package)')}`);
+    logSpinner(
+      `Private Source Code: ${chalk.cyanBright('false')} ${chalk.gray('(source code will be included in the package)')}`,
+    );
   } else {
     logSpinner(
-      `Private Source Code: ${cyanBright('true')} ${gray('(source code will not be included in the resulting package)')}`
+      `Private Source Code: ${chalk.cyanBright('true')} ${chalk.gray('(source code will not be included in the resulting package)')}`,
     );
   }
   if (upgradeFrom) {
-    logSpinner(`Upgrading from: ${cyanBright(upgradeFrom)}`);
+    logSpinner(`Upgrading from: ${chalk.cyanBright(upgradeFrom)}`);
   }
   logSpinner('');
 
   const rpcUrlMsg =
     provider.transport.type === 'http' ? provider.transport.url : typeof rpcUrl === 'string' ? rpcUrl.split(',')[0] : rpcUrl;
 
-  logSpinner(bold(`Building the chain (ID ${chainId})${rpcUrlMsg ? ' via ' + hideApiKey(rpcUrlMsg) : ''}...`));
+  logSpinner(chalk.bold(`Building the chain (ID ${chainId})${rpcUrlMsg ? ' via ' + hideApiKey(rpcUrlMsg) : ''}...`));
 
   if (getDefaultSigner) {
     const defaultSigner = await getDefaultSigner();
     logSpinner(`Using ${defaultSigner.address}`);
   }
 
-  if (!_.isEmpty(resolvedSettings)) {
-    logSpinner(gray('Overriding settings in the cannonfile with the following:'));
+  if (!isEmpty(resolvedSettings)) {
+    logSpinner(chalk.gray('Overriding settings in the cannonfile with the following:'));
     for (const [key, value] of Object.entries(resolvedSettings)) {
-      logSpinner(gray(`  - ${key} = ${value}`));
+      logSpinner(chalk.gray(`  - ${key} = ${value}`));
     }
     logSpinner('');
   }
@@ -268,73 +272,73 @@ export async function build({
 
   let partialDeploy = false;
   runtime.on(Events.PreStepExecute, (t, n, _c, d) =>
-    logSpinner(cyanBright(`${'  '.repeat(d)}Executing ${`[${t}.${n}]`}...`))
+    logSpinner(chalk.cyanBright(`${'  '.repeat(d)}Executing ${`[${t}.${n}]`}...`)),
   );
   runtime.on(Events.SkipDeploy, (n, err, d) => {
     partialDeploy = true;
     logSpinner(
-      yellowBright(
+      chalk.yellowBright(
         `${'  '.repeat(d)}  \u26A0\uFE0F  Skipping [${n}] (${
           typeof err === 'object' && err.toString === Object.prototype.toString ? JSON.stringify(err) : err.toString()
-        })`
-      )
+        })`,
+      ),
     );
   });
   runtime.on(Events.Notice, (n, msg) => {
-    warnSpinner(yellowBright(`WARN: ${n}: ${msg}`));
+    warnSpinner(chalk.yellowBright(`WARN: ${n}: ${msg}`));
   });
   runtime.on(Events.PostStepExecute, (t, n, c, ctx, o, d) => {
     for (const txnKey in o.txns) {
       const txn = o.txns[txnKey];
       if (c.func) {
         logSpinner(
-          `${'  '.repeat(d)}  ${green('\u2714')} Successfully called ${c.func}(${c?.args
+          `${'  '.repeat(d)}  ${chalk.green('\u2714')} Successfully called ${c.func}(${c?.args
             ?.map((arg: any) => (typeof arg === 'object' && arg !== null ? JSON.stringify(arg) : arg))
-            .join(', ')})`
+            .join(', ')})`,
         );
       } else {
-        logSpinner(`${'  '.repeat(d)}  ${green('\u2714')} Successfully performed operation`);
+        logSpinner(`${'  '.repeat(d)}  ${chalk.green('\u2714')} Successfully performed operation`);
       }
 
-      logSpinner(gray(`${'  '.repeat(d)}  Signer: ${txn.signer}`));
+      logSpinner(chalk.gray(`${'  '.repeat(d)}  Signer: ${txn.signer}`));
 
       if (c.target) {
         const contractAddress = getContractFromPath(ctx, c.target[0])?.address;
         if (contractAddress) {
-          logSpinner(gray(`${'  '.repeat(d)}  Contract Address: ${contractAddress}`));
+          logSpinner(chalk.gray(`${'  '.repeat(d)}  Contract Address: ${contractAddress}`));
         }
       }
-      logSpinner(gray(`${'  '.repeat(d)}  Transaction Hash: ${txn.hash}`));
+      logSpinner(chalk.gray(`${'  '.repeat(d)}  Transaction Hash: ${txn.hash}`));
       const cost = BigInt(txn.gasCost) * BigInt(txn.gasUsed);
       totalCost = totalCost + cost;
       totalGasUsed = totalGasUsed + BigInt(txn.gasUsed);
       logSpinner(
-        gray(
+        chalk.gray(
           `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
-            cost
-          )} ${nativeCurrencySymbol} (${txn.gasUsed.toLocaleString()} gas)`
-        )
+            cost,
+          )} ${nativeCurrencySymbol} (${txn.gasUsed.toLocaleString()} gas)`,
+        ),
       );
     }
     for (const contractKey in o.contracts) {
       const contract = o.contracts[contractKey];
       if (contract.deployTxnHash) {
         logSpinner(
-          `${'  '.repeat(d)}  ${green('\u2714')} Successfully deployed ${contract.contractName}${
+          `${'  '.repeat(d)}  ${chalk.green('\u2714')} Successfully deployed ${contract.contractName}${
             c.create2 ? ' using CREATE2' : ''
-          }`
+          }`,
         );
-        logSpinner(gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
-        logSpinner(gray(`${'  '.repeat(d)}  Transaction Hash: ${contract.deployTxnHash}`));
+        logSpinner(chalk.gray(`${'  '.repeat(d)}  Contract Address: ${contract.address}`));
+        logSpinner(chalk.gray(`${'  '.repeat(d)}  Transaction Hash: ${contract.deployTxnHash}`));
         const cost = BigInt(contract.gasCost) * BigInt(contract.gasUsed);
         totalCost = totalCost + cost;
         totalGasUsed = totalGasUsed + BigInt(contract.gasUsed);
         logSpinner(
-          gray(
+          chalk.gray(
             `${'  '.repeat(d)}  Transaction Cost: ${viem.formatEther(
-              cost
-            )} ${nativeCurrencySymbol} (${contract.gasUsed.toLocaleString()} gas)`
-          )
+              cost,
+            )} ${nativeCurrencySymbol} (${contract.gasUsed.toLocaleString()} gas)`,
+          ),
         );
       }
     }
@@ -351,10 +355,10 @@ export async function build({
   });
 
   runtime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
-    logSpinner(magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`))
+    logSpinner(chalk.magenta(`${'  '.repeat(d)}  Resolving ${packageName} (Chain ID: ${chainId}) via ${registry}...`)),
   );
   runtime.on(Events.DownloadDeploy, (hash, gateway, d) =>
-    logSpinner(gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}`))
+    logSpinner(chalk.gray(`${'  '.repeat(d)}    Downloading ${hash} via ${gateway}`)),
   );
 
   // attach control-c handler
@@ -389,7 +393,7 @@ export async function build({
       initialCtx,
       oldState: oldDeployData?.state || null,
       activeCtx: runtime.ctx,
-      error: _.pick(buildErr, Object.getOwnPropertyNames(buildErr)),
+      error: pick(buildErr, Object.getOwnPropertyNames(buildErr)),
     };
 
     const dumpFilePath = path.join(cliSettings.cannonDirectory, 'dumps', new Date().toISOString() + '.json');
@@ -400,7 +404,7 @@ export async function build({
     });
 
     const cliError = new Error(
-      `An error occured during build. A file with comprehensive information pertaining to this error has been written to ${dumpFilePath}. Please include this file when reporting an issue.`
+      `An error occured during build. A file with comprehensive information pertaining to this error has been written to ${dumpFilePath}. Please include this file when reporting an issue.`,
     );
 
     throw mergeErrors(cliError, buildErr);
@@ -438,7 +442,7 @@ export async function build({
 
     const metadataCache: { [key: string]: string } = {};
 
-    if (!_.isEmpty(pkgInfo)) {
+    if (!isEmpty(pkgInfo)) {
       metadataCache.gitUrl = pkgInfo.gitUrl;
       metadataCache.commitHash = pkgInfo.commitHash;
       metadataCache.readme = pkgInfo.readme;
@@ -454,20 +458,20 @@ export async function build({
       for (let i = 0; i < 3; i++) {
         try {
           logSpinner(
-            gray(`Attesting that ${(await runtime.getDefaultSigner({})).address} deployed ${deployUrl} onchain...`)
+            chalk.gray(`Attesting that ${(await runtime.getDefaultSigner({})).address} deployed ${deployUrl} onchain...`),
           );
           await writeUpgradeFromInfo(runtime, packageReference, deployUrl);
           break;
         } catch (err) {
           errorSpinner(err);
-          errorSpinner(red(`Failed to write upgrade record to on-chain state. Try ${i + 1}/3`));
+          errorSpinner(chalk.red(`Failed to write upgrade record to on-chain state. Try ${i + 1}/3`));
           if (i === 2) {
             errorSpinner(
-              red(
-                bold(
-                  `Failed to write state on-chain. The next time you upgrade your package, you should include the option --upgrade-from ${deployUrl}.`
-                )
-              )
+              chalk.red(
+                chalk.bold(
+                  `Failed to write state on-chain. The next time you upgrade your package, you should include the option --upgrade-from ${deployUrl}.`,
+                ),
+              ),
             );
           }
         }
@@ -483,64 +487,70 @@ export async function build({
 
     if (partialDeploy) {
       logSpinner(
-        yellowBright(
-          bold(
-            '\n\u26A0\uFE0F  Your deployment was not fully completed. Please inspect the issues listed above and resolve as necessary.'
-          )
-        )
+        chalk.yellowBright(
+          chalk.bold(
+            '\n\u26A0\uFE0F  Your deployment was not fully completed. Please inspect the issues listed above and resolve as necessary.',
+          ),
+        ),
       );
       logSpinner(
-        gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`)
+        chalk.gray(
+          `Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`,
+        ),
       );
       logSpinner('');
       logSpinner(
-        '- Rerunning the build command will attempt to execute skipped operations. It will not rerun executed operations. (To rerun executed operations, delete the partial build package generated by this run by adding the --wipe flag to the build command on the next run.)'
+        '- Rerunning the build command will attempt to execute skipped operations. It will not rerun executed operations. (To rerun executed operations, delete the partial build package generated by this run by adding the --wipe flag to the build command on the next run.)',
       );
       if (upgradeFrom) {
-        logSpinner(bold('  Remove the --upgrade-from option to continue from the partial build.'));
+        logSpinner(chalk.bold('  Remove the --upgrade-from option to continue from the partial build.'));
       }
       logSpinner(`- Your partial deployment has been stored to ${deployUrl}`);
       logSpinner(
         '- Run ' +
-          bold(`cannon pin ${deployUrl}`) +
-          ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped operations in the partial deployment package.'
+          chalk.bold(`cannon pin ${deployUrl}`) +
+          ' to pin the partial deployment package on IPFS. Then use https://usecannon.com/deploy to collect signatures from a Safe for the skipped operations in the partial deployment package.',
       );
     } else {
       if (dryRun) {
         logSpinner(
-          gray(
+          chalk.gray(
             `Estimated Total Cost: ${viem.formatEther(
-              totalCost
-            )} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`
-          )
+              totalCost,
+            )} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`,
+          ),
         );
-        logSpinner(bold(`💥 ${fullPackageRef} would have been successfully built on ${chainName} (Chain ID: ${chainId})`));
+        logSpinner(
+          chalk.bold(`💥 ${fullPackageRef} would have been successfully built on ${chainName} (Chain ID: ${chainId})`),
+        );
       } else {
         if (chainId == 13370) {
-          logSpinner(bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
-          logSpinner(gray('This package can be run locally and cloned in cannonfiles.'));
+          logSpinner(chalk.bold(`💥 ${fullPackageRef} built for Cannon (Chain ID: ${chainId})`));
+          logSpinner(chalk.gray('This package can be run locally and cloned in cannonfiles.'));
         } else {
-          logSpinner(bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
+          logSpinner(chalk.bold(`💥 ${fullPackageRef} built on ${chainName} (Chain ID: ${chainId})`));
           logSpinner(
-            gray(`Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`)
+            chalk.gray(
+              `Total Cost: ${viem.formatEther(totalCost)} ${nativeCurrencySymbol} (${totalGasUsed.toLocaleString()} gas)`,
+            ),
           );
         }
       }
       logSpinner();
-      logSpinner(bold(`These JSON files have been added to ${cliSettings.cannonDirectory}`));
+      logSpinner(chalk.bold(`These JSON files have been added to ${cliSettings.cannonDirectory}`));
       logSpinner(
         table([
           ['Deployment Data', deployUrl],
           ['Package Code', miscUrl],
           ['Metadata', metaUrl],
-        ])
+        ]),
       );
 
       if (dryRun) {
-        logSpinner(bold('Inspect the deployment data'));
+        logSpinner(chalk.bold('Inspect the deployment data'));
         logSpinner(`> cannon inspect ${deployUrl}`);
         logSpinner();
-        logSpinner(bold('Upload deployment data to IPFS'));
+        logSpinner(chalk.bold('Upload deployment data to IPFS'));
         logSpinner(`> cannon pin ${deployUrl}`);
       }
 
@@ -548,46 +558,46 @@ export async function build({
 
       if (!dryRun) {
         if (isMainPreset) {
-          logSpinner(bold(`Publish ${bold(`${packageRef}`)} to the registry`));
+          logSpinner(chalk.bold(`Publish ${chalk.bold(`${packageRef}`)} to the registry`));
           logSpinner(`> cannon publish ${packageRef} --chain-id ${chainId}`);
         } else {
           logSpinner(
-            bold(
-              `Publish ${bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`
-            )
+            chalk.bold(
+              `Publish ${chalk.bold(fullPackageRef)} to the registry and pin the IPFS data to ${filteredSettings.publishIpfsUrl}`,
+            ),
           );
           logSpinner(`> cannon publish ${fullPackageRef} --chain-id ${chainId}`);
         }
 
         logSpinner('');
         if (chainId == 13370) {
-          logSpinner(bold('Run this package'));
+          logSpinner(chalk.bold('Run this package'));
 
           if (isMainPreset) logSpinner(`> cannon ${packageRef}`);
           else logSpinner(`> cannon ${fullPackageRef}`);
         } else {
-          logSpinner(bold('Verify contracts on Etherscan'));
+          logSpinner(chalk.bold('Verify contracts on Etherscan'));
           logSpinner(`> cannon verify ${fullPackageRef} --chain-id ${chainId}`);
         }
       }
     }
   } else {
     logSpinner(
-      bold(
-        yellow(
+      chalk.bold(
+        chalk.yellow(
           `Chain state could not be saved via ${runtime.loaders[
             runtime.defaultLoaderScheme
-          ].getLabel()}. Try a writable endpoint by setting ipfsUrl through \`cannon setup\`.`
-        )
-      )
+          ].getLabel()}. Try a writable endpoint by setting ipfsUrl through \`cannon setup\`.`,
+        ),
+      ),
     );
   }
 
   if (!stepsExecuted) {
-    logSpinner(bold('\nNo operations were executed during the build.'));
+    logSpinner(chalk.bold('\nNo operations were executed during the build.'));
   }
 
-  logSpinner('');
+  logSpinnerEnd();
 
   provider = provider.extend(traceActions(outputs) as any);
 

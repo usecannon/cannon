@@ -7,7 +7,7 @@ import { Transform } from 'node:stream';
  * Note: Make sure you add `.js` extension to the output file.
  */
 
-import type { DumpLine, DumpRenderer } from './types';
+import type { DumpLine, DumpRenderer } from './types.js';
 const header = `/* eslint-disable */
 
 export const transactions = [

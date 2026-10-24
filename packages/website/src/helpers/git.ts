@@ -36,7 +36,7 @@ export const init = memoize(
       });
     }
   },
-  (repo: string, ref: string) => `${repo}-${ref}`
+  (repo: string, ref: string) => `${repo}-${ref}`,
 );
 
 export async function readFile(repo: string, ref: string, filepath: string) {

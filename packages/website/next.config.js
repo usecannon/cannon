@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const { withContentlayer } = require('next-contentlayer');
+const { withContentlayer } = require('next-contentlayer2');
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
@@ -43,7 +43,7 @@ module.exports = withContentlayer(nextConfig);
 
 // Injected content via Sentry wizard below
 
-const { withSentryConfig } = require('@sentry/nextjs');
+const { withSentryConfig } = require('@sentry/nextjs/config'); // v11 moved it to the /config subpath
 
 module.exports = withBundleAnalyzer(
   withSentryConfig(module.exports, {
@@ -79,5 +79,5 @@ module.exports = withBundleAnalyzer(
     // https://docs.sentry.io/product/crons/
     // https://vercel.com/docs/cron-jobs
     automaticVercelMonitors: true,
-  })
+  }),
 );

@@ -1,12 +1,12 @@
-import { fixtureContractData, fixtureCtx, fixtureSigner, fixtureTransactionReceipt } from '../../test/fixtures';
-import { validateConfig } from '../actions';
-import action from './router';
-import { PackageReference } from '../package-reference';
-import { fakeRuntime } from './utils.test.helper';
-import * as create2Module from '../create2';
+import { fixtureContractData, fixtureCtx, fixtureSigner, fixtureTransactionReceipt } from '../../test/fixtures.js';
+import { validateConfig } from '../actions.js';
+import action from './router.js';
+import { PackageReference } from '../package-reference.js';
+import { fakeRuntime } from './utils.test.helper.js';
+import * as create2Module from '../create2.js';
 
-jest.mock('../create2', () => ({
-  ...jest.requireActual('../create2'),
+jest.mock('../create2.js', () => ({
+  ...jest.requireActual('../create2.js'),
   ensureArachnidCreate2Exists: jest.fn(),
 }));
 
@@ -18,7 +18,7 @@ describe('steps/router.ts', () => {
 
     it('fails when setting invalid value', () => {
       expect(() => validateConfig(action.validate, { contracts: [], invalid: ['something'] })).toThrow(
-        "Unrecognized key(s) in object: 'invalid'"
+        "Unrecognized key(s) in object: 'invalid'",
       );
     });
   });
@@ -33,7 +33,7 @@ describe('steps/router.ts', () => {
           contracts: ['<%= settings.a %>', '<%= settings.b %>'],
           from: '<%= settings.from %>',
           salt: '<%= settings.salt %>',
-        }
+        },
       );
 
       expect(result).toStrictEqual({
@@ -207,8 +207,8 @@ describe('steps/router.ts', () => {
             contracts: ['Greeter'],
             create2: true,
           },
-          step
-        )
+          step,
+        ),
       ).rejects.toThrow('The contract at the create2 destination');
     });
 

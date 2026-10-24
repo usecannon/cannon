@@ -43,6 +43,6 @@ export function useCreateFork() {
 
       return node;
     },
-    [getChainById]
+    [getChainById],
   );
 }

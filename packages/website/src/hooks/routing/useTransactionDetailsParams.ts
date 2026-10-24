@@ -43,6 +43,6 @@ export function useTransactionDetailsParams() {
         chainId: parseInt(chainId),
       } as SafeDefinition,
     }),
-    [safeAddress, chainId, nonce, sigHash]
+    [safeAddress, chainId, nonce, sigHash],
   );
 }

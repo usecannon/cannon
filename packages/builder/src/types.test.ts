@@ -1,4 +1,4 @@
-import { CannonHelperContext, ChainBuilderContext, combineCtx } from './types';
+import { CannonHelperContext, ChainBuilderContext, combineCtx } from './types.js';
 import * as viem from 'viem';
 
 const CUR_TIME = 1708947946123;
@@ -168,14 +168,14 @@ describe('types.ts', () => {
         expect(CannonHelperContext.defaultAbiCoder.decode(['string', 'uint256'], '0x828282')).toEqual(['hello', 1234]);
         expect(jest.mocked(viem.decodeAbiParameters)).toHaveBeenCalledWith(
           [{ type: 'string' }, { type: 'uint256' }],
-          '0x828282'
+          '0x828282',
         );
       });
       it('encodes', () => {
         expect(CannonHelperContext.defaultAbiCoder.encode(['string', 'uint256'], ['hello', 1234])).toEqual('0x828282');
         expect(jest.mocked(viem.encodeAbiParameters)).toHaveBeenCalledWith(
           [{ type: 'string' }, { type: 'uint256' }],
-          ['hello', 1234]
+          ['hello', 1234],
         );
       });
     });

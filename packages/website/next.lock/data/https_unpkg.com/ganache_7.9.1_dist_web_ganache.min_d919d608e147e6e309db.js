@@ -30063,7 +30063,7 @@
                     typeof t +
                     "'"
                 );
-              return t[Boolean(r) ? 'some' : 'every'](function (t) {
+              return t[r ? 'some' : 'every'](function (t) {
                 return e.indexOf(t) >= 0;
               });
             },
@@ -30996,7 +30996,7 @@
               a = r + o;
             let s = r;
             for (; s < a; s++) t[s] = 0;
-            let c = r + n;
+            const c = r + n;
             const d = r + o;
             for (; s < c; s++) t[s] = e[s - d];
           }
@@ -42472,7 +42472,7 @@
             if (lib_esm_isBytes(e)) {
               let t = '0x';
               for (let r = 0; r < e.length; r++) {
-                let n = e[r];
+                const n = e[r];
                 t += m[(240 & n) >> 4] + m[15 & n];
               }
               return t;
@@ -42546,7 +42546,7 @@
               compact: '0x',
             };
             if (lib_esm_isBytesLike(e)) {
-              let r = lib_esm_arrayify(e);
+              const r = lib_esm_arrayify(e);
               64 === r.length
                 ? ((t.v = 27 + (r[32] >> 7)),
                   (r[32] &= 127),
@@ -43412,7 +43412,7 @@
               }
               let c = o & ((1 << (8 - a - 1)) - 1);
               for (let o = 0; o < a; o++) {
-                let o = e[n];
+                const o = e[n];
                 if (128 != (192 & o)) {
                   (n += t(G.MISSING_CONTINUE, n, e, r)), (c = null);
                   break;
@@ -43432,7 +43432,7 @@
           }
           function toUtf8Bytes(e, t = U.current) {
             t != U.current && (L.checkNormalize(), (e = e.normalize(t)));
-            let r = [];
+            const r = [];
             for (let t = 0; t < e.length; t++) {
               const n = e.charCodeAt(t);
               if (n < 128) r.push(n);
@@ -43524,7 +43524,7 @@
                     t = 0,
                     a = r;
                   for (; a - t > 1; ) {
-                    let r = (t + a) >>> 1;
+                    const r = (t + a) >>> 1;
                     e < o[r] ? (a = r) : (t = r);
                   }
                   if (0 == t) break;
@@ -43541,7 +43541,7 @@
                       (c = ((c ^ h) << 1) | h | 1);
                   (m = s), (B = 1 + c - s);
                 }
-                let y = r - 4;
+                const y = r - 4;
                 return p.map((t) => {
                   switch (t - y) {
                     case 3:
@@ -43563,21 +43563,21 @@
             return 1 & e ? ~e >> 1 : e >> 1;
           }
           function read_ascending(e, t) {
-            let r = Array(e);
+            const r = Array(e);
             for (let n = 0, o = -1; n < e; n++) r[n] = o += 1 + t();
             return r;
           }
           function read_deltas(e, t) {
-            let r = Array(e);
+            const r = Array(e);
             for (let n = 0, o = 0; n < e; n++) r[n] = o += signed(t());
             return r;
           }
           function read_member_array(e, t) {
-            let r = read_ascending(e(), e),
+            const r = read_ascending(e(), e),
               n = e(),
               o = read_ascending(n, e),
               a = (function read_counts(e, t) {
-                let r = Array(e);
+                const r = Array(e);
                 for (let n = 0; n < e; n++) r[n] = 1 + t();
                 return r;
               })(n, e);
@@ -43586,7 +43586,7 @@
             return t ? r.map((e) => t[e]) : r;
           }
           function read_transposed(e, t, r) {
-            let n = Array(e)
+            const n = Array(e)
               .fill(void 0)
               .map(() => []);
             for (let o = 0; o < t; o++)
@@ -43594,12 +43594,12 @@
             return n;
           }
           function read_linear_table(e, t) {
-            let r = 1 + t(),
+            const r = 1 + t(),
               n = t(),
               o = (function read_zero_terminated_array(e) {
-                let t = [];
+                const t = [];
                 for (;;) {
-                  let r = e();
+                  const r = e();
                   if (0 == r) break;
                   t.push(r);
                 }
@@ -43612,7 +43612,7 @@
                 return Array(o[t])
                   .fill(void 0)
                   .map((e, t) => {
-                    let o = t * n;
+                    const o = t * n;
                     return [a + t * r, s.map((e) => e + o)];
                   });
               })
@@ -43634,14 +43634,14 @@
             J = new Set(read_member_array(j)),
             V = new Set(read_member_array(j)),
             Y = (function read_mapped_map(e) {
-              let t = [];
+              const t = [];
               for (;;) {
-                let r = e();
+                const r = e();
                 if (0 == r) break;
                 t.push(read_linear_table(r, e));
               }
               for (;;) {
-                let r = e() - 1;
+                const r = e() - 1;
                 if (r < 0) break;
                 t.push(read_replacement_table(r, e));
               }
@@ -43655,11 +43655,11 @@
               })(flat(t));
             })(j),
             W = (function read_emoji_trie(e) {
-              let t = read_member_array(e).sort((e, t) => e - t);
+              const t = read_member_array(e).sort((e, t) => e - t);
               return (function read() {
-                let r = [];
+                const r = [];
                 for (;;) {
-                  let n = read_member_array(e, t);
+                  const n = read_member_array(e, t);
                   if (0 == n.length) break;
                   r.push({ set: new Set(n), node: read() });
                 }
@@ -43667,7 +43667,7 @@
                 let n = e(),
                   o = n % 3;
                 n = (n / 3) | 0;
-                let a = !!(1 & n);
+                const a = !!(1 & n);
                 return (
                   (n >>= 1),
                   {
@@ -43689,8 +43689,8 @@
             return e.filter((e) => 65039 != e);
           }
           function ens_normalize_post_check(e) {
-            for (let t of e.split('.')) {
-              let e = explode_cp(t);
+            for (const t of e.split('.')) {
+              const e = explode_cp(t);
               try {
                 for (let t = e.lastIndexOf(95) - 1; t >= 0; t--)
                   if (95 !== e[t])
@@ -43711,21 +43711,21 @@
           function ens_normalize(e) {
             return ens_normalize_post_check(
               (function normalize(e, t) {
-                let r = explode_cp(e).reverse(),
+                const r = explode_cp(e).reverse(),
                   n = [];
                 for (; r.length; ) {
-                  let e = consume_emoji_reversed(r);
+                  const e = consume_emoji_reversed(r);
                   if (e) {
                     n.push(...t(e));
                     continue;
                   }
-                  let o = r.pop();
+                  const o = r.pop();
                   if (J.has(o)) {
                     n.push(o);
                     continue;
                   }
                   if (V.has(o)) continue;
-                  let a = Y[o];
+                  const a = Y[o];
                   if (!a)
                     throw new Error(
                       `Disallowed codepoint: 0x${o.toString(16).toUpperCase()}`
@@ -43748,7 +43748,7 @@
               s = [],
               c = e.length;
             for (t && (t.length = 0); c; ) {
-              let d = e[--c];
+              const d = e[--c];
               if (
                 ((a =
                   null === (r = a.branches.find((e) => e.set.has(d))) ||
@@ -44457,7 +44457,7 @@
               .map((e) => st[e])
               .join('');
             for (; t.length >= ct; ) {
-              let e = t.substring(0, ct);
+              const e = t.substring(0, ct);
               t = (parseInt(e, 10) % 97) + t.substring(e.length);
             }
             let r = String(98 - (parseInt(t, 10) % 97));
@@ -47614,7 +47614,7 @@
                       switch (e.type) {
                         case 'tx': {
                           const r = e.hash;
-                          let n = this.getTransactionReceipt(r)
+                          const n = this.getTransactionReceipt(r)
                             .then((e) =>
                               e && null != e.blockNumber
                                 ? ((this._emitted['t:' + r] = e.blockNumber),
@@ -48648,12 +48648,12 @@
             }
             listenerCount(e) {
               if (!e) return this._events.length;
-              let t = getEventTag(e);
+              const t = getEventTag(e);
               return this._events.filter((e) => e.tag === t).length;
             }
             listeners(e) {
               if (null == e) return this._events.map((e) => e.listener);
-              let t = getEventTag(e);
+              const t = getEventTag(e);
               return this._events
                 .filter((e) => e.tag === t)
                 .map((e) => e.listener);
@@ -50901,7 +50901,7 @@
           const Er = new lib_esm_Logger(nt);
           function getTransactionPostData(e) {
             const t = {};
-            for (let r in e) {
+            for (const r in e) {
               if (null == e[r]) continue;
               let n = e[r];
               ('type' === r && 0 === n) ||
@@ -51276,7 +51276,7 @@
                           (e.topic0 = r);
                       }
                       const r = yield this.fetch('logs', e);
-                      let n = {};
+                      const n = {};
                       for (let e = 0; e < r.length; e++) {
                         const t = r[e];
                         if (null == t.blockHash) {
@@ -51630,7 +51630,7 @@
                   case 'getTransactionReceipt':
                     return o[r](n.transactionHash);
                   case 'getLogs': {
-                    let r = n.filter;
+                    const r = n.filter;
                     return (
                       ((r.fromBlock && lib_esm_isHexString(r.fromBlock)) ||
                         (r.toBlock && lib_esm_isHexString(r.toBlock))) &&
@@ -52368,7 +52368,7 @@
               const n = e.headers;
               if (n)
                 for (let e = 0, o = n.length; e < o; e++) {
-                  let { name: o, value: a } = n[e];
+                  const { name: o, value: a } = n[e];
                   const s = o.toLowerCase();
                   if ('authorization' === s && 'authorization' in t) {
                     if (!r)
@@ -62730,7 +62730,7 @@
                   const { pending: e } = k(this, g, 'f'),
                     t = k(this, o, 'f'),
                     r = k(this, B, 'f');
-                  for (let n of e) {
+                  for (const n of e) {
                     const e = n[1].peek();
                     if (e && !e.locked) {
                       const n = e.from.toString();
@@ -62745,7 +62745,7 @@
                   const { pending: e } = k(this, g, 'f'),
                     t = k(this, o, 'f'),
                     r = k(this, B, 'f');
-                  for (let o of e) {
+                  for (const o of e) {
                     const e = o[1].peek();
                     if (e && !e.locked) {
                       const o = e.effectiveGasPrice.toBigInt();
@@ -117031,7 +117031,7 @@
             async simulateTransaction(e, t, r) {
               let n;
               const o = e.data;
-              let a = e.gas.toBigInt();
+              const a = e.gas.toBigInt();
               const s = null != e.to,
                 d = s ? new nt.Address(e.to.toBuffer()) : null,
                 h = this.fallback
@@ -118818,8 +118818,8 @@
                   transactionPool: { executables: r, origins: n },
                 } = e,
                 processMap = (e) => {
-                  let r = {};
-                  for (let [n, { array: o, length: a }] of e)
+                  const r = {};
+                  for (const [n, { array: o, length: a }] of e)
                     for (let e = 0; e < a; ++e) {
                       const n = o[e],
                         a = n.from.toString();
@@ -119537,7 +119537,7 @@
             async handleChunkedResponse(e) {
               const t = [];
               let r = 0;
-              for await (let n of e) t.push(n), (r += n.length);
+              for await (const n of e) t.push(n), (r += n.length);
               return 1 === t.length ? t[0] : n.concat(t, r);
             }
             async request(e, t, r = { disableCache: !1 }) {
@@ -119769,7 +119769,7 @@
                 a.closestKnownDescendants.splice(e, 1),
                   s.put(a.key, a.serialize());
               }
-              let c = [...n.closestKnownDescendants];
+              const c = [...n.closestKnownDescendants];
               if (null == o) s.put(n.key, n.serialize());
               else {
                 const t = [n.key];
@@ -121973,7 +121973,7 @@
             }
             find(e) {
               const { pending: t, inProgress: r } = this.executables;
-              for (let [t, r] of this.origins) {
+              for (const [t, r] of this.origins) {
                 if (void 0 === r) continue;
                 const t = r.array;
                 for (let n = 0; n < r.length; n++) {
@@ -121981,14 +121981,14 @@
                   if (r.hash.toBuffer().equals(e)) return r;
                 }
               }
-              for (let [r, n] of t) {
+              for (const [r, n] of t) {
                 const t = n.array;
                 for (let r = 0; r < n.length; r++) {
                   const n = t[r];
                   if (n.hash.toBuffer().equals(e)) return n;
                 }
               }
-              for (let t of r) if (t.hash.toBuffer().equals(e)) return t;
+              for (const t of r) if (t.hash.toBuffer().equals(e)) return t;
               return null;
             }
           }
@@ -122263,7 +122263,7 @@
               const t = null === this.address ? d.BUFFER_EMPTY : this.address,
                 { checkpoints: r } = this.checkpointedMetadata;
               for (let o = r.length - 1; o >= 0; o--)
-                for (let [a, s] of r[o].keyValueMap.entries()) {
+                for (const [a, s] of r[o].keyValueMap.entries()) {
                   if (!s || !s.equals(B)) continue;
                   if (isEqualKey(n.from(a, 'binary'), t, e)) return !0;
                 }
@@ -122521,7 +122521,7 @@
                       fetchBlock(this, I.Tag.latest),
                       e,
                     ]);
-                    let o = parseInt(r.number, 16);
+                    const o = parseInt(r.number, 16);
                     const a = p.KNOWN_CHAINIDS.has(n)
                       ? Math.max(o - t.preLatestConfirmations, 0)
                       : o;
@@ -198475,7 +198475,7 @@
                 o.resolve({ response: r, raw: t }));
             }
             connect(e, t) {
-              let r = new Promise((t, r) => {
+              const r = new Promise((t, r) => {
                 (e.onopen = t), (e.onerror = r);
               });
               return (
@@ -209478,7 +209478,7 @@
               : { h: 0 | Number((e >> n) & r), l: 0 | Number(e & r) };
           }
           function split(e, t = !1) {
-            let r = new Uint32Array(e.length),
+            const r = new Uint32Array(e.length),
               n = new Uint32Array(e.length);
             for (let o = 0; o < e.length; o++) {
               const { h: a, l: s } = fromBig(e[o], t);
@@ -210592,7 +210592,7 @@
               : { h: 0 | Number((e >> n) & r), l: 0 | Number(e & r) };
           }
           function split(e, t = !1) {
-            let r = new Uint32Array(e.length),
+            const r = new Uint32Array(e.length),
               n = new Uint32Array(e.length);
             for (let o = 0; o < e.length; o++) {
               const { h: a, l: s } = fromBig(e[o], t);
@@ -219123,7 +219123,7 @@
               : { h: 0 | Number((e >> n) & r), l: 0 | Number(e & r) };
           }
           function split(e, t = !1) {
-            let r = new Uint32Array(e.length),
+            const r = new Uint32Array(e.length),
               n = new Uint32Array(e.length);
             for (let o = 0; o < e.length; o++) {
               const { h: a, l: s } = fromBig(e[o], t);
@@ -220916,7 +220916,7 @@
               : { h: 0 | Number((e >> n) & r), l: 0 | Number(e & r) };
           }
           function split(e, t = !1) {
-            let r = new Uint32Array(e.length),
+            const r = new Uint32Array(e.length),
               n = new Uint32Array(e.length);
             for (let o = 0; o < e.length; o++) {
               const { h: a, l: s } = fromBig(e[o], t);
@@ -223927,7 +223927,7 @@
               : { h: 0 | Number((e >> n) & r), l: 0 | Number(e & r) };
           }
           function split(e, t = !1) {
-            let r = new Uint32Array(e.length),
+            const r = new Uint32Array(e.length),
               n = new Uint32Array(e.length);
             for (let o = 0; o < e.length; o++) {
               const { h: a, l: s } = fromBig(e[o], t);
@@ -229426,7 +229426,7 @@
                     typeof t +
                     "'"
                 );
-              return t[Boolean(r) ? 'some' : 'every'](function (t) {
+              return t[r ? 'some' : 'every'](function (t) {
                 return e.indexOf(t) >= 0;
               });
             },
@@ -256036,7 +256036,7 @@
             constructor(e, t, r) {
               const d = t.execResult,
                 u = d.exceptionError.error;
-              let h = n.VM_EXCEPTION + u;
+              const h = n.VM_EXCEPTION + u;
               super(h, s.JsonRpcErrorCode.INVALID_INPUT),
                 a.CodedError.captureStackTraceExtended.bind(this, h),
                 (this.name = this.constructor.name);
@@ -256068,7 +256068,7 @@
             constructor(e) {
               const t = e.execResult,
                 r = t.exceptionError.error;
-              let c = n.VM_EXCEPTION + r;
+              const c = n.VM_EXCEPTION + r;
               super(c, a.JsonRpcErrorCode.INVALID_INPUT),
                 o.CodedError.captureStackTraceExtended.bind(this, c),
                 (this.name = this.constructor.name);
@@ -265314,7 +265314,7 @@
             if (lib_esm_isBytes(e)) {
               let t = '0x';
               for (let r = 0; r < e.length; r++) {
-                let n = e[r];
+                const n = e[r];
                 t += m[(240 & n) >> 4] + m[15 & n];
               }
               return t;
@@ -265388,7 +265388,7 @@
               compact: '0x',
             };
             if (lib_esm_isBytesLike(e)) {
-              let r = lib_esm_arrayify(e);
+              const r = lib_esm_arrayify(e);
               64 === r.length
                 ? ((t.v = 27 + (r[32] >> 7)),
                   (r[32] &= 127),
@@ -266190,9 +266190,9 @@
                 this._alphabetMap[e.charAt(t)] = t;
             }
             encode(e) {
-              let t = lib_esm_arrayify(e);
+              const t = lib_esm_arrayify(e);
               if (0 === t.length) return '';
-              let r = [0];
+              const r = [0];
               for (let e = 0; e < t.length; ++e) {
                 let n = t[e];
                 for (let e = 0; e < r.length; ++e)
@@ -266210,11 +266210,11 @@
             }
             decode(e) {
               if ('string' != typeof e) throw new TypeError('Expected String');
-              let t = [];
+              const t = [];
               if (0 === e.length) return new Uint8Array(t);
               t.push(0);
               for (let r = 0; r < e.length; r++) {
-                let n = this._alphabetMap[e[r]];
+                const n = this._alphabetMap[e[r]];
                 if (void 0 === n)
                   throw new Error('Non-base' + this.base + ' character');
                 let o = n;
@@ -266304,7 +266304,7 @@
               }
               let c = o & ((1 << (8 - a - 1)) - 1);
               for (let o = 0; o < a; o++) {
-                let o = e[n];
+                const o = e[n];
                 if (128 != (192 & o)) {
                   (n += t(G.MISSING_CONTINUE, n, e, r)), (c = null);
                   break;
@@ -266324,7 +266324,7 @@
           }
           function toUtf8Bytes(e, t = U.current) {
             t != U.current && (L.checkNormalize(), (e = e.normalize(t)));
-            let r = [];
+            const r = [];
             for (let t = 0; t < e.length; t++) {
               const n = e.charCodeAt(t);
               if (n < 128) r.push(n);
@@ -266416,7 +266416,7 @@
                     t = 0,
                     a = r;
                   for (; a - t > 1; ) {
-                    let r = (t + a) >>> 1;
+                    const r = (t + a) >>> 1;
                     e < o[r] ? (a = r) : (t = r);
                   }
                   if (0 == t) break;
@@ -266433,7 +266433,7 @@
                       (c = ((c ^ h) << 1) | h | 1);
                   (m = s), (B = 1 + c - s);
                 }
-                let y = r - 4;
+                const y = r - 4;
                 return p.map((t) => {
                   switch (t - y) {
                     case 3:
@@ -266455,21 +266455,21 @@
             return 1 & e ? ~e >> 1 : e >> 1;
           }
           function read_ascending(e, t) {
-            let r = Array(e);
+            const r = Array(e);
             for (let n = 0, o = -1; n < e; n++) r[n] = o += 1 + t();
             return r;
           }
           function read_deltas(e, t) {
-            let r = Array(e);
+            const r = Array(e);
             for (let n = 0, o = 0; n < e; n++) r[n] = o += signed(t());
             return r;
           }
           function read_member_array(e, t) {
-            let r = read_ascending(e(), e),
+            const r = read_ascending(e(), e),
               n = e(),
               o = read_ascending(n, e),
               a = (function read_counts(e, t) {
-                let r = Array(e);
+                const r = Array(e);
                 for (let n = 0; n < e; n++) r[n] = 1 + t();
                 return r;
               })(n, e);
@@ -266478,7 +266478,7 @@
             return t ? r.map((e) => t[e]) : r;
           }
           function read_transposed(e, t, r) {
-            let n = Array(e)
+            const n = Array(e)
               .fill(void 0)
               .map(() => []);
             for (let o = 0; o < t; o++)
@@ -266486,12 +266486,12 @@
             return n;
           }
           function read_linear_table(e, t) {
-            let r = 1 + t(),
+            const r = 1 + t(),
               n = t(),
               o = (function read_zero_terminated_array(e) {
-                let t = [];
+                const t = [];
                 for (;;) {
-                  let r = e();
+                  const r = e();
                   if (0 == r) break;
                   t.push(r);
                 }
@@ -266504,7 +266504,7 @@
                 return Array(o[t])
                   .fill(void 0)
                   .map((e, t) => {
-                    let o = t * n;
+                    const o = t * n;
                     return [a + t * r, s.map((e) => e + o)];
                   });
               })
@@ -266526,14 +266526,14 @@
             J = new Set(read_member_array(j)),
             V = new Set(read_member_array(j)),
             Y = (function read_mapped_map(e) {
-              let t = [];
+              const t = [];
               for (;;) {
-                let r = e();
+                const r = e();
                 if (0 == r) break;
                 t.push(read_linear_table(r, e));
               }
               for (;;) {
-                let r = e() - 1;
+                const r = e() - 1;
                 if (r < 0) break;
                 t.push(read_replacement_table(r, e));
               }
@@ -266547,11 +266547,11 @@
               })(flat(t));
             })(j),
             W = (function read_emoji_trie(e) {
-              let t = read_member_array(e).sort((e, t) => e - t);
+              const t = read_member_array(e).sort((e, t) => e - t);
               return (function read() {
-                let r = [];
+                const r = [];
                 for (;;) {
-                  let n = read_member_array(e, t);
+                  const n = read_member_array(e, t);
                   if (0 == n.length) break;
                   r.push({ set: new Set(n), node: read() });
                 }
@@ -266559,7 +266559,7 @@
                 let n = e(),
                   o = n % 3;
                 n = (n / 3) | 0;
-                let a = !!(1 & n);
+                const a = !!(1 & n);
                 return (
                   (n >>= 1),
                   {
@@ -266581,8 +266581,8 @@
             return e.filter((e) => 65039 != e);
           }
           function ens_normalize_post_check(e) {
-            for (let t of e.split('.')) {
-              let e = explode_cp(t);
+            for (const t of e.split('.')) {
+              const e = explode_cp(t);
               try {
                 for (let t = e.lastIndexOf(95) - 1; t >= 0; t--)
                   if (95 !== e[t])
@@ -266603,21 +266603,21 @@
           function ens_normalize(e) {
             return ens_normalize_post_check(
               (function normalize(e, t) {
-                let r = explode_cp(e).reverse(),
+                const r = explode_cp(e).reverse(),
                   n = [];
                 for (; r.length; ) {
-                  let e = consume_emoji_reversed(r);
+                  const e = consume_emoji_reversed(r);
                   if (e) {
                     n.push(...t(e));
                     continue;
                   }
-                  let o = r.pop();
+                  const o = r.pop();
                   if (J.has(o)) {
                     n.push(o);
                     continue;
                   }
                   if (V.has(o)) continue;
-                  let a = Y[o];
+                  const a = Y[o];
                   if (!a)
                     throw new Error(
                       `Disallowed codepoint: 0x${o.toString(16).toUpperCase()}`
@@ -266640,7 +266640,7 @@
               s = [],
               c = e.length;
             for (t && (t.length = 0); c; ) {
-              let d = e[--c];
+              const d = e[--c];
               if (
                 ((a =
                   null === (r = a.branches.find((e) => e.set.has(d))) ||
@@ -267356,7 +267356,7 @@
               .map((e) => ct[e])
               .join('');
             for (; t.length >= At; ) {
-              let e = t.substring(0, At);
+              const e = t.substring(0, At);
               t = (parseInt(e, 10) % 97) + t.substring(e.length);
             }
             let r = String(98 - (parseInt(t, 10) % 97));
@@ -270508,7 +270508,7 @@
                       switch (e.type) {
                         case 'tx': {
                           const r = e.hash;
-                          let n = this.getTransactionReceipt(r)
+                          const n = this.getTransactionReceipt(r)
                             .then((e) =>
                               e && null != e.blockNumber
                                 ? ((this._emitted['t:' + r] = e.blockNumber),
@@ -271542,12 +271542,12 @@
             }
             listenerCount(e) {
               if (!e) return this._events.length;
-              let t = getEventTag(e);
+              const t = getEventTag(e);
               return this._events.filter((e) => e.tag === t).length;
             }
             listeners(e) {
               if (null == e) return this._events.map((e) => e.listener);
-              let t = getEventTag(e);
+              const t = getEventTag(e);
               return this._events
                 .filter((e) => e.tag === t)
                 .map((e) => e.listener);
@@ -273795,7 +273795,7 @@
           const Ir = new lib_esm_Logger(ot);
           function getTransactionPostData(e) {
             const t = {};
-            for (let r in e) {
+            for (const r in e) {
               if (null == e[r]) continue;
               let n = e[r];
               ('type' === r && 0 === n) ||
@@ -274170,7 +274170,7 @@
                           (e.topic0 = r);
                       }
                       const r = yield this.fetch('logs', e);
-                      let n = {};
+                      const n = {};
                       for (let e = 0; e < r.length; e++) {
                         const t = r[e];
                         if (null == t.blockHash) {
@@ -274523,7 +274523,7 @@
                   case 'getTransactionReceipt':
                     return o[r](n.transactionHash);
                   case 'getLogs': {
-                    let r = n.filter;
+                    const r = n.filter;
                     return (
                       ((r.fromBlock && lib_esm_isHexString(r.fromBlock)) ||
                         (r.toBlock && lib_esm_isHexString(r.toBlock))) &&
@@ -275511,7 +275511,7 @@
               }
             }
             static fromString(e, t) {
-              let r = n.Data.toBuffer(e);
+              const r = n.Data.toBuffer(e);
               const o = r[0],
                 a = this.typeOf(o);
               let d;
@@ -282019,7 +282019,7 @@
                 throw new Error(
                   `${t} option must not contain an absolute path, found "${e}".`
                 );
-              let r = (0, n.basename)(e);
+              const r = (0, n.basename)(e);
               if ('..' === r || '.' === r || r !== e)
                 throw new Error(
                   `${t} option must not contain a path, found "${e}".`
@@ -282029,7 +282029,7 @@
                 throw new Error(
                   `${t} option must be relative to "${r}", found "${e}".`
                 );
-              let o = _resolvePath(e, r);
+              const o = _resolvePath(e, r);
               if (!o.startsWith(r))
                 throw new Error(
                   `${t} option must be relative to "${r}", found "${o}".`
@@ -284498,10 +284498,10 @@
             ]),
             s = Uint8Array.from({ length: 16 }, (e, t) => t),
             c = s.map((e) => (9 * e + 5) % 16);
-          let d = [s],
+          const d = [s],
             u = [c];
           for (let e = 0; e < 4; e++)
-            for (let t of [d, u]) t.push(t[e].map((e) => a[e]));
+            for (const t of [d, u]) t.push(t[e].map((e) => a[e]));
           const h = [
               [11, 14, 15, 12, 5, 8, 7, 9, 11, 13, 14, 15, 6, 7, 9, 8],
               [12, 13, 11, 15, 6, 9, 9, 7, 12, 15, 11, 13, 7, 8, 7, 7],
@@ -285837,9 +285837,9 @@
                 this._alphabetMap[e.charAt(t)] = t;
             }
             encode(e) {
-              let t = arrayify(e);
+              const t = arrayify(e);
               if (0 === t.length) return '';
-              let r = [0];
+              const r = [0];
               for (let e = 0; e < t.length; ++e) {
                 let n = t[e];
                 for (let e = 0; e < r.length; ++e)
@@ -285857,11 +285857,11 @@
             }
             decode(e) {
               if ('string' != typeof e) throw new TypeError('Expected String');
-              let t = [];
+              const t = [];
               if (0 === e.length) return new Uint8Array(t);
               t.push(0);
               for (let r = 0; r < e.length; r++) {
-                let n = this._alphabetMap[e[r]];
+                const n = this._alphabetMap[e[r]];
                 if (void 0 === n)
                   throw new Error('Non-base' + this.base + ' character');
                 let o = n;
@@ -287009,7 +287009,7 @@
               let r = BigInt(0);
               const n = this._common.param('gasConfig', 'maxDataGasPerBlock'),
                 o = this._common.param('gasConfig', 'dataGasPerBlob');
-              for (let [e, a] of this.transactions.entries()) {
+              for (const [e, a] of this.transactions.entries()) {
                 const s = a.validate(!0);
                 !0 === this._common.isActivatedEIP(1559) &&
                   (a.supports(c.Capability.EIP1559FeeMarket)
@@ -290205,7 +290205,7 @@
             if (lib_esm_isBytes(e)) {
               let t = '0x';
               for (let r = 0; r < e.length; r++) {
-                let n = e[r];
+                const n = e[r];
                 t += I[(240 & n) >> 4] + I[15 & n];
               }
               return t;
@@ -290710,7 +290710,7 @@
               return this._offset;
             }
             static coerce(e, t) {
-              let r = e.match('^u?int([0-9]+)$');
+              const r = e.match('^u?int([0-9]+)$');
               return r && parseInt(r[1]) <= 48 && (t = t.toNumber()), t;
             }
             coerce(e, t) {
@@ -290741,7 +290741,7 @@
               );
             }
             readBytes(e, t) {
-              let r = this._peekBytes(0, e, !!t);
+              const r = this._peekBytes(0, e, !!t);
               return (this._offset += r.length), r.slice(0, e);
             }
             readValue() {
@@ -290812,7 +290812,7 @@
               .map((e) => O[e])
               .join('');
             for (; t.length >= H; ) {
-              let e = t.substring(0, H);
+              const e = t.substring(0, H);
               t = (parseInt(e, 10) % 97) + t.substring(e.length);
             }
             let r = String(98 - (parseInt(t, 10) % 97));
@@ -290948,7 +290948,7 @@
               }
               let c = o & ((1 << (8 - a - 1)) - 1);
               for (let o = 0; o < a; o++) {
-                let o = e[n];
+                const o = e[n];
                 if (128 != (192 & o)) {
                   (n += t(j.MISSING_CONTINUE, n, e, r)), (c = null);
                   break;
@@ -290968,7 +290968,7 @@
           }
           function toUtf8Bytes(e, t = q.current) {
             t != q.current && (z.checkNormalize(), (e = e.normalize(t)));
-            let r = [];
+            const r = [];
             for (let t = 0; t < e.length; t++) {
               const n = e.charCodeAt(t);
               if (n < 128) r.push(n);
@@ -291048,7 +291048,7 @@
             let n = null;
             if (Array.isArray(r)) n = r;
             else if (r && 'object' == typeof r) {
-              let e = {};
+              const e = {};
               n = t.map((t) => {
                 const n = t.localName;
                 return (
@@ -291071,15 +291071,15 @@
             } else V.throwArgumentError('invalid tuple value', 'tuple', r);
             t.length !== n.length &&
               V.throwArgumentError('types/value length mismatch', 'tuple', r);
-            let o = new Writer(e.wordSize),
+            const o = new Writer(e.wordSize),
               a = new Writer(e.wordSize),
               s = [];
             t.forEach((e, t) => {
-              let r = n[t];
+              const r = n[t];
               if (e.dynamic) {
-                let t = a.length;
+                const t = a.length;
                 e.encode(a, r);
-                let n = o.writeUpdatableValue();
+                const n = o.writeUpdatableValue();
                 s.push((e) => {
                   n(e + t);
                 });
@@ -291092,12 +291092,12 @@
             return (c += e.appendWriter(a)), c;
           }
           function unpack(e, t) {
-            let r = [],
+            const r = [],
               n = e.subReader(0);
             t.forEach((t) => {
               let o = null;
               if (t.dynamic) {
-                let r = e.readValue(),
+                const r = e.readValue(),
                   a = n.subReader(r.toNumber());
                 try {
                   o = t.decode(a);
@@ -291176,7 +291176,7 @@
                   r,
                   'coder array' + (this.localName ? ' ' + this.localName : '')
                 );
-              let n = [];
+              const n = [];
               for (let e = 0; e < t.length; e++) n.push(this.coder);
               return pack(e, n, t);
             }
@@ -291190,7 +291190,7 @@
                     lib_esm_Logger.errors.BUFFER_OVERRUN,
                     { length: e._data.length, count: t }
                   ));
-              let r = [];
+              const r = [];
               for (let e = 0; e < t; e++)
                 r.push(new AnonymousCoder(this.coder));
               return e.coerce(this.name, unpack(e, r));
@@ -291236,7 +291236,7 @@
           }
           class FixedBytesCoder extends Coder {
             constructor(e, t) {
-              let r = 'bytes' + String(e);
+              const r = 'bytes' + String(e);
               super(r, r, t, !1), (this.size = e);
             }
             defaultValue() {
@@ -291246,7 +291246,7 @@
               );
             }
             encode(e, t) {
-              let r = lib_esm_arrayify(t);
+              const r = lib_esm_arrayify(t);
               return (
                 r.length !== this.size &&
                   this._throwError('incorrect data length', t),
@@ -291294,7 +291294,7 @@
               let r = bignumber_BigNumber.from(t),
                 n = $.mask(8 * e.wordSize);
               if (this.signed) {
-                let e = n.mask(8 * this.size - 1);
+                const e = n.mask(8 * this.size - 1);
                 (r.gt(e) || r.lt(e.add(X).mul(Y))) &&
                   this._throwError('value out-of-bounds', t);
               } else
@@ -291368,7 +291368,7 @@
           }
           const et = new lib_esm_Logger(T),
             tt = {};
-          let rt = { calldata: !0, memory: !0, storage: !0 },
+          const rt = { calldata: !0, memory: !0, storage: !0 },
             it = { calldata: !0, memory: !0 };
           function checkModifier(e, t) {
             if ('bytes' === e || 'string' === e) {
@@ -291384,7 +291384,7 @@
             );
           }
           function populate(e, t) {
-            for (let r in t) lib_esm_defineReadOnly(e, r, t[r]);
+            for (const r in t) lib_esm_defineReadOnly(e, r, t[r]);
           }
           const nt = Object.freeze({
               sighash: 'sighash',
@@ -291402,7 +291402,7 @@
                   { operation: 'new ParamType()' }
                 ),
                 populate(this, t);
-              let r = this.type.match(ot);
+              const r = this.type.match(ot);
               populate(
                 this,
                 r
@@ -291430,7 +291430,7 @@
                   et.throwArgumentError('invalid format type', 'format', e),
                 e === nt.json)
               ) {
-                let t = {
+                const t = {
                   type: 'tuple' === this.baseType ? 'tuple' : this.type,
                   name: this.name || void 0,
                 };
@@ -291494,7 +291494,7 @@
                 });
               })(
                 (function parseParamType(e, t) {
-                  let r = e;
+                  const r = e;
                   function throwError(t) {
                     et.throwArgumentError(
                       `unexpected character at position ${t}`,
@@ -291503,7 +291503,7 @@
                     );
                   }
                   function newNode(e) {
-                    let r = {
+                    const r = {
                       type: '',
                       name: '',
                       parent: e,
@@ -291515,7 +291515,7 @@
                   let n = { type: '', name: '', state: { allowType: !0 } },
                     o = n;
                   for (let r = 0; r < e.length; r++) {
-                    let n = e[r];
+                    const n = e[r];
                     switch (n) {
                       case '(':
                         o.state.allowType && '' === o.type
@@ -291534,7 +291534,7 @@
                             (o.name = '')),
                           checkModifier(o.type, o.name) && (o.name = ''),
                           (o.type = verifyType(o.type));
-                        let e = o;
+                        const e = o;
                         (o = o.parent),
                           o || throwError(r),
                           delete e.parent,
@@ -291550,7 +291550,7 @@
                             (o.name = '')),
                           checkModifier(o.type, o.name) && (o.name = ''),
                           (o.type = verifyType(o.type));
-                        let a = newNode(o.parent);
+                        const a = newNode(o.parent);
                         o.parent.components.push(a), delete o.parent, (o = a);
                         break;
                       case ' ':
@@ -291624,7 +291624,7 @@
                 r = '',
                 n = 0;
               for (let o = 0; o < e.length; o++) {
-                let a = e[o];
+                const a = e[o];
                 ',' === a && 0 === n
                   ? (t.push(r), (r = ''))
                   : ((r += a),
@@ -291748,7 +291748,7 @@
               return new EventFragment(tt, t);
             }
             static fromString(e) {
-              let t = e.match(st);
+              const t = e.match(st);
               t || et.throwArgumentError('invalid event string', 'value', e);
               let r = !1;
               return (
@@ -291777,7 +291777,7 @@
           }
           function parseGas(e, t) {
             t.gas = null;
-            let r = e.split('@');
+            const r = e.split('@');
             return 1 !== r.length
               ? (r.length > 2 &&
                   et.throwArgumentError(
@@ -291826,7 +291826,7 @@
               });
           }
           function verifyState(e) {
-            let t = { constant: !1, payable: !0, stateMutability: 'payable' };
+            const t = { constant: !1, payable: !0, stateMutability: 'payable' };
             return (
               null != e.stateMutability
                 ? ((t.stateMutability = e.stateMutability),
@@ -291932,7 +291932,7 @@
               if (ConstructorFragment.isConstructorFragment(e)) return e;
               'constructor' !== e.type &&
                 et.throwArgumentError('invalid constructor object', 'value', e);
-              let t = verifyState(e);
+              const t = verifyState(e);
               t.constant &&
                 et.throwArgumentError(
                   'constructor cannot be constant',
@@ -291950,7 +291950,7 @@
               return new ConstructorFragment(tt, r);
             }
             static fromString(e) {
-              let t = { type: 'constructor' },
+              const t = { type: 'constructor' },
                 r = (e = parseGas(e, t)).match(st);
               return (
                 (r && 'constructor' === r[1].trim()) ||
@@ -292023,7 +292023,7 @@
               if (FunctionFragment.isFunctionFragment(e)) return e;
               'function' !== e.type &&
                 et.throwArgumentError('invalid function object', 'value', e);
-              let t = verifyState(e);
+              const t = verifyState(e);
               const r = {
                 type: e.type,
                 name: verifyIdentifier(e.name),
@@ -292037,11 +292037,11 @@
               return new FunctionFragment(tt, r);
             }
             static fromString(e) {
-              let t = { type: 'function' },
+              const t = { type: 'function' },
                 r = (e = parseGas(e, t)).split(' returns ');
               r.length > 2 &&
                 et.throwArgumentError('invalid function string', 'value', e);
-              let n = r[0].match(st);
+              const n = r[0].match(st);
               if (
                 (n ||
                   et.throwArgumentError(
@@ -292055,7 +292055,7 @@
                 parseModifiers(n[3].trim(), t),
                 r.length > 1)
               ) {
-                let n = r[1].match(st);
+                const n = r[1].match(st);
                 ('' == n[1].trim() && '' == n[3].trim()) ||
                   et.throwArgumentError('unexpected tokens', 'value', e),
                   (t.outputs = parseParams(n[2], !1));
@@ -292121,7 +292121,7 @@
               return checkForbidden(new ErrorFragment(tt, t));
             }
             static fromString(e) {
-              let t = { type: 'error' },
+              const t = { type: 'error' },
                 r = e.match(st);
               return (
                 r ||
@@ -292186,7 +292186,7 @@
                 }
                 let t = e.type.match(dt);
                 if (t) {
-                  let r = parseInt(t[2] || '256');
+                  const r = parseInt(t[2] || '256');
                   return (
                     (0 === r || r > 256 || r % 8 != 0) &&
                       ct.throwArgumentError(
@@ -292198,7 +292198,7 @@
                   );
                 }
                 if (((t = e.type.match(At)), t)) {
-                  let r = parseInt(t[1]);
+                  const r = parseInt(t[1]);
                   return (
                     (0 === r || r > 32) &&
                       ct.throwArgumentError('invalid bytes length', 'param', e),
@@ -292307,7 +292307,7 @@
                     default:
                       return;
                   }
-                  let r = e.format();
+                  const r = e.format();
                   t[r] ? ht.warn('duplicate definition - ' + r) : (t[r] = e);
                 }),
                 this.deploy ||
@@ -292578,7 +292578,7 @@
                     lib_esm_Logger.errors.UNEXPECTED_ARGUMENT,
                     { argument: 'values', value: t }
                   );
-              let r = [];
+              const r = [];
               e.anonymous || r.push(this.getEventTopic(e));
               const encodeTopic = (e, t) =>
                 'string' === e.type
@@ -292595,7 +292595,7 @@
                     lib_esm_hexZeroPad(lib_esm_hexlify(t), 32));
               for (
                 t.forEach((t, n) => {
-                  let o = e.inputs[n];
+                  const o = e.inputs[n];
                   o.indexed
                     ? null == t
                       ? r.push(null)
@@ -292654,7 +292654,7 @@
                 ('string' == typeof e && (e = this.getEvent(e)),
                 null != r && !e.anonymous)
               ) {
-                let t = this.getEventTopic(e);
+                const t = this.getEventTopic(e);
                 (lib_esm_isHexString(r[0], 32) && r[0].toLowerCase() === t) ||
                   ht.throwError(
                     'fragment/topic mismatch',
@@ -292663,7 +292663,7 @@
                   ),
                   (r = r.slice(1));
               }
-              let n = [],
+              const n = [],
                 o = [],
                 a = [];
               e.inputs.forEach((e, t) => {
@@ -292733,7 +292733,7 @@
               return Object.freeze(d);
             }
             parseTransaction(e) {
-              let t = this.getFunction(e.data.substring(0, 10).toLowerCase());
+              const t = this.getFunction(e.data.substring(0, 10).toLowerCase());
               return t
                 ? new TransactionDescription({
                     args: this._abiCoder.decode(
@@ -292749,7 +292749,7 @@
                 : null;
             }
             parseLog(e) {
-              let t = this.getEvent(e.topics[0]);
+              const t = this.getEvent(e.topics[0]);
               return !t || t.anonymous
                 ? null
                 : new LogDescription({
@@ -292762,7 +292762,7 @@
             }
             parseError(e) {
               const t = lib_esm_hexlify(e);
-              let r = this.getError(t.substring(0, 10).toLowerCase());
+              const r = this.getError(t.substring(0, 10).toLowerCase());
               return r
                 ? new ErrorDescription({
                     args: this._abiCoder.decode(
@@ -293662,7 +293662,7 @@
           class FragmentRunningEvent extends RunningEvent {
             constructor(e, t, r, n) {
               const o = { address: e };
-              let a = t.getEventTopic(r);
+              const a = t.getEventTopic(r);
               n
                 ? (a !== n[0] &&
                     wt.throwArgumentError('topic mismatch', 'topics', n),
@@ -293694,7 +293694,7 @@
                 const t = [],
                   checkErrors = function (e, r) {
                     if (Array.isArray(r))
-                      for (let n in r) {
+                      for (const n in r) {
                         const o = e.slice();
                         o.push(n);
                         try {
@@ -294074,7 +294074,7 @@
                 !this._wrappedEmits[e.tag])
               ) {
                 const wrappedEmit = (r) => {
-                  let n = this._wrapEvent(e, r, t);
+                  const n = this._wrapEvent(e, r, t);
                   if (null == n.decodeError)
                     try {
                       const t = e.getEmit(n);
@@ -294139,7 +294139,7 @@
               if (!this.provider) return [];
               if (null == e) {
                 const e = [];
-                for (let t in this._runningEvents)
+                for (const t in this._runningEvents)
                   this._runningEvents[t].listeners().forEach((t) => {
                     e.push(t);
                   });
@@ -294738,7 +294738,7 @@
             if (bytes_lib_esm_isBytes(e)) {
               let t = '0x';
               for (let r = 0; r < e.length; r++) {
-                let n = e[r];
+                const n = e[r];
                 t += Lt[(240 & n) >> 4] + Lt[15 & n];
               }
               return t;
@@ -294815,7 +294815,7 @@
               compact: '0x',
             };
             if (bytes_lib_esm_isBytesLike(e)) {
-              let r = bytes_lib_esm_arrayify(e);
+              const r = bytes_lib_esm_arrayify(e);
               64 === r.length
                 ? ((t.v = 27 + (r[32] >> 7)),
                   (r[32] &= 127),
@@ -296513,7 +296513,7 @@
             if (_ethersproject_bytes_lib_esm_isBytes(e)) {
               let t = '0x';
               for (let r = 0; r < e.length; r++) {
-                let n = e[r];
+                const n = e[r];
                 t += hr[(240 & n) >> 4] + hr[15 & n];
               }
               return t;
@@ -296581,7 +296581,7 @@
               compact: '0x',
             };
             if (_ethersproject_bytes_lib_esm_isBytesLike(e)) {
-              let r = _ethersproject_bytes_lib_esm_arrayify(e);
+              const r = _ethersproject_bytes_lib_esm_arrayify(e);
               64 === r.length
                 ? ((t.v = 27 + (r[32] >> 7)),
                   (r[32] &= 127),
@@ -297089,7 +297089,7 @@
               .map((e) => Er[e])
               .join('');
             for (; t.length >= wr; ) {
-              let e = t.substring(0, wr);
+              const e = t.substring(0, wr);
               t = (parseInt(e, 10) % 97) + t.substring(e.length);
             }
             let r = String(98 - (parseInt(t, 10) % 97));
@@ -297735,7 +297735,7 @@
           });
           function utf8_toUtf8Bytes(e, t = Sr.current) {
             t != Sr.current && (kr.checkNormalize(), (e = e.normalize(t)));
-            let r = [];
+            const r = [];
             for (let t = 0; t < e.length; t++) {
               const n = e.charCodeAt(t);
               if (n < 128) r.push(n);
@@ -298725,7 +298725,7 @@
             if (node_modules_ethersproject_bytes_lib_esm_isBytes(e)) {
               let t = '0x';
               for (let r = 0; r < e.length; r++) {
-                let n = e[r];
+                const n = e[r];
                 t += tn[(240 & n) >> 4] + tn[15 & n];
               }
               return t;
@@ -298788,7 +298788,7 @@
                 );
               })(e)
             ) {
-              let r = node_modules_ethersproject_bytes_lib_esm_arrayify(e);
+              const r = node_modules_ethersproject_bytes_lib_esm_arrayify(e);
               64 === r.length
                 ? ((t.v = 27 + (r[32] >> 7)),
                   (r[32] &= 127),
@@ -299384,7 +299384,7 @@
           });
           function lib_esm_utf8_toUtf8Bytes(e, t = un.current) {
             t != un.current && (dn.checkNormalize(), (e = e.normalize(t)));
-            let r = [];
+            const r = [];
             for (let t = 0; t < e.length; t++) {
               const n = e.charCodeAt(t);
               if (n < 128) r.push(n);
@@ -299864,7 +299864,7 @@
             if (pbkdf2_node_modules_ethersproject_bytes_lib_esm_isBytes(e)) {
               let t = '0x';
               for (let r = 0; r < e.length; r++) {
-                let n = e[r];
+                const n = e[r];
                 t += _n[(240 & n) >> 4] + _n[15 & n];
               }
               return t;
@@ -301715,7 +301715,7 @@
               .map((e) => eo[e])
               .join('');
             for (; t.length >= to; ) {
-              let e = t.substring(0, to);
+              const e = t.substring(0, to);
               t = (parseInt(e, 10) % 97) + t.substring(e.length);
             }
             let r = String(98 - (parseInt(t, 10) % 97));
@@ -302248,7 +302248,7 @@
           });
           function strings_lib_esm_utf8_toUtf8Bytes(e, t = go.current) {
             t != go.current && (lo.checkNormalize(), (e = e.normalize(t)));
-            let r = [];
+            const r = [];
             for (let t = 0; t < e.length; t++) {
               const n = e.charCodeAt(t);
               if (n < 128) r.push(n);
@@ -302735,7 +302735,7 @@
             );
             let o = 0;
             for (let e = 0; e < r.length; e++) {
-              let a = t.getWordIndex(r[e].normalize('NFKD'));
+              const a = t.getWordIndex(r[e].normalize('NFKD'));
               if (-1 === a) throw new Error('invalid mnemonic');
               for (let e = 0; e < 11; e++)
                 a & (1 << (10 - e)) && (n[o >> 3] |= 1 << (7 - (o % 8))), o++;
@@ -305516,7 +305516,7 @@
             ) {
               let t = '0x';
               for (let r = 0; r < e.length; r++) {
-                let n = e[r];
+                const n = e[r];
                 t += ya[(240 & n) >> 4] + ya[15 & n];
               }
               return t;
@@ -305597,7 +305597,7 @@
                 );
               })(e)
             ) {
-              let r =
+              const r =
                 json_wallets_node_modules_ethersproject_bytes_lib_esm_arrayify(
                   e
                 );
@@ -305853,7 +305853,7 @@
               .map((e) => va[e])
               .join('');
             for (; t.length >= _a; ) {
-              let e = t.substring(0, _a);
+              const e = t.substring(0, _a);
               t = (parseInt(e, 10) % 97) + t.substring(e.length);
             }
             let r = String(98 - (parseInt(t, 10) % 97));
@@ -305959,7 +305959,7 @@
             t = Qa.current
           ) {
             t != Qa.current && (xa.checkNormalize(), (e = e.normalize(t)));
-            let r = [];
+            const r = [];
             for (let t = 0; t < e.length; t++) {
               const n = e.charCodeAt(t);
               if (n < 128) r.push(n);
@@ -309164,7 +309164,7 @@
             const t = [],
               checkErrors = function (e, r) {
                 if (Array.isArray(r))
-                  for (let n in r) {
+                  for (const n in r) {
                     const o = e.slice();
                     o.push(n);
                     try {
@@ -309268,7 +309268,7 @@
               return this._offset;
             }
             static coerce(e, t) {
-              let r = e.match('^u?int([0-9]+)$');
+              const r = e.match('^u?int([0-9]+)$');
               return r && parseInt(r[1]) <= 48 && (t = t.toNumber()), t;
             }
             coerce(e, t) {
@@ -309299,7 +309299,7 @@
               );
             }
             readBytes(e, t) {
-              let r = this._peekBytes(0, e, !!t);
+              const r = this._peekBytes(0, e, !!t);
               return (this._offset += r.length), r.slice(0, e);
             }
             readValue() {
@@ -309489,7 +309489,7 @@
               .map((e) => ks[e])
               .join('');
             for (; t.length >= Ss; ) {
-              let e = t.substring(0, Ss);
+              const e = t.substring(0, Ss);
               t = (parseInt(e, 10) % 97) + t.substring(e.length);
             }
             let r = String(98 - (parseInt(t, 10) % 97));
@@ -309660,7 +309660,7 @@
             let n = null;
             if (Array.isArray(r)) n = r;
             else if (r && 'object' == typeof r) {
-              let e = {};
+              const e = {};
               n = t.map((t) => {
                 const n = t.localName;
                 return (
@@ -309683,15 +309683,15 @@
             } else Ns.throwArgumentError('invalid tuple value', 'tuple', r);
             t.length !== n.length &&
               Ns.throwArgumentError('types/value length mismatch', 'tuple', r);
-            let o = new abstract_coder_Writer(e.wordSize),
+            const o = new abstract_coder_Writer(e.wordSize),
               a = new abstract_coder_Writer(e.wordSize),
               s = [];
             t.forEach((e, t) => {
-              let r = n[t];
+              const r = n[t];
               if (e.dynamic) {
-                let t = a.length;
+                const t = a.length;
                 e.encode(a, r);
-                let n = o.writeUpdatableValue();
+                const n = o.writeUpdatableValue();
                 s.push((e) => {
                   n(e + t);
                 });
@@ -309704,12 +309704,12 @@
             return (c += e.appendWriter(a)), c;
           }
           function array_unpack(e, t) {
-            let r = [],
+            const r = [],
               n = e.subReader(0);
             t.forEach((t) => {
               let o = null;
               if (t.dynamic) {
-                let r = e.readValue(),
+                const r = e.readValue(),
                   a = n.subReader(r.toNumber());
                 try {
                   o = t.decode(a);
@@ -309790,7 +309790,7 @@
                   r,
                   'coder array' + (this.localName ? ' ' + this.localName : '')
                 );
-              let n = [];
+              const n = [];
               for (let e = 0; e < t.length; e++) n.push(this.coder);
               return array_pack(e, n, t);
             }
@@ -309804,7 +309804,7 @@
                     logger_lib_esm_Logger.errors.BUFFER_OVERRUN,
                     { length: e._data.length, count: t }
                   ));
-              let r = [];
+              const r = [];
               for (let e = 0; e < t; e++)
                 r.push(new anonymous_AnonymousCoder(this.coder));
               return e.coerce(this.name, array_unpack(e, r));
@@ -309853,7 +309853,7 @@
           }
           class fixed_bytes_FixedBytesCoder extends abstract_coder_Coder {
             constructor(e, t) {
-              let r = 'bytes' + String(e);
+              const r = 'bytes' + String(e);
               super(r, r, t, !1), (this.size = e);
             }
             defaultValue() {
@@ -309863,7 +309863,7 @@
               );
             }
             encode(e, t) {
-              let r = bytes_lib_esm_arrayify(t);
+              const r = bytes_lib_esm_arrayify(t);
               return (
                 r.length !== this.size &&
                   this._throwError('incorrect data length', t),
@@ -309905,7 +309905,7 @@
               let r = lib_esm_bignumber_BigNumber.from(t),
                 n = ys.mask(8 * e.wordSize);
               if (this.signed) {
-                let e = n.mask(8 * this.size - 1);
+                const e = n.mask(8 * this.size - 1);
                 (r.gt(e) || r.lt(e.add(ps).mul(gs))) &&
                   this._throwError('value out-of-bounds', t);
               } else
@@ -310027,7 +310027,7 @@
               }
               let c = o & ((1 << (8 - a - 1)) - 1);
               for (let o = 0; o < a; o++) {
-                let o = e[n];
+                const o = e[n];
                 if (128 != (192 & o)) {
                   (n += t(Rs.MISSING_CONTINUE, n, e, r)), (c = null);
                   break;
@@ -310050,7 +310050,7 @@
             t = Ds.current
           ) {
             t != Ds.current && (Ts.checkNormalize(), (e = e.normalize(t)));
-            let r = [];
+            const r = [];
             for (let t = 0; t < e.length; t++) {
               const n = e.charCodeAt(t);
               if (n < 128) r.push(n);
@@ -310213,7 +310213,7 @@
           }
           const Ls = new logger_lib_esm_Logger(_s),
             Fs = {};
-          let Us = { calldata: !0, memory: !0, storage: !0 },
+          const Us = { calldata: !0, memory: !0, storage: !0 },
             Gs = { calldata: !0, memory: !0 };
           function fragments_checkModifier(e, t) {
             if ('bytes' === e || 'string' === e) {
@@ -310229,7 +310229,7 @@
             );
           }
           function fragments_populate(e, t) {
-            for (let r in t) properties_lib_esm_defineReadOnly(e, r, t[r]);
+            for (const r in t) properties_lib_esm_defineReadOnly(e, r, t[r]);
           }
           const Os = Object.freeze({
               sighash: 'sighash',
@@ -310247,7 +310247,7 @@
                   { operation: 'new ParamType()' }
                 ),
                 fragments_populate(this, t);
-              let r = this.type.match(Hs);
+              const r = this.type.match(Hs);
               fragments_populate(
                 this,
                 r
@@ -310275,7 +310275,7 @@
                   Ls.throwArgumentError('invalid format type', 'format', e),
                 e === Os.json)
               ) {
-                let t = {
+                const t = {
                   type: 'tuple' === this.baseType ? 'tuple' : this.type,
                   name: this.name || void 0,
                 };
@@ -310339,7 +310339,7 @@
                 });
               })(
                 (function fragments_parseParamType(e, t) {
-                  let r = e;
+                  const r = e;
                   function throwError(t) {
                     Ls.throwArgumentError(
                       `unexpected character at position ${t}`,
@@ -310348,7 +310348,7 @@
                     );
                   }
                   function newNode(e) {
-                    let r = {
+                    const r = {
                       type: '',
                       name: '',
                       parent: e,
@@ -310360,7 +310360,7 @@
                   let n = { type: '', name: '', state: { allowType: !0 } },
                     o = n;
                   for (let r = 0; r < e.length; r++) {
-                    let n = e[r];
+                    const n = e[r];
                     switch (n) {
                       case '(':
                         o.state.allowType && '' === o.type
@@ -310380,7 +310380,7 @@
                           fragments_checkModifier(o.type, o.name) &&
                             (o.name = ''),
                           (o.type = fragments_verifyType(o.type));
-                        let e = o;
+                        const e = o;
                         (o = o.parent),
                           o || throwError(r),
                           delete e.parent,
@@ -310397,7 +310397,7 @@
                           fragments_checkModifier(o.type, o.name) &&
                             (o.name = ''),
                           (o.type = fragments_verifyType(o.type));
-                        let a = newNode(o.parent);
+                        const a = newNode(o.parent);
                         o.parent.components.push(a), delete o.parent, (o = a);
                         break;
                       case ' ':
@@ -310472,7 +310472,7 @@
                 r = '',
                 n = 0;
               for (let o = 0; o < e.length; o++) {
-                let a = e[o];
+                const a = e[o];
                 ',' === a && 0 === n
                   ? (t.push(r), (r = ''))
                   : ((r += a),
@@ -310598,7 +310598,7 @@
               return new fragments_EventFragment(Fs, t);
             }
             static fromString(e) {
-              let t = e.match(qs);
+              const t = e.match(qs);
               t || Ls.throwArgumentError('invalid event string', 'value', e);
               let r = !1;
               return (
@@ -310627,7 +310627,7 @@
           }
           function fragments_parseGas(e, t) {
             t.gas = null;
-            let r = e.split('@');
+            const r = e.split('@');
             return 1 !== r.length
               ? (r.length > 2 &&
                   Ls.throwArgumentError(
@@ -310676,7 +310676,7 @@
               });
           }
           function fragments_verifyState(e) {
-            let t = { constant: !1, payable: !0, stateMutability: 'payable' };
+            const t = { constant: !1, payable: !0, stateMutability: 'payable' };
             return (
               null != e.stateMutability
                 ? ((t.stateMutability = e.stateMutability),
@@ -310783,7 +310783,7 @@
                 return e;
               'constructor' !== e.type &&
                 Ls.throwArgumentError('invalid constructor object', 'value', e);
-              let t = fragments_verifyState(e);
+              const t = fragments_verifyState(e);
               t.constant &&
                 Ls.throwArgumentError(
                   'constructor cannot be constant',
@@ -310803,7 +310803,7 @@
               return new fragments_ConstructorFragment(Fs, r);
             }
             static fromString(e) {
-              let t = { type: 'constructor' },
+              const t = { type: 'constructor' },
                 r = (e = fragments_parseGas(e, t)).match(qs);
               return (
                 (r && 'constructor' === r[1].trim()) ||
@@ -310876,7 +310876,7 @@
               if (fragments_FunctionFragment.isFunctionFragment(e)) return e;
               'function' !== e.type &&
                 Ls.throwArgumentError('invalid function object', 'value', e);
-              let t = fragments_verifyState(e);
+              const t = fragments_verifyState(e);
               const r = {
                 type: e.type,
                 name: fragments_verifyIdentifier(e.name),
@@ -310894,11 +310894,11 @@
               return new fragments_FunctionFragment(Fs, r);
             }
             static fromString(e) {
-              let t = { type: 'function' },
+              const t = { type: 'function' },
                 r = (e = fragments_parseGas(e, t)).split(' returns ');
               r.length > 2 &&
                 Ls.throwArgumentError('invalid function string', 'value', e);
-              let n = r[0].match(qs);
+              const n = r[0].match(qs);
               if (
                 (n ||
                   Ls.throwArgumentError(
@@ -310912,7 +310912,7 @@
                 fragments_parseModifiers(n[3].trim(), t),
                 r.length > 1)
               ) {
-                let n = r[1].match(qs);
+                const n = r[1].match(qs);
                 ('' == n[1].trim() && '' == n[3].trim()) ||
                   Ls.throwArgumentError('unexpected tokens', 'value', e),
                   (t.outputs = fragments_parseParams(n[2], !1));
@@ -310982,7 +310982,7 @@
               );
             }
             static fromString(e) {
-              let t = { type: 'error' },
+              const t = { type: 'error' },
                 r = e.match(qs);
               return (
                 r ||
@@ -311047,7 +311047,7 @@
               }
               let t = e.type.match(Js);
               if (t) {
-                let r = parseInt(t[2] || '256');
+                const r = parseInt(t[2] || '256');
                 return (
                   (0 === r || r > 256 || r % 8 != 0) &&
                     js.throwArgumentError(
@@ -311059,7 +311059,7 @@
                 );
               }
               if (((t = e.type.match(Ks)), t)) {
-                let r = parseInt(t[1]);
+                const r = parseInt(t[1]);
                 return (
                   (0 === r || r > 32) &&
                     js.throwArgumentError('invalid bytes length', 'param', e),
@@ -311191,7 +311191,7 @@
                     default:
                       return;
                   }
-                  let r = e.format();
+                  const r = e.format();
                   t[r] ? Ys.warn('duplicate definition - ' + r) : (t[r] = e);
                 }),
                 this.deploy ||
@@ -311473,7 +311473,7 @@
                     logger_lib_esm_Logger.errors.UNEXPECTED_ARGUMENT,
                     { argument: 'values', value: t }
                   );
-              let r = [];
+              const r = [];
               e.anonymous || r.push(this.getEventTopic(e));
               const encodeTopic = (e, t) =>
                 'string' === e.type
@@ -311492,7 +311492,7 @@
                     bytes_lib_esm_hexZeroPad(bytes_lib_esm_hexlify(t), 32));
               for (
                 t.forEach((t, n) => {
-                  let o = e.inputs[n];
+                  const o = e.inputs[n];
                   o.indexed
                     ? null == t
                       ? r.push(null)
@@ -311556,7 +311556,7 @@
                 ('string' == typeof e && (e = this.getEvent(e)),
                 null != r && !e.anonymous)
               ) {
-                let t = this.getEventTopic(e);
+                const t = this.getEventTopic(e);
                 (bytes_lib_esm_isHexString(r[0], 32) &&
                   r[0].toLowerCase() === t) ||
                   Ys.throwError(
@@ -311566,7 +311566,7 @@
                   ),
                   (r = r.slice(1));
               }
-              let n = [],
+              const n = [],
                 o = [],
                 a = [];
               e.inputs.forEach((e, t) => {
@@ -311645,7 +311645,7 @@
               return Object.freeze(d);
             }
             parseTransaction(e) {
-              let t = this.getFunction(e.data.substring(0, 10).toLowerCase());
+              const t = this.getFunction(e.data.substring(0, 10).toLowerCase());
               return t
                 ? new interface_TransactionDescription({
                     args: this._abiCoder.decode(
@@ -311661,7 +311661,7 @@
                 : null;
             }
             parseLog(e) {
-              let t = this.getEvent(e.topics[0]);
+              const t = this.getEvent(e.topics[0]);
               return !t || t.anonymous
                 ? null
                 : new interface_LogDescription({
@@ -311674,7 +311674,7 @@
             }
             parseError(e) {
               const t = bytes_lib_esm_hexlify(e);
-              let r = this.getError(t.substring(0, 10).toLowerCase());
+              const r = this.getError(t.substring(0, 10).toLowerCase());
               return r
                 ? new interface_ErrorDescription({
                     args: this._abiCoder.decode(
@@ -311754,7 +311754,7 @@
                     t = 0,
                     a = r;
                   for (; a - t > 1; ) {
-                    let r = (t + a) >>> 1;
+                    const r = (t + a) >>> 1;
                     e < o[r] ? (a = r) : (t = r);
                   }
                   if (0 == t) break;
@@ -311771,7 +311771,7 @@
                       (c = ((c ^ h) << 1) | h | 1);
                   (m = s), (B = 1 + c - s);
                 }
-                let y = r - 4;
+                const y = r - 4;
                 return p.map((t) => {
                   switch (t - y) {
                     case 3:
@@ -311793,21 +311793,21 @@
             return 1 & e ? ~e >> 1 : e >> 1;
           }
           function read_ascending(e, t) {
-            let r = Array(e);
+            const r = Array(e);
             for (let n = 0, o = -1; n < e; n++) r[n] = o += 1 + t();
             return r;
           }
           function read_deltas(e, t) {
-            let r = Array(e);
+            const r = Array(e);
             for (let n = 0, o = 0; n < e; n++) r[n] = o += signed(t());
             return r;
           }
           function read_member_array(e, t) {
-            let r = read_ascending(e(), e),
+            const r = read_ascending(e(), e),
               n = e(),
               o = read_ascending(n, e),
               a = (function read_counts(e, t) {
-                let r = Array(e);
+                const r = Array(e);
                 for (let n = 0; n < e; n++) r[n] = 1 + t();
                 return r;
               })(n, e);
@@ -311816,7 +311816,7 @@
             return t ? r.map((e) => t[e]) : r;
           }
           function read_transposed(e, t, r) {
-            let n = Array(e)
+            const n = Array(e)
               .fill(void 0)
               .map(() => []);
             for (let o = 0; o < t; o++)
@@ -311824,12 +311824,12 @@
             return n;
           }
           function read_linear_table(e, t) {
-            let r = 1 + t(),
+            const r = 1 + t(),
               n = t(),
               o = (function read_zero_terminated_array(e) {
-                let t = [];
+                const t = [];
                 for (;;) {
-                  let r = e();
+                  const r = e();
                   if (0 == r) break;
                   t.push(r);
                 }
@@ -311842,7 +311842,7 @@
                 return Array(o[t])
                   .fill(void 0)
                   .map((e, t) => {
-                    let o = t * n;
+                    const o = t * n;
                     return [a + t * r, s.map((e) => e + o)];
                   });
               })
@@ -311864,14 +311864,14 @@
             $s = new Set(read_member_array(Xs)),
             eA = new Set(read_member_array(Xs)),
             tA = (function read_mapped_map(e) {
-              let t = [];
+              const t = [];
               for (;;) {
-                let r = e();
+                const r = e();
                 if (0 == r) break;
                 t.push(read_linear_table(r, e));
               }
               for (;;) {
-                let r = e() - 1;
+                const r = e() - 1;
                 if (r < 0) break;
                 t.push(read_replacement_table(r, e));
               }
@@ -311885,11 +311885,11 @@
               })(flat(t));
             })(Xs),
             rA = (function read_emoji_trie(e) {
-              let t = read_member_array(e).sort((e, t) => e - t);
+              const t = read_member_array(e).sort((e, t) => e - t);
               return (function read() {
-                let r = [];
+                const r = [];
                 for (;;) {
-                  let n = read_member_array(e, t);
+                  const n = read_member_array(e, t);
                   if (0 == n.length) break;
                   r.push({ set: new Set(n), node: read() });
                 }
@@ -311897,7 +311897,7 @@
                 let n = e(),
                   o = n % 3;
                 n = (n / 3) | 0;
-                let a = !!(1 & n);
+                const a = !!(1 & n);
                 return (
                   (n >>= 1),
                   {
@@ -311919,8 +311919,8 @@
             return e.filter((e) => 65039 != e);
           }
           function ens_normalize_post_check(e) {
-            for (let t of e.split('.')) {
-              let e = explode_cp(t);
+            for (const t of e.split('.')) {
+              const e = explode_cp(t);
               try {
                 for (let t = e.lastIndexOf(95) - 1; t >= 0; t--)
                   if (95 !== e[t])
@@ -311941,21 +311941,21 @@
           function ens_normalize(e) {
             return ens_normalize_post_check(
               (function normalize(e, t) {
-                let r = explode_cp(e).reverse(),
+                const r = explode_cp(e).reverse(),
                   n = [];
                 for (; r.length; ) {
-                  let e = consume_emoji_reversed(r);
+                  const e = consume_emoji_reversed(r);
                   if (e) {
                     n.push(...t(e));
                     continue;
                   }
-                  let o = r.pop();
+                  const o = r.pop();
                   if ($s.has(o)) {
                     n.push(o);
                     continue;
                   }
                   if (eA.has(o)) continue;
-                  let a = tA[o];
+                  const a = tA[o];
                   if (!a)
                     throw new Error(
                       `Disallowed codepoint: 0x${o.toString(16).toUpperCase()}`
@@ -311978,7 +311978,7 @@
               s = [],
               c = e.length;
             for (t && (t.length = 0); c; ) {
-              let d = e[--c];
+              const d = e[--c];
               if (
                 ((a =
                   null === (r = a.branches.find((e) => e.set.has(d))) ||
@@ -313084,7 +313084,7 @@
             if (solidity_node_modules_ethersproject_bytes_lib_esm_isBytes(e)) {
               let t = '0x';
               for (let r = 0; r < e.length; r++) {
-                let n = e[r];
+                const n = e[r];
                 t += QA[(240 & n) >> 4] + QA[15 & n];
               }
               return t;
@@ -313628,7 +313628,7 @@
             t = RA.current
           ) {
             t != RA.current && (DA.checkNormalize(), (e = e.normalize(t)));
-            let r = [];
+            const r = [];
             for (let t = 0; t < e.length; t++) {
               const n = e.charCodeAt(t);
               if (n < 128) r.push(n);
@@ -315657,7 +315657,7 @@
               n = {};
             return (
               e.split(',').forEach((e) => {
-                let o = e.split(':');
+                const o = e.split(':');
                 (r += parseInt(o[0], 16)), (n[r] = t(o[1]));
               }),
               n
@@ -315666,16 +315666,16 @@
           function createRangeTable(e) {
             let t = 0;
             return e.split(',').map((e) => {
-              let r = e.split('-');
+              const r = e.split('-');
               1 === r.length ? (r[1] = '0') : '' === r[1] && (r[1] = '1');
-              let n = t + parseInt(r[0], 16);
+              const n = t + parseInt(r[0], 16);
               return (t = parseInt(r[1], 16)), { l: n, h: t };
             });
           }
           function matchMap(e, t) {
             let r = 0;
             for (let n = 0; n < t.length; n++) {
-              let o = t[n];
+              const o = t[n];
               if (
                 ((r += o.l),
                 e >= r && e <= r + o.h && (e - r) % (o.d || 1) == 0)
@@ -315746,7 +315746,7 @@
               'df:00730073,51:00690307,19:02BC006E,a7:006A030C,18a:002003B9,16:03B903080301,20:03C503080301,1d7:05650582,190f:00680331,1:00740308,1:0077030A,1:0079030A,1:006102BE,b6:03C50313,2:03C503130300,2:03C503130301,2:03C503130342,2a:1F0003B9,1:1F0103B9,1:1F0203B9,1:1F0303B9,1:1F0403B9,1:1F0503B9,1:1F0603B9,1:1F0703B9,1:1F0003B9,1:1F0103B9,1:1F0203B9,1:1F0303B9,1:1F0403B9,1:1F0503B9,1:1F0603B9,1:1F0703B9,1:1F2003B9,1:1F2103B9,1:1F2203B9,1:1F2303B9,1:1F2403B9,1:1F2503B9,1:1F2603B9,1:1F2703B9,1:1F2003B9,1:1F2103B9,1:1F2203B9,1:1F2303B9,1:1F2403B9,1:1F2503B9,1:1F2603B9,1:1F2703B9,1:1F6003B9,1:1F6103B9,1:1F6203B9,1:1F6303B9,1:1F6403B9,1:1F6503B9,1:1F6603B9,1:1F6703B9,1:1F6003B9,1:1F6103B9,1:1F6203B9,1:1F6303B9,1:1F6403B9,1:1F6503B9,1:1F6603B9,1:1F6703B9,3:1F7003B9,1:03B103B9,1:03AC03B9,2:03B10342,1:03B1034203B9,5:03B103B9,6:1F7403B9,1:03B703B9,1:03AE03B9,2:03B70342,1:03B7034203B9,5:03B703B9,6:03B903080300,1:03B903080301,3:03B90342,1:03B903080342,b:03C503080300,1:03C503080301,1:03C10313,2:03C50342,1:03C503080342,b:1F7C03B9,1:03C903B9,1:03CE03B9,2:03C90342,1:03C9034203B9,5:03C903B9,ac:00720073,5b:00B00063,6:00B00066,d:006E006F,a:0073006D,1:00740065006C,1:0074006D,124f:006800700061,2:00610075,2:006F0076,b:00700061,1:006E0061,1:03BC0061,1:006D0061,1:006B0061,1:006B0062,1:006D0062,1:00670062,3:00700066,1:006E0066,1:03BC0066,4:0068007A,1:006B0068007A,1:006D0068007A,1:00670068007A,1:00740068007A,15:00700061,1:006B00700061,1:006D00700061,1:006700700061,8:00700076,1:006E0076,1:03BC0076,1:006D0076,1:006B0076,1:006D0076,1:00700077,1:006E0077,1:03BC0077,1:006D0077,1:006B0077,1:006D0077,1:006B03C9,1:006D03C9,2:00620071,3:00632215006B0067,1:0063006F002E,1:00640062,1:00670079,2:00680070,2:006B006B,1:006B006D,9:00700068,2:00700070006D,1:00700072,2:00730076,1:00770062,c723:00660066,1:00660069,1:0066006C,1:006600660069,1:00660066006C,1:00730074,1:00730074,d:05740576,1:05740565,1:0574056B,1:057E0576,1:0574056D',
               function bytes2(e) {
                 if (e.length % 4 != 0) throw new Error('bad data');
-                let t = [];
+                const t = [];
                 for (let r = 0; r < e.length; r += 4)
                   t.push(parseInt(e.substring(r, r + 4), 16));
                 return t;
@@ -315776,12 +315776,12 @@
               t.map((e) => {
                 if (du.indexOf(e) >= 0) return [];
                 if (e >= 65024 && e <= 65039) return [];
-                let t = (function _nameprepTableB2(e) {
-                  let t = matchMap(e, uu);
+                const t = (function _nameprepTableB2(e) {
+                  const t = matchMap(e, uu);
                   if (t) return [e + t.s];
-                  let r = hu[e];
+                  const r = hu[e];
                   if (r) return r;
-                  let n = lu[e];
+                  const n = lu[e];
                   return n ? [e + n[0]] : gu[e] || null;
                 })(e);
                 return t || [e];
@@ -315810,7 +315810,7 @@
                 )
                   throw new Error('STRINGPREP_CONTAINS_UNASSIGNED');
               });
-            let r =
+            const r =
               ethers_node_modules_ethersproject_strings_lib_esm_utf8_toUtf8String(
                 t
               );
@@ -316921,7 +316921,7 @@
             if (units_node_modules_ethersproject_bytes_lib_esm_isBytes(e)) {
               let t = '0x';
               for (let r = 0; r < e.length; r++) {
-                let n = e[r];
+                const n = e[r];
                 t += Su[(240 & n) >> 4] + Su[15 & n];
               }
               return t;
@@ -323137,7 +323137,7 @@
             }
             increment(e) {
               this.evict();
-              let t = this.counters.get(e);
+              const t = this.counters.get(e);
               null == t
                 ? this.counters.set(e, { value: 1, updatedAt: Date.now() })
                 : ((t.value += 1), (t.updatedAt = Date.now()));

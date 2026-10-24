@@ -1,4 +1,4 @@
 import type { SetCodeParameters } from 'viem';
-import * as arbitrumGas from './arbitrum-gas.json';
+import arbitrumGas from './arbitrum-gas.json' with { type: 'json' };
 
-export default [arbitrumGas] as SetCodeParameters[];
+export default [arbitrumGas as SetCodeParameters];

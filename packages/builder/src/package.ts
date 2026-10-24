@@ -1,14 +1,14 @@
 import Debug from 'debug';
 import * as viem from 'viem';
-import _ from 'lodash';
-import { createInitialContext, getArtifacts } from './builder';
-import { ChainDefinition } from './definition';
-import { CannonStorage, ChainBuilderRuntime } from './runtime';
-import { CannonRegistry } from './registry';
-import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './types';
+import { last, flatMap, values, uniq } from 'lodash-es';
+import { createInitialContext, getArtifacts } from './builder.js';
+import { ChainDefinition } from './definition.js';
+import { CannonStorage, ChainBuilderRuntime } from './runtime.js';
+import { CannonRegistry } from './registry.js';
+import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './types.js';
 
-import { PackageReference } from './package-reference';
-import { storeRead, storeWrite } from './utils/onchain-store';
+import { PackageReference } from './package-reference.js';
+import { storeRead, storeWrite } from './utils/onchain-store.js';
 
 const debug = Debug('cannon:builder:package');
 
@@ -43,7 +43,7 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
   deployInfo: DeploymentInfo,
   action: (deployInfo: DeploymentInfo, context: BundledOutput | null) => Promise<T>,
   context?: BundledOutput | null,
-  onlyResultProvisioned = true
+  onlyResultProvisioned = true,
 ): Promise<T[]> {
   const results: T[] = [];
 
@@ -51,7 +51,7 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
     const nestedDeployInfo = await store.readBlob(importArtifact.url);
     const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact, onlyResultProvisioned);
 
-    const newUrl = _.last(result)?.url;
+    const newUrl = last(result)?.url;
     if (newUrl && newUrl !== importArtifact.url) {
       importArtifact.url = newUrl!;
       const updatedNestedDeployInfo = await store.readBlob(newUrl);
@@ -59,7 +59,7 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
       // TODO: maybe also necessary to update others besides imports? for now just keeping this as is becuase of
       importArtifact.imports = getArtifacts(
         new ChainDefinition(updatedNestedDeployInfo.def),
-        updatedNestedDeployInfo.state
+        updatedNestedDeployInfo.state,
       ).imports;
     }
 
@@ -75,7 +75,7 @@ export async function forPackageTree<T extends { url?: string; artifacts?: Chain
 
 export function getDeploymentImports(deployInfo: DeploymentInfo) {
   if (!deployInfo.state) return [];
-  return _.flatMap(_.values(deployInfo.state), (state: StepState) => Object.values(state.artifacts.imports || {}));
+  return flatMap(values(deployInfo.state), (state: StepState) => Object.values(state.artifacts.imports || {}));
 }
 
 // this internal function will copy one package's ipfs records and return a publish call, without recursing
@@ -86,7 +86,7 @@ export async function pinIpfs(
   toStorage: CannonStorage,
   alreadyCopiedIpfs: Map<string, any>,
   tags: Array<string>,
-  chainId?: number
+  chainId?: number,
 ) {
   const checkKeyPreset = deployInfo.def.preset || context?.preset || 'main';
 
@@ -155,8 +155,8 @@ export async function pinIpfs(
   }
 
   const returnVal = {
-    packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
-      (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : packageReference.preset}`
+    packagesNames: uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
+      (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : packageReference.preset}`,
     ),
     chainId: pkgChainId,
     url,
@@ -191,16 +191,16 @@ export async function preparePublishPackage({
 
   if (!deployData) {
     throw new Error(
-      `could not find deployment artifact for ${packageReference.fullPackageRef} with chain id "${chainId}". Please double check your settings, and rebuild your package.`
+      `could not find deployment artifact for ${packageReference.fullPackageRef} with chain id "${chainId}". Please double check your settings, and rebuild your package.`,
     );
   }
 
   // We call this regardless of includeProvisioned because we want to ALWAYS upload the subpackages ipfs data.
   const calls: PackagePublishCall[] = (await forPackageTree(fromStorage, deployData, pinPackagesToIpfs)).filter(
-    (v: any) => !!v
+    (v: any) => !!v,
   );
 
-  return includeProvisioned ? calls : [_.last(calls)!];
+  return includeProvisioned ? calls : [last(calls)!];
 }
 
 /**
@@ -231,7 +231,7 @@ export async function findUpgradeFromPackage(
   provider: viem.PublicClient,
   packageReference: PackageReference,
   chainId: number,
-  deployers: viem.Address[]
+  deployers: viem.Address[],
 ) {
   debug('find upgrade from onchain store');
   let oldDeployHash: string | null = null;
@@ -244,7 +244,7 @@ export async function findUpgradeFromPackage(
           await storeRead(
             provider,
             addr,
-            viem.keccak256(viem.stringToBytes(`${packageReference.name}@${packageReference.preset}`))
+            viem.keccak256(viem.stringToBytes(`${packageReference.name}@${packageReference.preset}`)),
           )
         ).split('_');
 
@@ -255,7 +255,7 @@ export async function findUpgradeFromPackage(
       } catch (err) {
         debug('failure while trying to read from onchain store', err);
       }
-    })
+    }),
   );
 
   if (!oldDeployHash) {
@@ -272,6 +272,6 @@ export async function writeUpgradeFromInfo(runtime: ChainBuilderRuntime, package
     runtime.provider,
     await runtime.getDefaultSigner({}),
     viem.keccak256(viem.stringToBytes(`${packageRef.name}@${packageRef.preset}`)),
-    `${Math.floor(Date.now() / 1000)}_${deployUrl}`
+    `${Math.floor(Date.now() / 1000)}_${deployUrl}`,
   );
 }

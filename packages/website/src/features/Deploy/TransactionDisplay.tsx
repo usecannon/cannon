@@ -82,7 +82,7 @@ export function TransactionDisplay(props: {
   queuedWithGitOps?: boolean;
   showQueueSource?: boolean;
   isTransactionExecuted?: boolean;
-  containerRef?: RefObject<HTMLDivElement>;
+  containerRef?: RefObject<HTMLDivElement|null>;
 }) {
   const [expandDiff, setExpandDiff] = useState<boolean>(false);
 

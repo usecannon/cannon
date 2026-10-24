@@ -24,7 +24,7 @@ describe('clean function', () => {
       Promise.resolve([
         { name: 'file1.txt', isDirectory: () => false },
         { name: 'dir1', isDirectory: () => true },
-      ])
+      ]),
     );
     jest.spyOn(fs, 'rm').mockImplementation(() => Promise.resolve());
   });
@@ -210,8 +210,7 @@ describe('cleanOrphanedIpfs function', () => {
     // - ipfs://QmOrphan is not referenced by anything
     // All of QmRoot, QmNested, QmDeep should be kept; QmOrphan should be deleted
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const crypto = require('crypto');
+    const crypto = await import('node:crypto');
     const hashOf = (cid: string) => {
       const md5 = crypto.createHash('md5').update(cid).digest('hex');
       return `${md5}-${cid.toLowerCase()}`;
@@ -244,14 +243,14 @@ describe('cleanOrphanedIpfs function', () => {
         return Promise.resolve(
           JSON.stringify({
             state: { 'deploy.Contract': { url: 'ipfs://QmNested' } },
-          })
+          }),
         ) as any;
       }
       if (pathStr.includes(nestedHash)) {
         return Promise.resolve(
           JSON.stringify({
             state: { 'deploy.Sub': { metaUrl: 'ipfs://QmDeep' } },
-          })
+          }),
         ) as any;
       }
       if (pathStr.includes(deepHash)) {

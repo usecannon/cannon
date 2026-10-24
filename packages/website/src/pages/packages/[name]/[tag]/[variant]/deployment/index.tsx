@@ -1,6 +1,4 @@
 import { useRouter } from 'next/router';
-import { NextSeo } from 'next-seo';
-import defaultSEO from '@/constants/defaultSeo';
 import TagVariantLayout from '../NameTagVariantLayout';
 import { ReactElement, useEffect } from 'react';
 import { PackageReference } from '@usecannon/builder';
@@ -51,16 +49,6 @@ export default function Deployment() {
 
   return (
     <>
-      <NextSeo
-        {...defaultSEO}
-        title={metadata.title}
-        description={metadata.description}
-        openGraph={{
-          ...defaultSEO.openGraph,
-          title: metadata.title,
-          description: metadata.description,
-        }}
-      />
     </>
   );
 }

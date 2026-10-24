@@ -29,7 +29,7 @@ export function useDeployerWallet(chainId?: number) {
           await switchChainAsync({ chainId });
           // execute the next transaction
           sendTransaction(
-            {
+            ({
               ...queuedTransactions[executionProgress.length],
               type: queuedTransactions[executionProgress.length].type as
                 | 'legacy'
@@ -38,12 +38,12 @@ export function useDeployerWallet(chainId?: number) {
                 | 'eip4844'
                 | 'eip7702'
                 | undefined,
-            },
+            } as any), // viem's per-type tx unions can't express a generic passthrough
             {
               onSuccess(hash: viem.Hash) {
                 setExecutionProgress([...executionProgress, hash]);
               },
-            }
+            },
           );
         }
       })()
@@ -55,7 +55,7 @@ export function useDeployerWallet(chainId?: number) {
           setError(err);
         });
     },
-    [isConfirmed, isIdle, executionProgress.length, queuedTransactions, chainId, executionProgress]
+    [isConfirmed, isIdle, executionProgress.length, queuedTransactions, chainId, executionProgress],
   );
 
   return {

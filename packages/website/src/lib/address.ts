@@ -104,7 +104,7 @@ export function handleDownloadCsv(
   txs: OtterscanTransaction[],
   receipts: OtterscanReceipt[],
   chain: Chain,
-  fileName: string
+  fileName: string,
 ) {
   const headers = ['Transaction Hash', 'Status', 'Method', 'Blockno', 'Date Time', 'From', 'To', 'Amount', 'Txn Fee'];
   const rows = mapToTransactionCsvRows(txs, receipts, chain);
@@ -117,7 +117,7 @@ export async function searchTransactions(
   address: string,
   direction: 'before' | 'after',
   offset = 0,
-  limit = 25
+  limit = 25,
 ) {
   const method = direction === 'before' ? 'ots_searchTransactionsBefore' : 'ots_searchTransactionsAfter';
 

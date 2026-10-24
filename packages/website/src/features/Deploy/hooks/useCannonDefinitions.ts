@@ -30,7 +30,7 @@ export function useCannonDefinitions({
     currentPackageReference,
     chainId,
     cannonDefInfo?.def?.getDeployers(),
-    prevPackageReference || undefined
+    prevPackageReference || undefined,
   );
 
   const prevDeployLocation = onChainPrevPkgQuery.data || '';
@@ -43,7 +43,7 @@ export function useCannonDefinitions({
       onChainPrevPkgQuery.isFetching ||
       partialDeployInfo.isFetching,
     isLoaded: Boolean(
-      !partialDeployInfo?.isFetching && !partialDeployInfo?.isError && partialDeployInfo?.ipfsQuery.data?.deployInfo
+      !partialDeployInfo?.isFetching && !partialDeployInfo?.isError && partialDeployInfo?.ipfsQuery.data?.deployInfo,
     ),
     gitInfo,
     partialDeployInfo,

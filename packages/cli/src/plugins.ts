@@ -1,9 +1,10 @@
 import path from 'path';
 import { exec } from 'child_process';
-import _ from 'lodash';
-import { existsSync, mkdirp } from 'fs-extra';
+import { pickBy } from 'lodash-es';
+import { mkdirp } from 'fs-extra/esm';
+import { existsSync } from 'fs';
 import { registerAction } from '@usecannon/builder';
-import { resolveCliSettings } from './settings';
+import { resolveCliSettings } from './settings.js';
 
 import Debug from 'debug';
 
@@ -30,7 +31,7 @@ export async function listInstalledPlugins() {
   }
 
   const installedPlugins = Object.keys(
-    _.pickBy(JSON.parse(await _exec('npm ls --json')).dependencies, (d: any) => !d.extraneous)
+    pickBy(JSON.parse(await _exec('npm ls --json')).dependencies, (d: any) => !d.extraneous),
   ) as string[];
 
   for (const deprecated of DEPRECATED_PLUGINS) {
@@ -48,11 +49,11 @@ export async function loadPlugin(name: string) {
   const pluginFolder = path.join(_getPluginDir(), 'node_modules', name);
 
   // read pkg to get the actual plugin load dir
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const pkg = require(path.join(pluginFolder, 'package.json'));
 
   const pluginFile = pkg.cannon || pkg.main || '';
-
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   return require(path.join(pluginFolder, pluginFile));
 }
 

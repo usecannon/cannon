@@ -21,8 +21,8 @@ export function getGlobalVars(): Set<string> {
   getAllPropertiesFromObject(globalThis);
 
   // Check window in browser environment
-  if (typeof window !== 'undefined') {
-    getAllPropertiesFromObject(window);
+  if (typeof (globalThis as any).window !== 'undefined') {
+    getAllPropertiesFromObject((globalThis as any).window);
   }
 
   // Check global in Node.js environment
@@ -31,8 +31,8 @@ export function getGlobalVars(): Set<string> {
   }
 
   // Check self (used in Web Workers)
-  if (typeof self !== 'undefined') {
-    getAllPropertiesFromObject(self);
+  if (typeof (globalThis as any).self !== 'undefined') {
+    getAllPropertiesFromObject((globalThis as any).self);
   }
 
   // Get properties from Function constructor

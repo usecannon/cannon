@@ -70,7 +70,7 @@ export function useMultisendTxsParams({
                   ? ((prevInfoQuery.data[0].result as any).slice(2) as any)
                   : '',
               ],
-            ]
+            ],
           ),
         },
         // write data needed for the subsequent deployment to chain
@@ -104,7 +104,7 @@ export function useMultisendTxsParams({
             functionName: 'set',
             args: [
               keccak256(
-                toBytes(cannonDefInfo?.def ? `${cannonDefInfo.def.getName(ctx)}@${cannonDefInfo.def.getPreset(ctx)}` : '')
+                toBytes(cannonDefInfo?.def ? `${cannonDefInfo.def.getName(ctx)}@${cannonDefInfo.def.getPreset(ctx)}` : ''),
               ),
               stringToHex(`${Math.floor(Date.now() / 1000)}_${writeToIpfsMutation.data?.mainUrl ?? ''}`),
             ],

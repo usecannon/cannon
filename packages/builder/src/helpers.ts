@@ -1,13 +1,18 @@
 import * as viem from 'viem';
 import { mainnet, optimism } from 'viem/chains';
 import promiseRetry from 'promise-retry';
-import { getArtifacts } from './builder';
-import { CANNON_CHAIN_ID, DEFAULT_REGISTRY_ADDRESS, DEFAULT_REGISTRY_CONFIG, getCannonRepoRegistryUrl } from './constants';
-import { IPFSLoader } from './loader';
-import { PackageReference } from './package-reference';
-import { OnChainRegistry, FallbackRegistry, InMemoryRegistry } from './registry';
-import { CannonStorage } from './runtime';
-import { getContractFromPath } from './util';
+import { getArtifacts } from './builder.js';
+import {
+  CANNON_CHAIN_ID,
+  DEFAULT_REGISTRY_ADDRESS,
+  DEFAULT_REGISTRY_CONFIG,
+  getCannonRepoRegistryUrl,
+} from './constants.js';
+import { IPFSLoader } from './loader.js';
+import { PackageReference } from './package-reference.js';
+import { OnChainRegistry, FallbackRegistry, InMemoryRegistry } from './registry.js';
+import { CannonStorage } from './runtime.js';
+import { getContractFromPath } from './util.js';
 
 export function getDefaultStorage() {
   const registryChainIds = DEFAULT_REGISTRY_CONFIG.map((registry) => registry.chainId);
@@ -21,7 +26,7 @@ export function getDefaultStorage() {
           chain: viem.extractChain({ chains: [mainnet, optimism], id: chainId as 10 | 1 }),
           transport: viem.http(),
         }) as viem.PublicClient,
-      })
+      }),
   );
 
   // Create a regsitry that loads data first from Memory to be able to utilize
@@ -42,21 +47,21 @@ export async function getCannonContract(args: {
 
   const deployInfo = await storage.readDeploy(
     typeof args.package === 'string' ? args.package : args.package.fullPackageRef,
-    args.chainId ?? CANNON_CHAIN_ID
+    args.chainId ?? CANNON_CHAIN_ID,
   );
 
   if (!deployInfo) {
     throw new Error(`cannon package not found: ${args.package} (${args.chainId})`);
   }
 
-  const { ChainDefinition } = await import('./definition');
+  const { ChainDefinition } = await import('./definition.js');
   const artifacts = getArtifacts(new ChainDefinition(deployInfo.def), deployInfo.state);
 
   const contract = getContractFromPath(artifacts, args.contractName);
 
   if (!contract) {
     throw new Error(
-      `requested contract ${args.contractName} not found in cannon package: ${args.package} (${args.chainId})`
+      `requested contract ${args.contractName} not found in cannon package: ${args.package} (${args.chainId})`,
     );
   }
 
@@ -64,7 +69,7 @@ export async function getCannonContract(args: {
 }
 
 export async function loadPrecompiles(provider: viem.TestClient) {
-  const precompiles = await import('./precompiles');
+  const precompiles = await import('./precompiles/index.js');
 
   for (const precompileCall of precompiles.default) await provider.setCode(precompileCall);
 }
@@ -73,7 +78,7 @@ export async function loadPrecompiles(provider: viem.TestClient) {
 // information comes in *after* the receipt is available. This function is intended to provide an auto-retry capability
 // for any errors that could be encountered on this specific problematic call
 export async function getBlockRetried(provider: viem.PublicClient, blockHash: viem.Hash) {
-  return await promiseRetry({ retries: 5, minTimeout: 50 }, (retry) => {
+  return await promiseRetry({ retries: 5, minTimeout: 50 }, (retry: (err: Error) => viem.Block) => {
     return provider.getBlock({ blockHash }).catch(retry);
   });
 }

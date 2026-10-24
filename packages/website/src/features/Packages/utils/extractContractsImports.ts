@@ -43,7 +43,7 @@ function reduceContractMaps({
 function processImports(
   imports: BundledChainBuilderOutputs,
   mergedContracts: Record<string, ContractData>,
-  parentKey?: string
+  parentKey?: string,
 ) {
   // Iterate through each module in imports
   Object.entries(imports).forEach(([key, bundledOutput]) => {
@@ -65,7 +65,7 @@ function processImports(
 
 function mergeArtifactsContracts(
   state: DeploymentState,
-  mergedContracts: Record<string, ContractData> = {}
+  mergedContracts: Record<string, ContractData> = {},
 ): Record<string, ContractData> {
   // Iterate through all steps in the deployment state
   Object.entries(state).forEach(([key, step]) => {

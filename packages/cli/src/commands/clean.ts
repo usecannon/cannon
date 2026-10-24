@@ -4,10 +4,10 @@ import path from 'node:path';
 import Debug from 'debug';
 import prompts from 'prompts';
 
-import { log } from '../util/console';
-import { resolveCliSettings } from '../settings';
+import { log } from '../util/console.js';
+import { resolveCliSettings } from '../settings.js';
 
-import { CliLoader } from '../loader';
+import { CliLoader } from '../loader.js';
 
 const debug = Debug('cannon:cli:clean');
 
@@ -23,7 +23,7 @@ export async function clean(confirm = true) {
       if (!existsSync(dir)) return [];
       const entries = await fs.readdir(dir, { withFileTypes: true });
       return entries.map((entry) => path.join(dir, entry.name));
-    })
+    }),
   ).then((entries) => entries.flat());
 
   if (!filesAndDirs.length) {
@@ -58,7 +58,7 @@ export async function clean(confirm = true) {
           debug('An error has occurred');
         }
       }
-    })
+    }),
   );
 
   return true;

@@ -61,8 +61,8 @@ contract CannonDeploy is Script {
           this.push(`${indent}// > CONTRACT DEPLOYED: ${line.result.contracts[c].address}\n`);
           this.push(
             `${indent}addresses[keccak256("${fullContractPath}")] = address(${getAddress(
-              line.result.contracts[c].address
-            )});\n`
+              line.result.contracts[c].address,
+            )});\n`,
           );
           this.push(`${indent}vm.label(${getAddress(line.result.contracts[c].address)}, "${fullContractPath}");\n`);
         }
@@ -73,7 +73,7 @@ contract CannonDeploy is Script {
 
         for (const s in line.result.settings) {
           this.push(
-            `${indent}settings[keccak256("${[...line.cloneNames, s].join('.')}")] = "${line.result.settings[s]}";\n`
+            `${indent}settings[keccak256("${[...line.cloneNames, s].join('.')}")] = "${line.result.settings[s]}";\n`,
           );
         }
       }

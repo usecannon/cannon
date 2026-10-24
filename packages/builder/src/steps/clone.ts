@@ -1,19 +1,19 @@
-import { yellow } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
-import _ from 'lodash';
+import { cloneDeep, mapValues, forEach, isEmpty, isEqual } from 'lodash-es';
 import { z } from 'zod';
-import pkg from '../../package.json';
-import { mergeTemplateAccesses } from '../access-recorder';
-import { CannonAction } from '../actions';
-import { build, createInitialContext, getOutputs } from '../builder';
-import { CANNON_CHAIN_ID } from '../constants';
-import { ChainDefinition } from '../definition';
-import { getContentUrl } from '../ipfs';
-import { PackageReference } from '../package-reference';
-import { Events } from '../runtime';
-import { cloneSchema } from '../schemas';
-import { DeploymentState } from '../types';
-import { template } from '../utils/template';
+import pkg from '../../package.json' with { type: 'json' };
+import { mergeTemplateAccesses } from '../access-recorder.js';
+import { build, createInitialContext, getOutputs } from '../builder.js';
+import { CANNON_CHAIN_ID } from '../constants.js';
+import { ChainDefinition } from '../definition.js';
+import { PackageReference } from '../package-reference.js';
+import { Events } from '../runtime.js';
+import { cloneSchema } from '../schemas.js';
+import { DeploymentState } from '../types.js';
+import { template } from '../utils/template.js';
+import { getContentUrl } from '../ipfs.js';
+import { CannonAction } from '../actions.js';
 
 const debug = Debug('cannon:builder:clone');
 
@@ -42,7 +42,7 @@ const cloneSpec = {
   },
 
   configInject(ctx, config, packageState) {
-    config = _.cloneDeep(config);
+    config = cloneDeep(config);
 
     if (config.target && config.targetPreset) {
       throw new Error(`only one of \`target\` and \`targetPreset\` can specified for ${packageState.currentLabel}`);
@@ -61,11 +61,11 @@ const cloneSpec = {
     config.target = template(config.target || '', ctx);
 
     if (config.var) {
-      config.var = _.mapValues(config.var, (v) => {
+      config.var = mapValues(config.var, (v) => {
         return template(v, ctx);
       });
     } else if (config.options) {
-      config.options = _.mapValues(config.options, (v) => {
+      config.options = mapValues(config.options, (v) => {
         return template(v, ctx);
       });
     }
@@ -84,15 +84,15 @@ const cloneSpec = {
     accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(config.targetPreset));
 
     if (config.var) {
-      _.forEach(config.var, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
+      forEach(config.var, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
     }
 
     if (config.options) {
-      _.forEach(config.options, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
+      forEach(config.options, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
     }
 
     if (config.tags) {
-      _.forEach(config.tags, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
+      forEach(config.tags, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
     }
 
     return accesses;
@@ -118,7 +118,7 @@ const cloneSpec = {
       runtime.emit(
         Events.Notice,
         packageState.currentLabel,
-        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.'
+        'To prevent unexpected upgrades, it is strongly recommended to lock the version of the source package by specifying a version in the `source` field.',
       );
     }
 
@@ -126,7 +126,7 @@ const cloneSpec = {
       runtime.emit(
         Events.Notice,
         packageState.currentLabel,
-        `Deploying cloned package to default preset ${targetRef.preset}`
+        `Deploying cloned package to default preset ${targetRef.preset}`,
       );
     }
 
@@ -136,7 +136,7 @@ const cloneSpec = {
       throw new Error(
         `deployment not found: ${source}. please make sure it exists for preset ${
           sourcePreset || sourceRef.preset
-        } and network ${chainId}.`
+        } and network ${chainId}.`,
       );
     }
 
@@ -169,9 +169,9 @@ const cloneSpec = {
       if (await runtime.readDeploy(source, runtime.chainId)) {
         debug(
           `[clone.${importLabel}]`,
-          yellow(
-            'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?'
-          )
+          chalk.yellow(
+            'There is a pre-existing deployment for this preset and chain id. This build will overwrite. Did you mean `import`?',
+          ),
         );
       }
 
@@ -184,7 +184,7 @@ const cloneSpec = {
       deployInfo.meta,
       runtime.chainId,
       importPkgOptions,
-      ctx.defaultSigner
+      ctx.defaultSigner,
     );
 
     // use separate runtime to ensure everything is clear
@@ -218,11 +218,11 @@ const cloneSpec = {
 
     debug(`[clone.${importLabel}]`, 'finish build. is partial:', partialDeploy);
 
-    if (!_.isEmpty(prevState) && _.isEqual(builtState, prevState)) {
+    if (!isEmpty(prevState) && isEqual(builtState, prevState)) {
       debug(
         `[clone.${importLabel}]`,
         'built state is exactly equal to previous state. skip generation of new deploy url',
-        importLabel
+        importLabel,
       );
 
       // edge case: republish in case the reference to the deployed package isnt recorded
@@ -230,7 +230,7 @@ const cloneSpec = {
         [target, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
         runtime.chainId,
         ctx.imports[importLabel]?.url,
-        (await runtime.registry.getMetaUrl(source, chainId)) || ''
+        (await runtime.registry.getMetaUrl(source, chainId)) || '',
       );
 
       return {
@@ -271,7 +271,7 @@ const cloneSpec = {
         [target, ...(config.tags || ['latest']).map((t) => config.source.split(':')[0] + ':' + t)],
         runtime.chainId,
         newSubDeployUrl,
-        (await runtime.registry.getMetaUrl(source, chainId)) || ''
+        (await runtime.registry.getMetaUrl(source, chainId)) || '',
       );
     }
 

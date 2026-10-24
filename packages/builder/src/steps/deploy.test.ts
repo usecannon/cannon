@@ -1,11 +1,11 @@
 import * as viem from 'viem';
-import { fixtureTransactionReceipt } from '../../test/fixtures';
-import { validateConfig } from '../actions';
-import { ContractArtifact } from '../types';
-import action from './deploy';
-import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper';
-import { PackageReference } from '../package-reference';
-import { AccessRecorderEngine } from '..';
+import { fixtureTransactionReceipt } from '../../test/fixtures.js';
+import { validateConfig } from '../actions.js';
+import { ContractArtifact } from '../types.js';
+import action from './deploy.js';
+import { fakeCtx, fakeRuntime, makeFakeSigner } from './utils.test.helper.js';
+import { PackageReference } from '../package-reference.js';
+import { AccessRecorderEngine } from '../index.js';
 
 const DEFAULT_ARACHNID_ADDRESS = '0x4e59b44847b379578588920cA78FbF26c0B4956C';
 
@@ -58,7 +58,7 @@ describe('steps/deploy.ts', () => {
 
     it('fails when setting invalid value', () => {
       expect(() => validateConfig(action.validate, { artifact: 'Greeter', invalid: ['something'] })).toThrow(
-        "Unrecognized key(s) in object: 'invalid'"
+        "Unrecognized key(s) in object: 'invalid'",
       );
     });
   });
@@ -109,7 +109,7 @@ describe('steps/deploy.ts', () => {
         fakeRuntime,
         fakeCtx,
         { artifact: 'hello' },
-        { ref: null, currentLabel: 'deploy.Deploy' }
+        { ref: null, currentLabel: 'deploy.Deploy' },
       );
 
       expect(result).toContainEqual({
@@ -134,7 +134,7 @@ describe('steps/deploy.ts', () => {
           salt: 'wohoo',
           value: '1234',
         },
-        { ref: null, currentLabel: 'deploy.Deploy' }
+        { ref: null, currentLabel: 'deploy.Deploy' },
       );
 
       expect(result).toContainEqual({
@@ -161,9 +161,9 @@ describe('steps/deploy.ts', () => {
               args: ['<%= contracts.h %>', '<%= contracts.i %>'],
               salt: '<%= contracts.j %>',
             },
-            new AccessRecorderEngine([])
+            new AccessRecorderEngine([]),
           )
-          .accesses.sort()
+          .accesses.sort(),
       ).toEqual([
         'contracts.a',
         'contracts.b',
@@ -182,7 +182,7 @@ describe('steps/deploy.ts', () => {
   describe('getOutputs()', () => {
     it('returns the contract that is outputted', () => {
       expect(
-        action.getOutputs({ artifact: 'hello' }, { ref: new PackageReference('foo'), currentLabel: 'contract.Hello' })
+        action.getOutputs({ artifact: 'hello' }, { ref: new PackageReference('foo'), currentLabel: 'contract.Hello' }),
       ).toEqual(['contracts.Hello', 'Hello']);
     });
   });
@@ -203,8 +203,8 @@ describe('steps/deploy.ts', () => {
               salt: 'wohoo',
               value: '1234',
             },
-            { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
-          )
+            { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' },
+          ),
         ).rejects.toThrowErrorMatchingSnapshot();
       });
 
@@ -222,7 +222,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' },
         );
 
         expect(result).toStrictEqual({
@@ -269,7 +269,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' },
         );
 
         expect(result).toStrictEqual({
@@ -312,7 +312,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' },
         );
 
         expect(result).toStrictEqual({
@@ -359,7 +359,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' },
         );
 
         expect(result).toStrictEqual({
@@ -397,7 +397,7 @@ describe('steps/deploy.ts', () => {
             salt: 'wohoo',
             value: '1234',
           },
-          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' }
+          { ref: new PackageReference('hello:1.0.0'), currentLabel: 'contract.Woot' },
         );
 
         expect(result).toStrictEqual({
@@ -430,7 +430,7 @@ describe('steps/deploy.ts', () => {
   describe('importExisting', () => {
     it('throws if more than one existing key supplied', async () => {
       await expect(() =>
-        action.importExisting(fakeRuntime, fakeCtx, {} as any, { currentLabel: 'foo' } as any, ['one', 'two'])
+        action.importExisting(fakeRuntime, fakeCtx, {} as any, { currentLabel: 'foo' } as any, ['one', 'two']),
       ).rejects.toThrow('can only be deployed on one transaction');
     });
 
@@ -450,7 +450,7 @@ describe('steps/deploy.ts', () => {
         fakeCtx,
         { artifact: 'hello' } as any,
         { currentLabel: 'contract.Woot' } as any,
-        [rx.transactionHash]
+        [rx.transactionHash],
       );
 
       expect(result).toMatchObject({
@@ -489,7 +489,7 @@ describe('steps/deploy.ts', () => {
         fakeCtx,
         { artifact: 'hello' } as any,
         { currentLabel: 'contract.Woot' } as any,
-        [rx.transactionHash]
+        [rx.transactionHash],
       );
 
       expect(result).toMatchObject({
@@ -517,7 +517,7 @@ describe('steps/deploy.ts', () => {
       await expect(() =>
         action.importExisting(fakeRuntime, fakeCtx, { artifact: 'hello' } as any, { currentLabel: 'contract.Woot' } as any, [
           rx.transactionHash,
-        ])
+        ]),
       ).rejects.toThrow('does not appear to deploy a contract');
     });
   });

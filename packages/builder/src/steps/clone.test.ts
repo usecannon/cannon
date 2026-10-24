@@ -1,14 +1,14 @@
-import { validateConfig } from '../actions';
-import { BUILD_VERSION } from '../constants';
-import { InMemoryRegistry } from '../registry';
-import action from './clone';
-import deployAction from './deploy';
-import { fakeCtx, fakeRuntime } from './utils.test.helper';
-import { PackageReference } from '../package-reference';
-import { AccessRecorderEngine } from '..';
+import { validateConfig } from '../actions.js';
+import { BUILD_VERSION } from '../constants.js';
+import { InMemoryRegistry } from '../registry.js';
+import action from './clone.js';
+import deployAction from './deploy.js';
+import { fakeCtx, fakeRuntime } from './utils.test.helper.js';
+import { PackageReference } from '../package-reference.js';
+import { AccessRecorderEngine } from '../index.ts';
 
-jest.mock('../loader');
-jest.mock('./deploy');
+jest.mock('../loader.js');
+jest.mock('./deploy.js');
 
 describe('steps/clone.ts', () => {
   const registry = new InMemoryRegistry();
@@ -47,7 +47,7 @@ describe('steps/clone.ts', () => {
 
     it('fails when setting invalid value', () => {
       expect(() => validateConfig(action.validate, { source: 'greeter', invalid: ['something'] })).toThrow(
-        "Unrecognized key(s) in object: 'invalid'"
+        "Unrecognized key(s) in object: 'invalid'",
       );
     });
   });
@@ -61,8 +61,8 @@ describe('steps/clone.ts', () => {
             var: { woot: '<%= settings.b %>', wah: '<%= settings.c %>' },
             options: { woot: '<%= settings.d %>', wah: '<%= settings.e %>', tags: '<%= settings.f %>' },
           },
-          new AccessRecorderEngine([])
-        )
+          new AccessRecorderEngine([]),
+        ),
       ).toEqual({
         accesses: ['settings.a', 'settings.b', 'settings.c', 'settings.d', 'settings.e', 'settings.f'],
         unableToCompute: false,
@@ -77,7 +77,7 @@ describe('steps/clone.ts', () => {
         {
           source: '<%= settings.a %><%= settings.b %><%= settings.c %>',
         },
-        { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' },
       );
 
       expect(result).toStrictEqual({
@@ -107,8 +107,8 @@ describe('steps/clone.ts', () => {
           fakeRuntime,
           fakeCtx,
           { source: 'undefined-deployment:1.0.0' },
-          { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' }
-        )
+          { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' },
+        ),
       ).rejects.toThrow('deployment not found');
     });
 
@@ -118,10 +118,10 @@ describe('steps/clone.ts', () => {
           fakeRuntime,
           fakeCtx,
           { source: 'package-name-longer-than-32bytes1337:1.0.0' },
-          { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' }
-        )
+          { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' },
+        ),
       ).rejects.toThrow(
-        'Package name for "package-name-longer-than-32bytes1337:1.0.0" is too long. Package name exceeds 32 characters'
+        'Package name for "package-name-longer-than-32bytes1337:1.0.0" is too long. Package name exceeds 32 characters',
       );
     });
 
@@ -173,10 +173,10 @@ describe('steps/clone.ts', () => {
           fakeRuntime,
           fakeCtx,
           { source: 'package:package-version-longer-than-32bytes1337' },
-          { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' }
-        )
+          { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' },
+        ),
       ).rejects.toThrow(
-        'Package version for "package:package-version-longer-than-32bytes1337" is too long. Package version exceeds 32 characters'
+        'Package version for "package:package-version-longer-than-32bytes1337" is too long. Package version exceeds 32 characters',
       );
     });
 
@@ -186,10 +186,10 @@ describe('steps/clone.ts', () => {
           fakeRuntime,
           fakeCtx,
           { source: 'package:1.0.0', target: 'package-name-longer-than-32bytes1337:1.0.0' },
-          { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' }
-        )
+          { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' },
+        ),
       ).rejects.toThrow(
-        'Package name for "package-name-longer-than-32bytes1337:1.0.0" is too long. Package name exceeds 32 characters'
+        'Package name for "package-name-longer-than-32bytes1337:1.0.0" is too long. Package name exceeds 32 characters',
       );
     });
 
@@ -241,10 +241,10 @@ describe('steps/clone.ts', () => {
           fakeRuntime,
           fakeCtx,
           { source: 'package:1.0.0', target: 'package:package-version-longer-than-32bytes1337' },
-          { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' }
-        )
+          { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.whatever' },
+        ),
       ).rejects.toThrow(
-        'Package version for "package:package-version-longer-than-32bytes1337" is too long. Package version exceeds 32 characters'
+        'Package version for "package:package-version-longer-than-32bytes1337" is too long. Package version exceeds 32 characters',
       );
     });
 
@@ -296,7 +296,7 @@ describe('steps/clone.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello:1.0.0@main' },
-        { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.something' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.something' },
       );
 
       expect(result.imports!['something'].url).toEqual('ipfs://Qmsomething');
@@ -351,7 +351,7 @@ describe('steps/clone.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello:1.0.0', targetPreset: 'woot-y' },
-        { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.something' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.something' },
       );
 
       expect(result).toStrictEqual({
@@ -372,7 +372,7 @@ describe('steps/clone.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello:1.0.0', target: 'where:2.3.4@y-slink' },
-        { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.something' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.something' },
       );
 
       expect(result2).toStrictEqual({
@@ -397,7 +397,7 @@ describe('steps/clone.ts', () => {
         fakeRuntime,
         fakeCtx,
         { source: 'hello:1.0.0' },
-        { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.something' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.something' },
       );
 
       const savedData = jest.mocked(fakeRuntime.putDeploy).mock.calls[0][0];
@@ -411,7 +411,7 @@ describe('steps/clone.ts', () => {
         fakeRuntime,
         newCtx,
         { source: 'hello:1.0.0' },
-        { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.something' }
+        { ref: new PackageReference('package:1.0.0'), currentLabel: 'clone.something' },
       );
 
       expect(finalResult.imports?.something?.url).toEqual('ipfs://Qmdoit');
