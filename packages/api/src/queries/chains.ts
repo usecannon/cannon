@@ -1,4 +1,5 @@
 import { TTLCache } from '@isaacs/ttlcache'; // v2 is ESM named-export only
+import { AggregateGroupByReducers, AggregateSteps } from 'redis';
 import * as keys from '../db/keys';
 import { useRedis } from '../redis';
 
@@ -12,26 +13,26 @@ const cache = new TTLCache<string, Promise<ChainsResponse>>({ max: 10, ttl: 60 *
 async function _queryChains(withTotal: boolean) {
   const redis = await useRedis();
 
-  const results = (await redis.ft.aggregate(keys.RKEY_PACKAGE_SEARCHABLE, '*', ({
+  const results = await redis.ft.aggregate(keys.RKEY_PACKAGE_SEARCHABLE, '*', {
     STEPS: [
       {
-        type: 'GROUPBY',
+        type: AggregateSteps.GROUPBY,
         properties: '@chainId',
         REDUCE: withTotal
           ? {
-              type: 'COUNT',
+              type: AggregateGroupByReducers.COUNT,
             }
           : {
-              type: 'COUNT_DISTINCT',
+              type: AggregateGroupByReducers.COUNT_DISTINCT,
               property: '@chainId',
             },
       },
     ],
-  } as any))) as any;
+  });
 
   return {
-    total: results.total as number,
-    data: results.results.map((r: any) => r.chainId).filter(Boolean) as number[],
+    total: results.total,
+    data: results.results.map((r) => r.chainId).filter(Boolean) as unknown as number[],
   };
 }
 

@@ -3,7 +3,7 @@ import axiosRetry from 'axios-retry';
 import { Buffer } from 'buffer';
 import Debug from 'debug';
 import FormData from 'form-data';
-import * as pako from 'pako'; // pako v3 ESM has no default export
+import * as pako from 'pako';
 import Hash from 'typestub-ipfs-only-hash';
 
 export interface Headers {
@@ -23,7 +23,6 @@ export function compress(data: string) {
 }
 
 export function uncompress(data: any) {
-  // pako v3 dropped the `{ to: 'string' }` option — inflate always returns Uint8Array
   return new TextDecoder().decode(pako.inflate(data));
 }
 

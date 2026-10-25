@@ -1,5 +1,6 @@
 import { PackageReference } from '@usecannon/builder';
 import { distance } from 'fastest-levenshtein';
+import { AggregateGroupByReducers, AggregateSteps } from 'redis';
 import * as keys from '../db/keys';
 import { findPackageByTag, transformPackage, transformPackageWithTag } from '../db/transformers';
 import { NotFoundError, ServerError } from '../errors';
@@ -20,18 +21,18 @@ async function _queryPackages(params: { query: string; limit?: number; includeNa
   });
 
   if (params.includeNamespaces) {
-    batch.ft.aggregate(keys.RKEY_PACKAGE_SEARCHABLE, params.query, ({
+    batch.ft.aggregate(keys.RKEY_PACKAGE_SEARCHABLE, params.query, {
       STEPS: [
         {
-          type: 'GROUPBY',
+          type: AggregateSteps.GROUPBY,
           properties: '@name',
           REDUCE: {
-            type: 'COUNT',
+            type: AggregateGroupByReducers.COUNT,
             AS: 'count',
           },
         },
       ],
-    } as any));
+    });
   }
 
   const [packagesResults, namespacesResults] = (await batch.exec()) as any[];

@@ -437,7 +437,6 @@ export async function scanChain(
       );
 
       // add any events from process later events that may exist
-
       while (true) {
         const e = await redis.lPop(rkey.RKEY_PROCESS_LATER_EVENTS);
         if (!e) {

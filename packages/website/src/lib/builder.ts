@@ -5,9 +5,7 @@ import { z } from 'zod';
 
 registerAction({
   label: 'run',
-
   configInject: () => null,
-
   getState: async () => null,
   exec: async () => ({ imports: {}, contracts: {}, txns: {}, extras: {} }),
   validate: z.any(),

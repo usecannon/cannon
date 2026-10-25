@@ -3,6 +3,7 @@ import { exec } from 'child_process';
 import { pickBy } from 'lodash-es';
 import { mkdirp } from 'fs-extra/esm';
 import { existsSync } from 'fs';
+import { createRequire } from 'node:module';
 import { registerAction } from '@usecannon/builder';
 import { resolveCliSettings } from './settings.js';
 
@@ -48,13 +49,15 @@ export async function listInstalledPlugins() {
 export async function loadPlugin(name: string) {
   const pluginFolder = path.join(_getPluginDir(), 'node_modules', name);
 
+  // createRequire is ESM-safe (a bare `require` is not defined in the ESM build);
+  // anchored at the plugin's package.json so resolution stays relative to the plugin
+  const pluginRequire = createRequire(path.join(pluginFolder, 'package.json'));
+
   // read pkg to get the actual plugin load dir
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const pkg = require(path.join(pluginFolder, 'package.json'));
+  const pkg = pluginRequire(path.join(pluginFolder, 'package.json'));
 
   const pluginFile = pkg.cannon || pkg.main || '';
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return require(path.join(pluginFolder, pluginFile));
+  return pluginRequire(path.join(pluginFolder, pluginFile));
 }
 
 export async function loadPlugins() {

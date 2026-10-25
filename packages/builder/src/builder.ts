@@ -64,8 +64,8 @@ ${printChainDefinitionProblems(problems)}`);
 
   debug('build', initialCtx.settings);
 
-  // ActionKinds type used for type narrowing below
-  // (runtime import at line ~358 where it's actually needed)
+  // ActionKinds type used for type narrowing in buildLayer/runStep
+  // (runtime import happens in those functions where it's actually needed)
 
   // sanity check the network
   await runtime.checkNetwork();
@@ -203,7 +203,7 @@ export async function buildLayer(
   // Use awaited imports to prevent import cycle within the builder module
   const layers = def.getStateLayers();
 
-  // ActionKinds only needed as typeof for type narrowing; runtime usage is in getActionExecInfo
+  // ActionKinds only needed as typeof for type narrowing; runtime usage is in runStep
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { ActionKinds } = await import('./actions.js');
 

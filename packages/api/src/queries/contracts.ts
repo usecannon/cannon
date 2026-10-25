@@ -1,4 +1,5 @@
 import { PackageReference } from '@usecannon/builder';
+import { AggregateGroupByReducers, AggregateSteps } from 'redis';
 import * as viem from 'viem';
 import * as keys from '../db/keys';
 import { isChainId, isContractName } from '../helpers';
@@ -21,19 +22,19 @@ async function _aggregateContracts(query: string): Promise<ContractQueryResult[]
 
   const data: ContractQueryResult[] = [];
 
-  const res = (await redis.ft.aggregate(keys.RKEY_ABI_SEARCHABLE, query, ({
+  const res = (await redis.ft.aggregate(keys.RKEY_ABI_SEARCHABLE, query, {
     LOAD: { identifier: '@package' },
     STEPS: [
       {
-        type: 'GROUPBY',
+        type: AggregateSteps.GROUPBY,
         properties: ['@contractName', '@package', '@chainId', '@address'],
         REDUCE: {
-          type: 'FIRST_VALUE',
+          type: AggregateGroupByReducers.FIRST_VALUE,
           property: '@contractName',
         },
       },
     ],
-  } as any))) as {
+  })) as {
     total: number;
     results: ContractQueryResult[];
   };

@@ -1,6 +1,6 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import axios from 'axios';
-import * as pako from 'pako'; // pako v3 ESM has no default export
+import * as pako from 'pako';
 import { useStore } from '@/helpers/store';
 import { useLogs } from '@/providers/logsProvider';
 
@@ -76,7 +76,7 @@ export function useQueryIpfsDataParsed<T>(url?: string, enabled?: boolean): UseQ
     url,
     enabled,
     parseResult: (data) => {
-      const _data = new TextDecoder().decode(pako.inflate(data)); // pako v3 dropped { to: 'string' }
+      const _data = new TextDecoder().decode(pako.inflate(data));
       return JSON.parse(_data);
     },
   });

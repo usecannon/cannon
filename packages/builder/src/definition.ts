@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import Debug from 'debug';
 import {
   clone,
+  cloneDeep,
   last,
   first,
   omit,
@@ -818,6 +819,6 @@ export class ChainDefinition {
   }
 
   toJson(): RawChainDefinition {
-    return clone(this.raw);
+    return cloneDeep(this.raw);
   }
 }
