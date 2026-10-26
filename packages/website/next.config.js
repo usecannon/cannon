@@ -43,7 +43,7 @@ module.exports = withContentlayer(nextConfig);
 
 // Injected content via Sentry wizard below
 
-const { withSentryConfig } = require('@sentry/nextjs/config'); // v11 moved it to the /config subpath
+const { withSentryConfig } = require('@sentry/nextjs/config');
 
 module.exports = withBundleAnalyzer(
   withSentryConfig(module.exports, {

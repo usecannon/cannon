@@ -1,16 +1,19 @@
 minimumReleaseAge: 10080  # only resolve package versions published >= 1 week ago (supply-chain caution)
 
-minimumReleaseAgeExclude:  # platform binaries: exact-pinned to (gated) parent, republished on rebuilds
-  - '@next/swc-*'
-  - '@rollup/rollup-*'
-  - '@esbuild/*'
-  - '@swc/*'
-  - '@lightningcss/*'
-  - '@cloudflare/workerd-*'
-  - '@tailwindcss/oxide-*'
-  - '@img/sharp-*'
-  - '@biomejs/biome-*'
-  - '@nx/nx-*'
+minimumReleaseAgeExclude:
+  # Platform binaries are excluded from the age gate ONLY because they are exact-pinned to
+  # their (gated) parent version and get re-published on rebuilds, so a fresh timestamp
+  # does not indicate a fresh release. Everything else must satisfy minimumReleaseAge.
+  - '@next/swc-*'  # next.js compiler binaries - exact-pinned to the gated next version
+  - '@rollup/rollup-*'  # rollup platform binaries - exact-pinned to rollup (held at 4.64.7)
+  - '@esbuild/*'  # esbuild platform binaries - exact-pinned by each esbuild release
+  - '@swc/*'  # swc platform binaries - exact-pinned by their parent packages
+  - '@lightningcss/*'  # lightningcss platform binaries - exact-pinned per release
+  - '@cloudflare/workerd-*'  # workerd binaries - exact-pinned to wrangler
+  - '@tailwindcss/oxide-*'  # tailwind oxide binaries - exact-pinned to tailwindcss
+  - '@img/sharp-*'  # sharp image binaries - exact-pinned to sharp
+  - '@biomejs/biome-*'  # biome binaries - exact-pinned to the biome cli
+  - '@nx/nx-*'  # nx platform binaries - exact-pinned to nx
 packages:
   - packages/*
   - examples/*

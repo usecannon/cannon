@@ -37,6 +37,7 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.7",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^16.0.0",
     "lerna": "^10.1.1",
     "prettier": "^3.9.10",
     "prettier-plugin-solidity": "^2.4.1",

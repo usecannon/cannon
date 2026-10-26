@@ -5,6 +5,7 @@ import prettier from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
 import reactHooks from 'eslint-plugin-react-hooks';
 import cypress from 'eslint-plugin-cypress';
+import globals from 'globals';
 
 export default [
   {
@@ -36,52 +37,9 @@ export default [
         project: ['./tsconfig.json'],
       },
       globals: {
-        console: 'readonly',
-        process: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        module: 'readonly',
-        require: 'readonly',
-        Buffer: 'readonly',
-        setTimeout: 'readonly',
-        clearTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearInterval: 'readonly',
-        global: 'readonly',
-        exports: 'readonly',
-        Promise: 'readonly',
-        Map: 'readonly',
-        Set: 'readonly',
-        WeakMap: 'readonly',
-        WeakSet: 'readonly',
-        Proxy: 'readonly',
-        Reflect: 'readonly',
-        Symbol: 'readonly',
-        BigInt: 'readonly',
-        // Test globals
-        it: 'readonly',
-        describe: 'readonly',
-        test: 'readonly',
-        expect: 'readonly',
-        before: 'readonly',
-        after: 'readonly',
-        beforeEach: 'readonly',
-        afterEach: 'readonly',
-        beforeAll: 'readonly',
-        afterAll: 'readonly',
-        jest: 'readonly',
-        // Modern Node.js globals
-        URL: 'readonly',
-        URLSearchParams: 'readonly',
-        Blob: 'readonly',
-        FormData: 'readonly',
-        fetch: 'readonly',
-        performance: 'readonly',
-        TextDecoder: 'readonly',
-        TextEncoder: 'readonly',
-        self: 'readonly',
-        window: 'readonly',
-        reject: 'readonly',
+        ...globals.node,
+        ...globals.jest,
+        reject: 'readonly', // used by legacy optimism e2e emitter scripts
       },
     },
     plugins: {
@@ -128,7 +86,11 @@ export default [
     },
   },
   {
-    files: ['packages/repo/**/*.ts', 'packages/safe-app-backend/**/*.ts', 'examples/**/*.ts'],
+    files: [
+      'packages/repo/**/*.ts',
+      'packages/safe-app-backend/**/*.ts',
+      'examples/**/*.ts',
+    ],
     rules: {
       'no-console': 'off',
     },
@@ -141,7 +103,6 @@ export default [
       },
     },
     rules: {
-      '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-floating-promises': 'off',
     },
   },
@@ -149,7 +110,7 @@ export default [
     files: ['packages/registry/test/**/*.ts'],
     languageOptions: {
       globals: {
-        mocha: 'readonly',
+        ...globals.mocha,
       },
     },
   },
@@ -161,31 +122,9 @@ export default [
     },
     languageOptions: {
       globals: {
-        // Cypress
+        ...globals.browser,
         cy: 'readonly',
         Cypress: 'readonly',
-        // Browser globals
-        window: 'readonly',
-        document: 'readonly',
-        navigator: 'readonly',
-        fetch: 'readonly',
-        btoa: 'readonly',
-        atob: 'readonly',
-        Blob: 'readonly',
-        FormData: 'readonly',
-        URL: 'readonly',
-        URLSearchParams: 'readonly',
-        WebSocket: 'readonly',
-        localStorage: 'readonly',
-        sessionStorage: 'readonly',
-        location: 'readonly',
-        history: 'readonly',
-        self: 'readonly',
-        Worker: 'readonly',
-        MessageEvent: 'readonly',
-        ErrorEvent: 'readonly',
-        TextDecoder: 'readonly',
-        TextEncoder: 'readonly',
       },
     },
     rules: {
@@ -198,12 +137,14 @@ export default [
             {
               name: 'viem/chains',
               importNames: ['default'],
-              message: 'Importing chains is not allowed. Please use `const {chains} = useCannonChains()` instead.',
+              message:
+                'Importing chains is not allowed. Please use `const {chains} = useCannonChains()` instead.',
             },
             {
               name: '@wagmi/core/chains',
               importNames: ['default'],
-              message: 'Importing chains is not allowed. Please use `const {chains} = useCannonChains()` instead.',
+              message:
+                'Importing chains is not allowed. Please use `const {chains} = useCannonChains()` instead.',
             },
           ],
         },
