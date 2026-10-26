@@ -20,7 +20,7 @@ jobs:
         with:
           submodules: 'recursive' # this is necessary to install dependencies on e2e tests (bats)
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v4
         with:
           cache: pnpm

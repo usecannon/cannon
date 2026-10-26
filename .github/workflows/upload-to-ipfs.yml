@@ -16,7 +16,7 @@ jobs:
         with:
           ref: ${{ github.event.inputs.commit_hash }}
           
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v4
         with:
           cache: pnpm
