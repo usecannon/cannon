@@ -13,9 +13,9 @@ import {
 import crypto from 'crypto';
 import Debug from 'debug';
 import fs from 'fs-extra';
-import _ from 'lodash';
+import { cloneDeep, forEach, isObject, map, mapValues } from 'lodash-es';
 import { z } from 'zod';
-import { runSchema } from '../schemas';
+import { runSchema } from '../schemas.js';
 
 const debug = Debug('cannon:builder:run');
 
@@ -113,23 +113,23 @@ const runAction = {
   },
 
   configInject(ctx: ChainBuilderContext, config: Config) {
-    config = _.cloneDeep(config);
+    config = cloneDeep(config);
 
     config.exec = template(config.exec, ctx);
 
-    config.modified = _.map(config.modified, (v) => {
+    config.modified = map(config.modified, (v) => {
       return template(v, ctx);
     }) as [string, ...string[]];
 
     if (config.args) {
-      config.args = _.map(config.args, (v) => {
+      config.args = map(config.args, (v) => {
         // just convert it to a JSON string when. This will allow parsing of complicated nested structures
         return JSON.parse(JSON.stringify(template(v, ctx)));
       });
     }
 
     if (config.env) {
-      config.env = _.map(config.env, (v) => {
+      config.env = map(config.env, (v) => {
         return template(v, ctx);
       });
     }
@@ -140,9 +140,9 @@ const runAction = {
   getInputs(config: Config, engine: AccessRecorderEngine) {
     let accesses = engine.computeTemplateAccesses(config.exec);
 
-    _.forEach(config.modified, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
-    _.forEach(config.args, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
-    _.forEach(config.env, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
+    forEach(config.modified, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
+    forEach(config.args, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
+    forEach(config.env, (a) => (accesses = mergeTemplateAccesses(accesses, engine.computeTemplateAccesses(a))));
 
     return accesses;
   },
@@ -155,7 +155,7 @@ const runAction = {
     runtime: ChainBuilderRuntimeInfo,
     ctx: ChainBuilderContext,
     config: Config,
-    packageState: PackageState
+    packageState: PackageState,
   ): Promise<ChainArtifacts> {
     debug('exec', config);
 
@@ -173,18 +173,18 @@ const runAction = {
 
     const outputs = (await runfile[config.func](runtime, ...(config.args || []))) as Omit<ChainArtifacts, 'deployedOn'>;
 
-    if (!_.isObject(outputs)) {
+    if (!isObject(outputs)) {
       throw new Error(
-        'deployed contracts/txns not returned from script. Please supply any deployed contract in contracts property of returned json. If no contracts were deployed or transactions were run, return an empty object.'
+        'deployed contracts/txns not returned from script. Please supply any deployed contract in contracts property of returned json. If no contracts were deployed or transactions were run, return an empty object.',
       );
     }
 
-    outputs.contracts = _.mapValues(outputs.contracts, (c) => ({
+    outputs.contracts = mapValues(outputs.contracts, (c) => ({
       ...c,
       deployedOn: packageState.currentLabel,
     }));
 
-    outputs.txns = _.mapValues(outputs.txns, (t) => ({
+    outputs.txns = mapValues(outputs.txns, (t) => ({
       ...t,
       deployedOn: packageState.currentLabel,
     }));

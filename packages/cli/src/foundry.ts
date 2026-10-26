@@ -2,11 +2,11 @@ import { ContractArtifact } from '@usecannon/builder';
 import Debug from 'debug';
 import fs from 'fs-extra';
 import { glob } from 'glob';
-import _ from 'lodash';
+import { last, mapValues, memoize } from 'lodash-es';
 import path from 'path';
 
-import { execPromise } from './helpers';
-import { warn } from './util/console';
+import { execPromise } from './helpers.js';
+import { warn } from './util/console.js';
 
 const debug = Debug('cannon:cli:foundry');
 
@@ -20,10 +20,10 @@ interface FoundryOpts {
 
 export async function getFoundryOpts(): Promise<FoundryOpts> {
   return JSON.parse(
-    await _.memoize(
+    await memoize(
       () => execPromise('forge config --json'),
-      () => ''
-    )()
+      () => '',
+    )(),
   );
 }
 
@@ -35,7 +35,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
   const foundryOpts = await getFoundryOpts();
 
   const splitName = name.split(':');
-  const inputContractName = _.last(splitName)!;
+  const inputContractName = last(splitName)!;
   const inputSourceName = splitName.length > 1 ? splitName[0] : '';
 
   // Finds root of the foundry project based n owhere the foundry.toml file is within the relative path
@@ -86,14 +86,14 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
       throw new Error(
         `more than one contract was found with the name ${inputContractName}. Please tell us which file for the contract to use:\n${sourceNames
           .map((v) => `${v}:${inputContractName}`)
-          .join('\n')}`
+          .join('\n')}`,
       );
     }
 
     const matchingArtifact = possibleArtifacts.find((v) => v.ast?.absolutePath == inputSourceName);
     if (!matchingArtifact) {
       throw new Error(
-        `no artifact was found at the given source name "${inputSourceName}". Should be one of:\n${sourceNames.join('\n')}`
+        `no artifact was found at the given source name "${inputSourceName}". Should be one of:\n${sourceNames.join('\n')}`,
       );
     }
 
@@ -109,7 +109,7 @@ export async function getFoundryArtifact(name: string, baseDir = '', includeSour
     debug('evm version', evmVersionInfo);
 
     const solcVersion = artifact.metadata.compiler.version;
-    const sources = _.mapValues(artifact.metadata.sources, (v, sourcePath) => {
+    const sources = mapValues(artifact.metadata.sources, (v, sourcePath) => {
       return {
         content: fs.readFileSync(path.join(baseDir, sourcePath)).toString(),
       };

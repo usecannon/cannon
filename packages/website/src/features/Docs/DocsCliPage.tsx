@@ -418,11 +418,7 @@ const DocsCliPage: FC = () => {
                 npx @usecannon/cli &lt;command&gt;
               </code>
               . If no command is specified, the CLI will execute the{' '}
-              <code className="bg-gray-700 px-1 rounded">run</code> command. The{' '}
-              <a href="https://github.com/usecannon/cannon/tree/main/packages/hardhat-cannon#readme">
-                Hardhat plug-in
-              </a>{' '}
-              exposes some of the commands as Hardhat tasks.
+              <code className="bg-gray-700 px-1 rounded">run</code> command.
             </p>
           </div>
 

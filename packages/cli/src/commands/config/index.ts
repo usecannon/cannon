@@ -1,10 +1,10 @@
-import { debugVerbosity } from './debug';
-import { CommandsConfig } from './types';
-import { forgeBuildOptions } from './forge/build';
-import { forgeTestOptions } from './forge/test';
-import { anvilOptions } from './anvil';
+import { debugVerbosity } from './debug.js';
+import { CommandsConfig } from './types.js';
+import { forgeBuildOptions } from './forge/build.js';
+import { forgeTestOptions } from './forge/test.js';
+import { anvilOptions } from './anvil.js';
 
-import { ANVIL_FIRST_ADDRESS, ANVIL_PORT_DEFAULT_VALUE } from '../../constants';
+import { ANVIL_FIRST_ADDRESS, ANVIL_PORT_DEFAULT_VALUE } from '../../constants.js';
 
 export const commandsConfig: CommandsConfig = {
   run: {

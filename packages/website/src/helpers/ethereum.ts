@@ -1,7 +1,5 @@
 import MulticallABI from '@/abi/Multicall.json';
 import { Abi } from 'abitype';
-import { EIP7412 } from 'erc7412';
-import { PythAdapter } from 'erc7412/dist/src/adapters/pyth';
 import {
   Address,
   decodeFunctionResult,
@@ -13,19 +11,9 @@ import {
   zeroAddress,
 } from 'viem';
 
-async function generate7412CompatibleCall(
-  client: PublicClient,
-  from: Address,
-  txn: Partial<TransactionRequestBase>,
-  pythUrl: string
-) {
-  const converter = new EIP7412([new PythAdapter(pythUrl)], createMakeMulticall(from) as any); // TODO: fix type
-  return await converter.enableERC7412(client as any, txn as any); // TODO: fix type
-}
-
-function createMakeMulticall(from: Address) {
+function _createMakeMulticall(from: Address) {
   return (
-    txns: Partial<TransactionRequestBase>[]
+    txns: Partial<TransactionRequestBase>[],
   ): {
     operation: string;
     account: Address;
@@ -66,7 +54,7 @@ export async function contractCall(
   value: bigint,
   abi: Abi,
   publicClient: PublicClient,
-  pythUrl: string
+  _pythUrl: string,
 ) {
   const data = encodeFunctionData({
     abi,
@@ -80,11 +68,10 @@ export async function contractCall(
     data,
   };
 
-  let call;
+  let _call;
   let res;
   try {
-    call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
-    res = await publicClient.call({ ...call, account: from });
+    res = await publicClient.call({ ...txn, account: from });
   } catch (e) {
     /**
      * If we fail to generate an EIP7412 compatible call we default to simulateContract
@@ -142,7 +129,7 @@ export async function contractTransaction(
   abi: Abi,
   publicClient: PublicClient,
   walletClient: WalletClient,
-  pythUrl: string
+  _pythUrl: string,
 ) {
   const data = encodeFunctionData({
     abi,
@@ -156,9 +143,9 @@ export async function contractTransaction(
     value,
   };
 
-  let call;
+  let _call;
   try {
-    call = await generate7412CompatibleCall(publicClient, from, txn, pythUrl);
+    _call = txn;
   } catch (e) {
     // do nothing
   }
@@ -170,9 +157,9 @@ export async function contractTransaction(
   const hash = await walletClient.sendTransaction({
     chain: publicClient.chain!,
     account: from,
-    to: call?.to || to,
-    data: call?.data || data,
-    value: call?.value || value,
+    to: _call?.to || to,
+    data: _call?.data || data,
+    value: _call?.value || value,
   });
 
   return hash;

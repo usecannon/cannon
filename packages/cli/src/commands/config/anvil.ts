@@ -1,5 +1,5 @@
-import type { Option as AnvilOption } from './types';
-import { ANVIL_PORT_DEFAULT_VALUE } from '../../constants';
+import type { Option as AnvilOption } from './types.js';
+import { ANVIL_PORT_DEFAULT_VALUE } from '../../constants.js';
 
 const anvilServerOptions: AnvilOption[] = [
   {

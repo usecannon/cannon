@@ -11,7 +11,6 @@ For more information, please see documentation in the modules listed below:
 - [`api`](packages/api): Backend for the website.
 - [`cli`](packages/cli): The command-line interface. Run `npx @usecannon/cli --help` for usage information.
 - [`builder`](packages/builder): Builds chain data from cannonfiles. (This is used by the CLI.)
-- [`hardhat-cannon`](packages/hardhat-cannon): Code for the Hardhat plug-in, which wraps the CLI functionality with defaults pulled from a Hardhat project configuration.
 - [`indexer`](packages/indexer): Processes all data for cannon into a Redis database. Used on the website.
 - [`registry`](packages/registry): The smart contract for the package registry.
 - [`repo`](packages/repo): Backend for our homegrown IPFS hosting service.
@@ -20,7 +19,6 @@ For more information, please see documentation in the modules listed below:
 Usage Examples:
 
 - [`router-architecture`](examples/router-architecture): Project demonstrating how to setup an upgradable [Router Architecture](https://www.npmjs.com/package/@synthetixio/router).
-- [`sample-hardhat-project`](examples/sample-hardhat-project): Hardhat project that demonstrates the core functionality of the `hardhat-cannon` module
 - [`sample-foundry-project`](examples/sample-hardhat-project): Foundry project that demonstrates the core functionality of the `cli` module
 
 Cannon is 100% open-source, from the dev tooling to our hosted infrastructure.

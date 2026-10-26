@@ -1,3 +1,177 @@
+minimumReleaseAge: 10080  # only resolve package versions published >= 1 week ago (supply-chain caution)
+
+minimumReleaseAgeExclude:
+  # Platform binaries are excluded from the age gate ONLY because they are exact-pinned to
+  # their (gated) parent version and get re-published on rebuilds, so a fresh timestamp
+  # does not indicate a fresh release. Everything else must satisfy minimumReleaseAge.
+  - '@next/swc-*'  # next.js compiler binaries - exact-pinned to the gated next version
+  - '@rollup/rollup-*'  # rollup platform binaries - exact-pinned to rollup (held at 4.64.7)
+  - '@esbuild/*'  # esbuild platform binaries - exact-pinned by each esbuild release
+  - '@swc/*'  # swc platform binaries - exact-pinned by their parent packages
+  - '@lightningcss/*'  # lightningcss platform binaries - exact-pinned per release
+  - '@cloudflare/workerd-*'  # workerd binaries - exact-pinned to wrangler
+  - '@tailwindcss/oxide-*'  # tailwind oxide binaries - exact-pinned to tailwindcss
+  - '@img/sharp-*'  # sharp image binaries - exact-pinned to sharp
+  - '@biomejs/biome-*'  # biome binaries - exact-pinned to the biome cli
+  - '@nx/nx-*'  # nx platform binaries - exact-pinned to nx
+
+# pnpm 12 made unreviewed dependency build scripts a hard error (strictDepBuilds defaults to
+# true; pnpm 10 only warned) and replaced onlyBuiltDependencies/ignoredBuiltDependencies with
+# the allowBuilds map. Each entry below is reviewed and denied: none of these need their
+# postinstall here - prebuilt native bindings ship via optionalDependencies (@esbuild/*,
+# @parcel/watcher, msgpackr-extract, secp256k1), nx and workerd run from their platform
+# binaries, and CI provides the foundry toolchain and the cypress binary explicitly (see
+# website-e2e.yml). This records the same "no dependency scripts run" posture the repo
+# already shipped with under pnpm 10.
+allowBuilds:
+  '@foundry-rs/anvil': false
+  '@parcel/watcher': false
+  contentlayer2: false
+  cypress: false
+  es5-ext: false
+  esbuild: false
+  msgpackr-extract: false
+  nx: false
+  redis-memory-server: false
+  secp256k1: false
+  workerd: false
 packages:
-  - 'packages/*'
-  - 'examples/*'
+  - packages/*
+  - examples/*
+overrides:
+  # @redstone-finance/evm-connector@1.0.0 (2026-08-31) is a broken publish: its npm manifest
+  # leaks workspace:* deps (@redstone-finance/protocol et al.) that cannot resolve outside the
+  # redstone monorepo. Hold at 0.9.0, the last clean publish - it exact-pins its own 0.9.0
+  # siblings, so this override fully determines the @redstone-finance subtree (pulled in
+  # transitively by erc7412's auto-installed peer deps).
+  '@redstone-finance/evm-connector': '0.9.0'
+  # --- pnpm 12 native minimumReleaseAge enforcement (lockfile verification) -----------------
+  # pnpm 12 verifies every lockfile entry against minimumReleaseAge at install time, where
+  # pnpm 10 only gated new resolutions - so the v10 lockfile silently contained versions
+  # published <7d ago. After the v12 lockfile rebuild, these packages' newest in-range
+  # versions were still <7d old; each is held below at its newest >=7d-old ("mature")
+  # version. Remove a pin once the newest release of that package has matured (>=1 week old)
+  # and a fresh `pnpm install` resolves past it. Release families move in lockstep and are
+  # pinned to mutually consistent versions.
+  '@aws-sdk/checksums': '3.1001.3'
+  '@aws-sdk/client-s3': '3.1152.0'
+  '@aws-sdk/core': '3.978.3'
+  '@aws-sdk/credential-provider-env': '3.972.74'
+  '@aws-sdk/credential-provider-http': '3.972.76'
+  '@aws-sdk/credential-provider-ini': '3.973.19'
+  '@aws-sdk/credential-provider-login': '3.972.81'
+  '@aws-sdk/credential-provider-node': '3.972.86'
+  '@aws-sdk/credential-provider-process': '3.972.74'
+  '@aws-sdk/credential-provider-sso': '3.973.18'
+  '@aws-sdk/credential-provider-web-identity': '3.972.80'
+  '@aws-sdk/middleware-sdk-s3': '3.972.79'
+  '@aws-sdk/nested-clients': '3.997.48'
+  '@aws-sdk/signature-v4-multi-region': '3.996.48'
+  '@aws-sdk/token-providers': '3.1152.0'
+  '@aws-sdk/types': '3.974.6'
+  '@smithy/core': '3.36.0'
+  '@next/bundle-analyzer': '16.4.2'  # keep in lockstep with next
+  '@next/env': '16.4.2'  # keep in lockstep with next
+  '@next/third-parties': '16.4.2'  # keep in lockstep with next
+  '@sentry/browser': '11.8.0'  # sentry family - keep all @sentry/* on the same version
+  '@sentry/browser-utils': '11.8.0'
+  '@sentry/bundler-plugins': '11.8.0'
+  '@sentry/cloudflare': '11.8.0'
+  '@sentry/core': '11.8.0'
+  '@sentry/feedback': '11.8.0'
+  '@sentry/nextjs': '11.8.0'
+  '@sentry/node': '11.8.0'
+  '@sentry/opentelemetry': '11.8.0'
+  '@sentry/react': '11.8.0'
+  '@sentry/replay': '11.8.0'
+  '@sentry/replay-canvas': '11.8.0'
+  '@sentry/server-runtime-injection': '11.8.0'
+  '@sentry/server-utils': '11.8.0'
+  '@sentry/vercel-edge': '11.8.0'
+  '@tanstack/react-query': '5.104.4'  # 5.104.5 <7d; pairs with the query-core pin below
+  '@types/lodash': '4.17.26'
+  '@types/sinon': '22.0.0'
+  '@typescript-eslint/eslint-plugin': '8.71.2'  # typescript-eslint family - keep on one version
+  '@typescript-eslint/parser': '8.71.2'
+  '@typescript-eslint/project-service': '8.71.2'
+  '@typescript-eslint/scope-manager': '8.71.2'
+  '@typescript-eslint/tsconfig-utils': '8.71.2'
+  '@typescript-eslint/type-utils': '8.71.2'
+  '@typescript-eslint/types': '8.71.2'
+  '@typescript-eslint/typescript-estree': '8.71.2'
+  '@typescript-eslint/utils': '8.71.2'
+  '@typescript-eslint/visitor-keys': '8.71.2'
+  '@wagmi/connectors': '8.2.0'  # keep in lockstep with wagmi
+  '@wagmi/core': '3.6.5'  # keep in lockstep with wagmi
+  'wagmi': '3.7.7'
+  'viem': '2.57.7'
+  'ox': '0.14.56'
+  'next': '16.4.2'
+  'framer-motion': '14.3.0'  # exact-pins motion-dom@14.3.0 + motion-utils@14.1.1 below
+  'motion-dom': '14.3.0'
+  'motion-utils': '14.1.1'
+  '@rollup/plugin-terser': '1.0.0'
+  '@safe-global/protocol-kit': '8.0.8'
+  '@safe-global/safe-deployments': '1.37.64'
+  '@safe-global/safe-modules-deployments': '3.0.11'
+  'bullmq': '6.3.17'
+  'dotenv': '18.0.8'
+  'envalid': '8.2.0'  # 9.0.0 (2026-10-23) is the only 9.x and is <7d old; hold at newest mature 8.x until it matures (~2026-10-30), then remove this pin
+  'isomorphic-git': '1.44.3'
+  'lucide-react': '1.59.0'
+  'msgpackr': '2.1.1'
+  'react-hook-form': '7.90.0'
+  'typedoc-plugin-markdown': '4.14.0'
+  'zustand': '5.0.15'
+  # --- end pnpm 12 mature pins ---------------------------------------------------------------
+  protobufjs@<7.6.3: '>=7.6.3'  # GHSA-xq3m-2v4x-88gg (critical RCE) + 10 more advisories; clears the vulnerable 6.11.6 chain under ipfs-only-hash
+  dompurify@<3.4.17: '>=3.4.17'  # GHSA-cg2g-xh64-v4q7 (critical) + 4 more; monaco-editor pulls 3.4.15
+  zod@<4.6.6: '>=4.6.6'  # advisory patched in 4.6.6; contentlayer2 resolves an older copy
+  ws@>=8.0.0 <8.21.0: '>=8.21.0'  # tiny-fragments DoS; resolves to mature 8.22.0
+  wrangler: '4.151.1'
+  sass: '1.105.2'
+  '@tanstack/query-core': '5.104.3'
+  '@opentelemetry/api': '1.9.1'
+  browserslist: '4.29.3'
+  got@<11.8.5: '>=11.8.5'
+  fast-xml-parser@<4.1.2: '>=4.1.2'
+  # s3rver 3.7.1 (test-only S3 mock, latest available) requires the fast-xml-parser v3 API;
+  # scope its copy back to v3 - it only parses local fixture XML in unit tests
+  s3rver>fast-xml-parser: '3.21.1'
+  tar@<6.2.1: '>=6.2.1'
+  tough-cookie@<4.1.3: '>=4.1.3'
+  ws@>=8.0.0 <8.17.1: '>=8.17.1'
+  ws@>=7.0.0 <7.5.10: '>=7.5.10'
+  ws@>=2.1.0 <5.2.4: '>=5.2.4'
+  elliptic@>=4.0.0 <=6.5.6: '>=6.5.7'
+  elliptic@>=2.0.0 <=6.5.6: '>=6.5.7'
+  elliptic@>=5.2.1 <=6.5.6: '>=6.5.7'
+  express@>=5.0.0-alpha.1 <5.0.0: '>=5.0.0'
+  nanoid@<3.3.8: '>=3.3.8'
+  elliptic@<6.5.6: '>=6.5.6'
+  undici@>=4.5.0 <5.28.5: '>=5.28.5'
+  path-to-regexp@>=2.0.0 <3.3.0: '>=3.3.0'
+  koa@>=2.0.0 <2.15.4: '>=2.15.4'
+  esbuild@<=0.24.2: '>=0.25.0'
+  vite@>=5.0.0 <=5.4.11: '>=5.4.12'
+  elliptic@<=6.6.0: '>=6.6.1'
+  vite@>=5.0.0 <5.4.15: '>=5.4.15'
+  vite@>=5.0.0 <5.4.16: '>=5.4.16'
+  estree-util-value-to-estree@<3.3.3: '>=3.3.3'
+  vite@>=5.0.0 <5.4.18: '>=5.4.18'
+  cookie@<0.7.0: '>=0.7.0'
+  vite@>=5.0.0 <=5.4.18: '>=5.4.19'
+  vite@>=5.0.0 <5.4.17: '>=5.4.17'
+  undici@<5.29.0: '>=5.29.0'
+  cross-spawn@>=7.0.0 <7.0.5: '>=7.0.5'
+  serialize-javascript@>=6.0.0 <6.0.2: '>=6.0.2'
+  brace-expansion@>=2.0.0 <=2.0.1: '>=2.0.2'
+  pbkdf2@<=3.1.2: '>=3.1.3'
+  pbkdf2@>=3.0.10 <=3.1.2: '>=3.1.3'
+  elliptic@<6.6.0: '>=6.6.0'
+  form-data@<2.5.4: '>=2.5.4'
+  koa@>=2.0.0 <2.16.2: '>=2.16.2'
+  tmp@<=0.2.3: '>=0.2.4'
+  vite@<=5.4.19: '>=5.4.20'
+  koa@<2.16.1: '>=2.16.1'
+  vite@>=5.2.6 <=5.4.20: '>=5.4.21'

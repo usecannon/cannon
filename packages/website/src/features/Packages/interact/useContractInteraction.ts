@@ -91,12 +91,12 @@ export const useContractInteraction = ({
     [...params],
     abi,
     publicClient,
-    walletClient as any
+    walletClient as any,
   );
 
   // Handlers
   const handleReadFunction = async () => {
-    const result = await fetchReadContractResult(isSimulation ? simulationSender : from ?? zeroAddress);
+    const result = await fetchReadContractResult(isSimulation ? simulationSender : (from ?? zeroAddress));
     if (result.error) {
       setCallMethodResult({
         value: null,

@@ -113,7 +113,7 @@ export async function findPackageByFullRef(params: { fullPackageRef: string; cha
 
   const packageRef = PackageReference.from(tagDoc.name, tagDoc.versionOfTag, tagDoc.preset);
   const packageDoc = (await redis.hGetAll(
-    `${keys.RKEY_PACKAGE_SEARCHABLE}:${packageRef.fullPackageRef}#${tagDoc.chainId}`
+    `${keys.RKEY_PACKAGE_SEARCHABLE}:${packageRef.fullPackageRef}#${tagDoc.chainId}`,
   )) as unknown as RedisPackage;
 
   if (!packageDoc?.name) return null;

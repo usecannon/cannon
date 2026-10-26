@@ -1,14 +1,14 @@
 import { OnChainRegistry, PackageReference, DEFAULT_REGISTRY_CONFIG } from '@usecannon/builder';
-import _ from 'lodash';
+import { isEqual, last } from 'lodash-es';
 import Debug from 'debug';
 import * as viem from 'viem';
 import prompts from 'prompts';
-import { logSpinner, logSpinnerEnd, logSpinnerStart } from '../util/console';
-import { blueBright, gray, green, bold } from 'chalk';
+import { logSpinner, logSpinnerEnd, logSpinnerStart } from '../util/console.js';
+import chalk from 'chalk';
 
-import { CliSettings } from '../settings';
-import { resolveProviderAndSigners, ProviderAction } from '../util/provider';
-import { waitForEvent } from '../util/wait-for-event';
+import { CliSettings } from '../settings.js';
+import { resolveProviderAndSigners, ProviderAction } from '../util/provider.js';
+import { waitForEvent } from '../util/wait-for-event.js';
 
 const debug = Debug('cannon:cli:publishers');
 
@@ -68,7 +68,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     throw new Error('Cannot add and remove the same address in one operation');
   }
 
-  const isDefaultSettings = _.isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
+  const isDefaultSettings = isEqual(cliSettings.registries, DEFAULT_REGISTRY_CONFIG);
   if (!isDefaultSettings) throw new Error('Only default registries are supported for now');
 
   let selectedNetwork = options.optimism ? Network.OP : Network.MAINNET;
@@ -95,7 +95,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   const isMainnet = selectedNetwork === Network.MAINNET;
   const [readRegistry, writeRegistry] = cliSettings.registries;
 
-  logSpinner(bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
+  logSpinner(chalk.bold(`Resolving connection to ${writeRegistry.name} (Chain ID: ${writeRegistry.chainId})...`));
 
   const registryProviders = await Promise.all([
     resolveProviderAndSigners({
@@ -191,7 +191,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
   }
 
   // throw an error if the publishers list is already up to date
-  if (_.isEqual(currentPublishers, publishers)) {
+  if (isEqual(currentPublishers, publishers)) {
     throw new Error('The publishers list is already up to date.');
   }
 
@@ -229,12 +229,12 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
     (async () => {
       const hash = await mainnetRegistry.setAdditionalPublishers(packageName, mainnetPublishers, optimismPublishers);
 
-      logSpinner(`${green('Success!')} (${blueBright('Transaction Hash')}: ${hash})`);
+      logSpinner(`${chalk.green('Success!')} (${chalk.blueBright('Transaction Hash')}: ${hash})`);
       logSpinner('');
       logSpinner(
-        gray(
-          `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`
-        )
+        chalk.gray(
+          `Waiting for the transaction to propagate to ${optimismRegistryConfig.name}... It may take approximately 1-3 minutes.`,
+        ),
       );
       logSpinner('');
 
@@ -246,7 +246,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: mainnetRegistry.contract.abi,
-          rpcUrl: _.last(mainnetRegistryConfig.rpcUrl)!,
+          rpcUrl: last(mainnetRegistryConfig.rpcUrl)!,
           expectedArgs: {
             name: packageNameHex,
             publisher: mainnetPublishers,
@@ -255,7 +255,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         waitForEvent({
           eventName: 'PackagePublishersChanged',
           abi: optimismRegistry.contract.abi,
-          rpcUrl: _.last(optimismRegistryConfig.rpcUrl)!,
+          rpcUrl: last(optimismRegistryConfig.rpcUrl)!,
           expectedArgs: {
             name: packageNameHex,
             publisher: optimismPublishers,
@@ -263,7 +263,7 @@ export async function publishers({ cliSettings, options, packageRef }: Params) {
         }),
       ]);
 
-      logSpinner(green('Success - The publishers list has been updated!'));
+      logSpinner(chalk.green('Success - The publishers list has been updated!'));
       logSpinner('');
     })(),
   ]);

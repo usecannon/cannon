@@ -12,7 +12,7 @@ import * as viem from 'viem';
 export const isPackageRegistered = async (
   registryProviders: { provider: viem.PublicClient; signers: CannonSigner[] }[],
   packageRef: string,
-  contractAddress: viem.Address[]
+  contractAddress: viem.Address[],
 ) => {
   const packageName = new PackageReference(packageRef).name;
 
@@ -26,11 +26,11 @@ export const isPackageRegistered = async (
         signer: signers[0],
         provider,
         address: contractAddress[index],
-      })
+      }),
   );
 
   const packageOwners = await Promise.all(
-    onChainRegistries.map((onChainRegistry) => onChainRegistry.getPackageOwner(packageName))
+    onChainRegistries.map((onChainRegistry) => onChainRegistry.getPackageOwner(packageName)),
   );
 
   return !packageOwners.some((address) => viem.isAddressEqual(address, viem.zeroAddress));

@@ -164,7 +164,7 @@ export function add(ctx: RepoContext) {
         // Use file upload logic
         return handleFileUpload(req, res, ctx);
       }
-    }
+    },
   );
 
   return app;

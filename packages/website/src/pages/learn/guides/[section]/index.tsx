@@ -1,7 +1,5 @@
 import { ReactElement, useState, useEffect } from 'react';
-import { NextSeo } from 'next-seo';
 import { allGuides, type Guides } from 'contentlayer/generated';
-import defaultSEO from '@/constants/defaultSeo';
 import { Mdx } from '@/components/mdx-components';
 import { DocsNav } from '@/components/docs';
 import Custom404 from '@/pages/404';
@@ -27,16 +25,6 @@ export default function GuidePage() {
 
   return (
     <>
-      <NextSeo
-        {...defaultSEO}
-        title={`Cannon | Guides | ${guide?.title}`}
-        description={guide?.description}
-        openGraph={{
-          ...defaultSEO.openGraph,
-          title: `Cannon | Guides | ${guide?.title}`,
-          description: guide?.description,
-        }}
-      />
       {guide ? (
         <div className="max-w-3xl px-4 py-10">
           <Mdx code={guide.body.code} />

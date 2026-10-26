@@ -46,8 +46,8 @@ async function _aggregateContracts(query: string): Promise<ContractQueryResult[]
       // eslint-disable-next-line no-console
       console.warn(
         new Error(
-          `Could not parse "${doc && JSON.stringify(doc)}" on query "FT.AGGREGATE ${keys.RKEY_ABI_SEARCHABLE} ${query}"`
-        )
+          `Could not parse "${doc && JSON.stringify(doc)}" on query "FT.AGGREGATE ${keys.RKEY_ABI_SEARCHABLE} ${query}"`,
+        ),
       );
       continue;
     }

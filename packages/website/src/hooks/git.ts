@@ -105,7 +105,7 @@ export function useGitDiff(url: string, fromRef: string, toRef: string, files: s
         fromFiles ? fromFiles![i] : '',
         toFiles ? toFiles![i] : '',
         undefined,
-        undefined
+        undefined,
       );
       patches.push(p.slice(p.indexOf('\n')));
     }
@@ -124,7 +124,7 @@ export function useGitDiff(url: string, fromRef: string, toRef: string, files: s
 
 export function getGitHash(refs: ServerRef[] | undefined, gitRef: string): string | undefined {
   const foundRef = refs?.find(
-    (r) => (r.ref.startsWith('refs/heads/') || r.ref.startsWith('refs/tags/')) && r.ref.endsWith(gitRef)
+    (r) => (r.ref.startsWith('refs/heads/') || r.ref.startsWith('refs/tags/')) && r.ref.endsWith(gitRef),
   )?.oid;
 
   return gitRef.match(/^[0-9a-f]+$/) ? foundRef || gitRef : foundRef;

@@ -1,9 +1,9 @@
 import type { ChainArtifacts } from '@usecannon/builder';
-import type { Config as StepDeploy } from '@usecannon/builder/dist/src/steps/deploy';
-import type { Config as StepInvoke } from '@usecannon/builder/dist/src/steps/invoke';
-import type { Config as StepRouter } from '@usecannon/builder/dist/src/steps/router';
-import type { Config as StepPull } from '@usecannon/builder/dist/src/steps/pull';
-import type { Config as StepClone } from '@usecannon/builder/dist/src/steps/clone';
+import type { Config as StepDeploy } from '@usecannon/builder/dist/src/steps/deploy.js';
+import type { Config as StepInvoke } from '@usecannon/builder/dist/src/steps/invoke.js';
+import type { Config as StepRouter } from '@usecannon/builder/dist/src/steps/router.js';
+import type { Config as StepPull } from '@usecannon/builder/dist/src/steps/pull.js';
+import type { Config as StepClone } from '@usecannon/builder/dist/src/steps/clone.js';
 import * as viem from 'viem';
 
 type BaseDumpLine = {

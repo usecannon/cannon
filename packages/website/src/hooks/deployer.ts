@@ -38,12 +38,12 @@ export function useDeployerWallet(chainId?: number) {
                 | 'eip4844'
                 | 'eip7702'
                 | undefined,
-            },
+            } as Parameters<typeof sendTransaction>[0],
             {
               onSuccess(hash: viem.Hash) {
                 setExecutionProgress([...executionProgress, hash]);
               },
-            }
+            },
           );
         }
       })()
@@ -55,7 +55,7 @@ export function useDeployerWallet(chainId?: number) {
           setError(err);
         });
     },
-    [isConfirmed, isIdle, executionProgress.length, queuedTransactions, chainId, executionProgress]
+    [isConfirmed, isIdle, executionProgress.length, queuedTransactions, chainId, executionProgress],
   );
 
   return {

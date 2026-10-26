@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const viem = require('viem');
 const { optimism } = require('viem/chains');
 

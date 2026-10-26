@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const viem = require('viem');
 const { mainnet } = require('viem/chains');
 const EventEmitter = require('node:events');
@@ -51,7 +52,7 @@ class OptimismEmitter extends EventEmitter {
         if (this.unwatch) this.unwatch();
         // reject the promise
         reject(
-          new Error(`Error watching for ${SentMessageEvent} event: ${err}`)
+          new Error(`Error watching for ${SentMessageEvent} event: ${err}`),
         );
       },
     });

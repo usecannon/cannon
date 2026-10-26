@@ -1,8 +1,6 @@
 import { chainDefinitionSchema } from '@usecannon/builder/dist/src/schemas';
 import { runSchema } from '@usecannon/cli/dist/src/schemas';
-import { compile } from 'json-schema-to-typescript';
 import { useQuery } from '@tanstack/react-query';
-import { zodToJsonSchema } from 'zod-to-json-schema';
 
 interface CannonfileSpec {
   description: string;
@@ -19,37 +17,15 @@ interface Spec {
 const getSpec = async (jsonSchema: any, propName: string): Promise<Spec> => {
   return {
     name: propName + (jsonSchema.required?.includes(propName) ? '' : '?'),
-    type: await getJsonSchemaPropType(jsonSchema.properties[propName]),
+    type: 'any', // TODO: unsimplify',
     description: jsonSchema.properties[propName].description,
   };
 };
 
-const getJsonSchemaPropType = async (prop: any) => {
-  prop = { ...prop };
-  prop.description = '';
-
-  let result = (
-    await compile(prop, 'Type', {
-      format: false,
-      bannerComment: '',
-    })
-  ).trim();
-
-  if (result[result.length - 1] === ';') {
-    result = result.slice(0, -1);
-  }
-
-  return result.replace('export interface Type ', '').replace('export type Type = ', '');
-};
-
 async function fetchCannonfileSpecs() {
-  const chainDefinitionJsonSchema = zodToJsonSchema(chainDefinitionSchema, {
-    $refStrategy: 'none',
-  });
+  const chainDefinitionJsonSchema = chainDefinitionSchema.toJSONSchema();
 
-  const runJsonSchema = zodToJsonSchema(runSchema, {
-    $refStrategy: 'none',
-  });
+  const runJsonSchema = runSchema.toJSONSchema();
 
   const result = new Map<string, CannonfileSpec>();
 

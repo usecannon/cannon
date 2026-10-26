@@ -11,6 +11,6 @@ export function usePackageUrlParams() {
     () => ({
       name: decodeURIComponent(name),
     }),
-    [name]
+    [name],
   );
 }

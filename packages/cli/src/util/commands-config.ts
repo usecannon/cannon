@@ -1,7 +1,7 @@
 import { Command } from 'commander';
-import { formatCommandHelp } from './format-command-help';
-import { parsePackagesArguments } from './params';
-import type { Command as CommandConfig } from '../commands/config/types';
+import { formatCommandHelp } from './format-command-help.js';
+import { parsePackagesArguments } from './params.js';
+import type { Command as CommandConfig } from '../commands/config/types.js';
 
 export const applyCommandsConfig = (command: Command, config: CommandConfig) => {
   if (config.description) {
@@ -25,27 +25,33 @@ export const applyCommandsConfig = (command: Command, config: CommandConfig) => 
   // add command options to the command
   if (config.options) {
     config.options.forEach((option: any) => {
-      option.required
-        ? command.requiredOption(option.flags, option.description, option.defaultValue)
-        : command.option(option.flags, option.description, option.defaultValue);
+      if (option.required) {
+        command.requiredOption(option.flags, option.description, option.defaultValue);
+      } else {
+        command.option(option.flags, option.description, option.defaultValue);
+      }
     });
   }
 
   // add anvil options to the command
   if (config.anvilOptions) {
     config.anvilOptions.forEach((option: any) => {
-      option.required
-        ? command.requiredOption(option.flags, option.description, option.defaultValue)
-        : command.option(option.flags, option.description, option.defaultValue);
+      if (option.required) {
+        command.requiredOption(option.flags, option.description, option.defaultValue);
+      } else {
+        command.option(option.flags, option.description, option.defaultValue);
+      }
     });
   }
 
   // add forge options to the command
   if (config.forgeOptions) {
     config.forgeOptions.forEach((option: any) => {
-      option.required
-        ? command.requiredOption(option.flags, option.description, option.defaultValue)
-        : command.option(option.flags, option.description, option.defaultValue);
+      if (option.required) {
+        command.requiredOption(option.flags, option.description, option.defaultValue);
+      } else {
+        command.option(option.flags, option.description, option.defaultValue);
+      }
     });
   }
 

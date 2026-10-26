@@ -1,13 +1,13 @@
-import _ from 'lodash';
+import { clone } from 'lodash-es';
 import * as viem from 'viem';
 import deepFreeze from 'deep-freeze';
 import rfdc from 'rfdc';
-import { viemContext } from './utils/viem-context';
-import { jsContext } from './utils/js-context';
-import { ethersContext } from './utils/ethers-context';
-import { PackageReference } from './package-reference';
+import { viemContext } from './utils/viem-context.js';
+import { jsContext } from './utils/js-context.js';
+import { ethersContext } from './utils/ethers-context.js';
+import { PackageReference } from './package-reference.js';
 
-import type { RawChainDefinition } from './actions';
+import type { RawChainDefinition } from './actions.js';
 
 const deepClone = rfdc();
 
@@ -107,7 +107,7 @@ export const CannonHelperContext = deepFreeze(
     ...viemContext,
     ...ethersContext,
     ...jsContext,
-  })
+  }),
 );
 
 export type BuildOptions = { [val: string]: string };
@@ -131,7 +131,7 @@ export interface ChainBuilderRuntimeInfo {
   // returns a signer which should be used for sending the specified transaction.
   getDefaultSigner?: (
     txn: Omit<viem.SendTransactionParameters, 'account' | 'chain'>,
-    salt?: string
+    salt?: string,
   ) => Promise<CannonSigner>;
 
   // returns contract information from the specified artifact name.
@@ -256,7 +256,7 @@ export type StepState = {
 export type DeploymentState = { [label: string]: StepState };
 
 export function combineCtx(ctxs: ChainBuilderContext[]): ChainBuilderContext {
-  const ctx = _.clone(ctxs[0]);
+  const ctx = clone(ctxs[0]);
 
   ctx.timestamp = Math.floor(Date.now() / 1000);
 

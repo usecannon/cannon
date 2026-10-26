@@ -12,13 +12,13 @@ export const ethersContext = {
     encode: (a: string[], v: any[]) => {
       return viem.encodeAbiParameters(
         a.map((arg) => ({ type: arg })),
-        v
+        v,
       );
     },
     decode: (a: string[], v: viem.Hex | viem.ByteArray) => {
       return viem.decodeAbiParameters(
         a.map((arg) => ({ type: arg })),
-        v
+        v,
       );
     },
   },

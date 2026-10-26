@@ -1,7 +1,7 @@
-import type { Option as ForgeBuildOption } from '../types';
+import type { Option as ForgeBuildOption } from '../types.js';
 
-import { forgeCompilerOptions } from './common/compiler';
-import { forgeProjectOptions } from './common/project';
+import { forgeCompilerOptions } from './common/compiler.js';
+import { forgeProjectOptions } from './common/project.js';
 
 export const forgeBuildOptions: ForgeBuildOption[] = [
   {

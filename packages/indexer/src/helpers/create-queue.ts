@@ -40,7 +40,7 @@ interface ParsedJobsSchemas<JobName extends string, JobData, JobContext extends 
 
 export function createJobs<T extends JobSchema<string, any, DefaultJobContext<string, any>>, GivenJobContext>(
   jobs: T[],
-  ctx: GivenJobContext = {} as GivenJobContext
+  ctx: GivenJobContext = {} as GivenJobContext,
 ) {
   type JobName = T['name'];
   type JobData = Parameters<T['action']>[0];
@@ -54,7 +54,7 @@ export function createJobs<T extends JobSchema<string, any, DefaultJobContext<st
 
 export function createQueue<T extends ParsedJobsSchemas<string, any, DefaultJobContext<string, any>>>(
   jobs: T,
-  queueOpts: QueueOptions
+  queueOpts: QueueOptions,
 ) {
   type QueueJobName = T['jobs'][number]['name'];
   type QueueJobData = Parameters<T['jobs'][number]['action']>[0];
@@ -122,7 +122,7 @@ export function createQueue<T extends ParsedJobsSchemas<string, any, DefaultJobC
       {
         connection,
         concurrency,
-      }
+      },
     );
 
     workers.push(worker);

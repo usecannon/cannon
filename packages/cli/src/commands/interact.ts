@@ -1,13 +1,13 @@
-import _ from 'lodash';
+import { assign, flatten, get, groupBy, isNil, mapKeys, mapValues, pick, sortBy, toPairs } from 'lodash-es';
 import * as viem from 'viem';
 import prompts, { Choice } from 'prompts';
-import { red, bold, gray, green, yellow, cyan } from 'chalk';
+import chalk from 'chalk';
 import { CannonSigner, ChainArtifacts, Contract, ContractMap, traceActions } from '@usecannon/builder';
 
-import { log, logSpinner, errorSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console';
-import { formatAbiFunction } from '../helpers';
-import { PackageSpecification } from '../types';
-import { getChainById } from '../chains';
+import { log, logSpinner, errorSpinner, logSpinnerStart, logSpinnerEnd } from '../util/console.js';
+import { formatAbiFunction } from '../helpers.js';
+import { PackageSpecification } from '../types.js';
+import { getChainById } from '../chains.js';
 
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };
 
@@ -33,7 +33,6 @@ export async function interact(ctx: InteractTaskArgs) {
   let currentArgs: any[] | null = null;
   let txnValue = BigInt(0);
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     if (ctx.packages.length === 1) {
       pickedPackage = 0;
@@ -94,7 +93,7 @@ export async function interact(ctx: InteractTaskArgs) {
         });
       } else if (!ctx.signer) {
         logSpinner();
-        logSpinner(red('  Signer is not supplied. cannot invoke writable function.'));
+        logSpinner(chalk.red('  Signer is not supplied. cannot invoke writable function.'));
         logSpinner();
       } else {
         const receipt = await execTxn({
@@ -127,32 +126,32 @@ async function printHeader(ctx: InteractTaskArgs) {
   const signerBalance = ctx.signer ? await ctx.provider.getBalance({ address: ctx.signer.address }) : BigInt(0);
 
   logSpinner('\n');
-  logSpinner(gray('================================================================================'));
-  logSpinner(gray('> Gas price: provider default'));
-  logSpinner(gray(`> Block tag: ${ctx.blockTag || 'latest'}`));
+  logSpinner(chalk.gray('================================================================================'));
+  logSpinner(chalk.gray('> Gas price: provider default'));
+  logSpinner(chalk.gray(`> Block tag: ${ctx.blockTag || 'latest'}`));
 
   if (ctx.signer) {
-    logSpinner(yellow(`> Read/Write: ${ctx.signer.address}`));
+    logSpinner(chalk.yellow(`> Read/Write: ${ctx.signer.address}`));
 
     if (signerBalance > viem.parseEther('0.01')) {
-      logSpinner(green(`> Signer Balance: ${viem.formatEther(signerBalance)}`));
+      logSpinner(chalk.green(`> Signer Balance: ${viem.formatEther(signerBalance)}`));
     } else {
-      logSpinner(red(`> WARNING! Low signer balance: ${viem.formatEther(signerBalance)}`));
+      logSpinner(chalk.red(`> WARNING! Low signer balance: ${viem.formatEther(signerBalance)}`));
     }
   } else {
-    logSpinner(gray('> Read Only'));
+    logSpinner(chalk.gray('> Read Only'));
   }
 
-  logSpinner(gray('================================================================================'));
+  logSpinner(chalk.gray('================================================================================'));
   logSpinner('\n');
 }
 
 async function printHelpfulInfo(ctx: InteractTaskArgs, pickedPackage: number, pickedContract: string | null) {
   if (pickedContract) {
-    logSpinner(gray.inverse(`${pickedContract} => ${ctx.contracts[pickedPackage][pickedContract].address}`));
+    logSpinner(chalk.gray.inverse(`${pickedContract} => ${ctx.contracts[pickedPackage][pickedContract].address}`));
   }
 
-  logSpinner(gray(`  * Signer: ${ctx.signer ? ctx.signer.address : 'None'}`));
+  logSpinner(chalk.gray(`  * Signer: ${ctx.signer ? ctx.signer.address : 'None'}`));
   logSpinner('\n');
 }
 
@@ -193,11 +192,11 @@ async function pickContract({
 }) {
   const isHighlighted = (n: string) => !!contractArtifacts?.[n]?.highlight;
 
-  const choices: Choice[] = _.sortBy(contractNames, [
+  const choices: Choice[] = sortBy(contractNames, [
     (contractName) => !isHighlighted(contractName),
     (contractName) => contractName,
   ]).map((contractName) => ({
-    title: isHighlighted(contractName) ? bold(contractName) : contractName,
+    title: isHighlighted(contractName) ? chalk.bold(contractName) : contractName,
     value: contractName,
   }));
 
@@ -227,7 +226,7 @@ function assembleFunctionSignatures(abi: viem.Abi): [viem.AbiFunction[], string[
 async function pickFunction({ contract }: { contract: Contract }) {
   const [abiFunctions, functionSignatures] = assembleFunctionSignatures(contract.abi);
 
-  const choices = _.sortBy(functionSignatures).map((s) => ({ title: s }));
+  const choices = sortBy(functionSignatures).map((s) => ({ title: s }));
   choices.unshift(PROMPT_BACK_OPTION);
   logSpinnerEnd();
   const { pickedFunction } = await prompts.prompt([
@@ -263,7 +262,7 @@ async function pickFunctionArgs({ func }: { func: viem.AbiFunction }) {
   for (const input of func.inputs) {
     const rawValue = await promptInputValue(input);
 
-    if (_.isNil(rawValue)) {
+    if (isNil(rawValue)) {
       return null;
     }
 
@@ -291,7 +290,7 @@ async function query({
     functionName: functionAbi.name,
     args,
   });
-  logSpinner(gray(`  > calldata: ${callData}`));
+  logSpinner(chalk.gray(`  > calldata: ${callData}`));
 
   let result = [];
   const callArgs = {
@@ -302,7 +301,7 @@ async function query({
     blockTag: blockTag as any,
   };
   try {
-    logSpinner(gray(`  > estimated gas required: ${await provider.estimateContractGas(callArgs)}`));
+    logSpinner(chalk.gray(`  > estimated gas required: ${await provider.estimateContractGas(callArgs)}`));
     const simulation = await provider.simulateContract(callArgs);
     result = simulation.result;
   } catch (err: any) {
@@ -314,8 +313,8 @@ async function query({
     const output = functionAbi.outputs[i];
 
     logSpinner(
-      cyan(`  ↪ ${output.name || ''}(${output.type}):`),
-      renderArgs(output, functionAbi.outputs.length > 1 ? result[i] : result)
+      chalk.cyan(`  ↪ ${output.name || ''}(${output.type}):`),
+      renderArgs(output, functionAbi.outputs.length > 1 ? result[i] : result),
     );
   }
 
@@ -353,24 +352,24 @@ async function execTxn({
   try {
     const chain = getChainById(await provider.getChainId());
     txn = (await provider.prepareTransactionRequest(
-      _.assign(txn, {
+      assign(txn, {
         account: signer.wallet.account || signer.address,
         chain,
-      })
+      }),
     )) as any;
 
-    logSpinner(gray(`  > calldata: ${txn!.data}`));
-    logSpinner(gray(`  > estimated gas required: ${txn!.gas}`));
+    logSpinner(chalk.gray(`  > calldata: ${txn!.data}`));
+    logSpinner(chalk.gray(`  > estimated gas required: ${txn!.gas}`));
     logSpinner(
-      gray(
+      chalk.gray(
         `  > gas: ${JSON.stringify(
-          _.mapValues(_.pick(txn, 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas'), viem.formatGwei)
-        )}`
-      )
+          mapValues(pick(txn, 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas'), viem.formatGwei),
+        )}`,
+      ),
     );
-    logSpinner(green(bold('  ✅ txn will succeed')));
+    logSpinner(chalk.green(chalk.bold('  ✅ txn will succeed')));
   } catch (err) {
-    errorSpinner(red(`❌ txn will most likely fail: ${(err as Error).toString()}`));
+    errorSpinner(chalk.red(`❌ txn will most likely fail: ${(err as Error).toString()}`));
     errorSpinner('Txn gas limit has been set to 1,000,000 due to simulation failure');
     errorSpinner('txn data', txn);
     txn.gas = BigInt(1000000);
@@ -483,7 +482,7 @@ function parseInput(input: viem.AbiParameter, rawValue: string): any {
 
   //const processed = preprocessInput(input, type, hre);
   if (processed !== rawValue) {
-    logSpinner(gray(`  > processed inputs (${isArray ? processed.length : '1'}):`, processed));
+    logSpinner(chalk.gray(`  > processed inputs (${isArray ? processed.length : '1'}):`, processed));
   }
 
   // Encode user's input to validate it
@@ -512,7 +511,7 @@ function parseWeiValue(v: string): bigint {
  * @returns {boolean} - True if the parameter is a tuple with components, false otherwise.
  */
 function _isTupleParameter(
-  parameter: viem.AbiParameter
+  parameter: viem.AbiParameter,
 ): parameter is viem.AbiParameter & { components: readonly viem.AbiParameter[] } {
   return 'components' in parameter && parameter.type.startsWith('tuple');
 }
@@ -569,20 +568,20 @@ function boolify(value: any) {
 }
 
 async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionReceipt) {
-  logSpinner(green('  ✅ Success'));
+  logSpinner(chalk.green('  ✅ Success'));
   // logSpinner('receipt', JSON.stringify(receipt, null, 2));
 
   // Print tx hash
-  logSpinner(gray(`    tx hash: ${receipt.transactionHash}`));
+  logSpinner(chalk.gray(`    tx hash: ${receipt.transactionHash}`));
 
   // Print gas used
-  logSpinner(gray(`    gas used: ${receipt.gasUsed.toString()}`));
+  logSpinner(chalk.gray(`    gas used: ${receipt.gasUsed.toString()}`));
 
   // Print emitted events
   if (receipt.logs && receipt.logs.length > 0) {
-    const contractsByAddress = _.mapKeys(
-      _.groupBy(_.flatten(ctx.contracts.map((contract) => _.toPairs(contract))), '1.address'),
-      (v, k) => k.toLowerCase()
+    const contractsByAddress = mapKeys(
+      groupBy(flatten(ctx.contracts.map((contract) => toPairs(contract))), '1.address'),
+      (v, k) => k.toLowerCase(),
     );
 
     for (let i = 0; i < receipt.logs.length; i++) {
@@ -594,7 +593,7 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionRece
           // find contract matching address of the log
           const parsedLog = viem.decodeEventLog({ ...logContract, ...logItem });
           foundLog = true;
-          logSpinner(gray(`\n    log ${i}:`), cyan(parsedLog.eventName), gray(`\t${n}`));
+          logSpinner(chalk.gray(`\n    log ${i}:`), chalk.cyan(parsedLog.eventName), chalk.gray(`\t${n}`));
 
           //logContract.interface.getEvent(parsedLog.name).inputs[i]
           // TODO: for some reason viem does not export `AbiEvent` type (even though they export other types like AbiFunction)
@@ -603,7 +602,7 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionRece
           for (const [a, arg] of ((eventAbiDef.inputs || []) as viem.AbiParameter[]).entries()) {
             const output = parsedLog.args![arg.name || (`${a}` as any)];
 
-            logSpinner(cyan(`  ↪ ${arg.name || ''}(${arg.type}):`), renderArgs(arg, output));
+            logSpinner(chalk.cyan(`  ↪ ${arg.name || ''}(${arg.type}):`), renderArgs(arg, output));
           }
 
           break;
@@ -613,22 +612,22 @@ async function logTxSucceed(ctx: InteractTaskArgs, receipt: viem.TransactionRece
       }
 
       if (!foundLog) {
-        logSpinner(gray(`\n    log ${i}: unable to decode log - ${JSON.stringify(log)}`));
+        logSpinner(chalk.gray(`\n    log ${i}: unable to decode log - ${JSON.stringify(log)}`));
       }
     }
   }
 }
 
 function logTxFail(error: any) {
-  logSpinner(red('  ❌ Error'));
+  logSpinner(chalk.red('  ❌ Error'));
 
   function findReason(error: any): string {
     if (typeof error === 'string') {
       return error;
     } else {
-      if (_.get(error, 'reason')) {
+      if (get(error, 'reason')) {
         return error.reason;
-      } else if (_.get(error, 'error')) {
+      } else if (get(error, 'error')) {
         return findReason(error.error);
       }
     }
@@ -637,9 +636,9 @@ function logTxFail(error: any) {
   }
 
   const reason = findReason(error);
-  if (reason) logSpinner(red(`    Reason: ${reason}`));
+  if (reason) logSpinner(chalk.red(`    Reason: ${reason}`));
 
-  logSpinner(gray(JSON.stringify(error, null, 2)));
+  logSpinner(chalk.gray(JSON.stringify(error, null, 2)));
 }
 
 // filters choices by subtrings that don't have to be continuous e.g. 'ybtc' will match 'SynthsBTC'
@@ -657,5 +656,5 @@ const suggestBySubtring = (input: string, choices: [{ title: string }]) =>
         }
       }
       return true;
-    })
+    }),
   );

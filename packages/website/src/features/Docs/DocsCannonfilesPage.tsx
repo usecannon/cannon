@@ -119,7 +119,6 @@ export const deploymentDataExample = {
     devDependencies: {
       ethers: '5.7.1',
       hardhat: '^2.22.3',
-      'hardhat-cannon': '^2.14.3',
     },
   },
   miscUrl: 'ipfs://Qm...',

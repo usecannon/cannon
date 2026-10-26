@@ -1,7 +1,7 @@
 import { Readable, Transform } from 'node:stream';
 import { ChainArtifacts, ChainBuilderContext, ChainBuilderRuntime, Events } from '@usecannon/builder';
 import * as viem from 'viem';
-import { DumpLine } from './types';
+import { DumpLine } from './types.js';
 
 /**
  * Create an event stream from step execution events from the ChainBuilderRuntime
@@ -18,7 +18,7 @@ export function createStepsStream(runtime: ChainBuilderRuntime) {
       {
         timeout: 15000,
         errorInstance: new Error(`TimeoutError: Could not get transaction "${hash}"`),
-      }
+      },
     );
   };
 
@@ -50,7 +50,7 @@ class StepEventsStream extends Readable {
     this.runtime = runtime;
   }
 
-  _construct(cb: (err?: Error | null | undefined) => void): void {
+  override _construct(cb: (err?: Error | null | undefined) => void): void {
     const cloneNames: string[] = [];
     const handlePreStepExecute = (type: DumpLine['type'], label: string, step: DumpLine['step'], depth: number) => {
       if (type === 'clone' || type === 'provision') {
@@ -65,7 +65,7 @@ class StepEventsStream extends Readable {
       step: DumpLine['step'],
       ctx: ChainBuilderContext,
       result: ChainArtifacts,
-      depth: number
+      depth: number,
     ) => {
       if (type === 'clone' || type === 'provision') {
         cloneNames.pop();
@@ -85,7 +85,7 @@ class StepEventsStream extends Readable {
     cb();
   }
 
-  _read() {
+  override _read() {
     // allow null
   }
 

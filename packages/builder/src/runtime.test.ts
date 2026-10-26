@@ -1,11 +1,11 @@
 import * as viem from 'viem';
-import { IPFSLoader } from './loader';
-import { ChainBuilderRuntime, Events } from './runtime';
-import { ContractArtifact } from './types';
-import { InMemoryRegistry } from './registry';
-import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
+import { IPFSLoader } from './loader.js';
+import { ChainBuilderRuntime, Events } from './runtime.js';
+import { ContractArtifact } from './types.js';
+import { InMemoryRegistry } from './registry.js';
+import { fixtureSigner, makeFakeProvider } from '../test/fixtures.js';
 
-jest.mock('./loader');
+jest.mock('./loader.js');
 
 describe('runtime.ts', () => {
   describe('ChainBuilderRuntime', () => {
@@ -44,7 +44,7 @@ describe('runtime.ts', () => {
           getArtifact,
         },
         new InMemoryRegistry(),
-        { ipfs: loader }
+        { ipfs: loader },
       );
     });
 
@@ -242,7 +242,7 @@ describe('runtime.ts', () => {
         expect(() =>
           runtime.derive({
             priorityGasFee,
-          })
+          }),
         ).toThrow();
       });
     });

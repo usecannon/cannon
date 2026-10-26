@@ -49,7 +49,7 @@ export class PackageReference {
 
     if (!match || !match.groups?.name) {
       throw new Error(
-        `Invalid package reference "${ref}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`
+        `Invalid package reference "${ref}". Should be of the format <package-name>:<version> or <package-name>:<version>@<preset>`,
       );
     }
 

@@ -11,7 +11,7 @@ export function useContractCall(
   params: any,
   value: bigint,
   abi: Abi,
-  publicClient: PublicClient
+  publicClient: PublicClient,
 ) {
   const settings = useStore((s) => s.settings);
   const { addLog } = useLogs();
@@ -27,7 +27,7 @@ export function useContractCall(
           addLog('error', `Error querying ${to}: ${functionName}(${params})`);
           return { value: null, error: error as Error };
         }),
-    [to, functionName, params, value, abi, publicClient, settings.pythUrl, addLog]
+    [to, functionName, params, value, abi, publicClient, settings.pythUrl, addLog],
   );
 }
 
@@ -39,7 +39,7 @@ export function useContractTransaction(
   params: any,
   abi: Abi,
   publicClient: PublicClient,
-  walletClient: WalletClient
+  walletClient: WalletClient,
 ) {
   const settings = useStore((s) => s.settings);
   const { addLog } = useLogs();
@@ -55,6 +55,6 @@ export function useContractTransaction(
           addLog('error', `Error sending ${to}: ${functionName}(${params})`);
           return { value: null, error: error as Error };
         }),
-    [from, to, functionName, params, abi, publicClient, walletClient, settings.pythUrl, addLog]
+    [from, to, functionName, params, abi, publicClient, walletClient, settings.pythUrl, addLog],
   );
 }

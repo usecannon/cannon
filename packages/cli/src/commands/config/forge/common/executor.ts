@@ -1,4 +1,4 @@
-import type { Option as ForgeExecutorOption } from '../../types';
+import type { Option as ForgeExecutorOption } from '../../types.js';
 
 export const forgeExecutorOptions: ForgeExecutorOption[] = [
   {

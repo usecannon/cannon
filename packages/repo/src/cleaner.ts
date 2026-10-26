@@ -15,7 +15,7 @@ export async function cleanUnregisteredIpfs(
   indexerUrl: string,
   ipfsUrl: string,
   gracePeriod: number,
-  minFees: { startTimestamp: number; requiredFee: bigint }[]
+  minFees: { startTimestamp: number; requiredFee: bigint }[],
 ) {
   const now = Math.floor(Date.now() / 1000);
   const rdb = await getDb(redisUrl);

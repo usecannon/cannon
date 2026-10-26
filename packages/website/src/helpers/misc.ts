@@ -1,4 +1,4 @@
-import pako from 'pako';
+import * as pako from 'pako';
 
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -6,7 +6,7 @@ export function sleep(ms: number): Promise<void> {
 
 export function decompressData(data?: ArrayBuffer) {
   if (data) {
-    return pako.inflate(data, { to: 'string' });
+    return new TextDecoder().decode(pako.inflate(data));
   }
   return undefined;
 }

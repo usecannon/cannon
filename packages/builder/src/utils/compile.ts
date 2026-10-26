@@ -26,7 +26,7 @@ export async function compileContract(
   contractName: string,
   sourceCode: string,
   evmVersion = 'paris',
-  compilerVersion = '0.8.27'
+  compilerVersion = '0.8.27',
 ) {
   const { compile, stopWorker } = await fetchSolc(compilerVersion);
 
@@ -55,7 +55,7 @@ export async function compileContract(
         [
           `There was an error when compiling "${contractName}".`,
           ...output.errors.map((err: { message: string }) => err.message),
-        ].join(' ')
+        ].join(' '),
       );
     }
 

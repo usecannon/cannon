@@ -1,6 +1,4 @@
 import { useRouter } from 'next/router';
-import { NextSeo } from 'next-seo';
-import defaultSEO from '@/constants/defaultSeo';
 import { PackageReference } from '@usecannon/builder';
 
 import TagVariantLayout from './NameTagVariantLayout';
@@ -46,24 +44,10 @@ function generateMetadata({
 }
 
 export default function Overview() {
-  const { query: params } = useRouter();
-  const { getChainById } = useCannonChains();
-  const metadata = generateMetadata({ params: params as any, getChainById });
-
   const { name, tag, chainId, preset } = usePackageNameTagVariantUrlParams();
 
   return (
     <>
-      <NextSeo
-        {...defaultSEO}
-        title={metadata.title}
-        description={metadata.description}
-        openGraph={{
-          ...defaultSEO.openGraph,
-          title: metadata.title,
-          description: metadata.description,
-        }}
-      />
       <PackageAccordionHelper
         name={name}
         tag={tag}

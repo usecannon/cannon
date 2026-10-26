@@ -1,6 +1,6 @@
-import _ from 'lodash';
+import { isEmpty } from 'lodash-es';
 import { InvalidArgumentError } from 'commander';
-import { PackageSpecification, PackageSettings } from '../types';
+import { PackageSpecification, PackageSettings } from '../types.js';
 import { PackageReference } from '@usecannon/builder';
 
 const settingRegExp = /^(?<key>[a-z0-9-_]+)=(?<value>.*)$/i;
@@ -37,18 +37,18 @@ export function parsePackageArguments(val: string, result?: PackageSpecification
 
   if (!result && !packageMatch) {
     throw new InvalidArgumentError(
-      'First argument should be a cannon package name, e.g.: greeter:1.0.0 or greeter:latest@main'
+      'First argument should be a cannon package name, e.g.: greeter:1.0.0 or greeter:latest@main',
     );
   }
 
-  if (result && !_.isEmpty(result) && packageMatch) {
+  if (result && !isEmpty(result) && packageMatch) {
     throw new InvalidArgumentError('You can only specify a single cannon package');
   }
 
   if (packageMatch) {
     const pkg = new PackageReference(val);
 
-    if (!_.isEmpty(result)) {
+    if (!isEmpty(result)) {
       throw new InvalidArgumentError('You can only specify a single cannon package');
     }
 

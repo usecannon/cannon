@@ -47,7 +47,7 @@ export function useSafeTransactions(safe: SafeDefinition | null, refetchInterval
 
   const memoizedStaged = _.sortBy(
     stagedQuery.data?.filter((t) => t.txn._nonce >= Number(nonceQuery.data || 0)) || [],
-    'txn._nonce'
+    'txn._nonce',
   );
 
   const memoizedNextNonce = !memoizedStaged ? 0 : (_.last(memoizedStaged)?.txn._nonce || 0) + 1;
@@ -72,7 +72,7 @@ export function useTxnStager(
   options: {
     safe: SafeDefinition | null;
     onSignComplete?: () => void;
-  } = { safe: null }
+  } = { safe: null },
 ) {
   const chainId = useChainId();
   const account = useAccount();
@@ -178,7 +178,7 @@ export function useTxnStager(
 
   const sigInsertIdx = _.sortedIndex(
     alreadyStagedSigners.map((s) => s.toLowerCase()),
-    account.address?.toLowerCase()
+    account.address?.toLowerCase(),
   );
 
   const mutation = useMutation({

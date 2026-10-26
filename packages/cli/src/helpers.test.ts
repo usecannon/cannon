@@ -42,7 +42,7 @@ function getChainDataFromIdTestCases() {
     expect(getChainDataFromId(1)?.name).toBe('Ethereum');
     expect(getChainDataFromId(100)?.name).toBe('Gnosis');
     // expect(getChainDataFromId(3)?.name).toBe('Ethereum Testnet Ropsten');
-    expect(getChainDataFromId(97)?.name).toBe('Binance Smart Chain Testnet');
+    expect(getChainDataFromId(97)?.name).toBe('BNB Smart Chain Testnet');
     expect(getChainDataFromId(42220)?.name).toBe('Celo');
     expect(getChainDataFromId(10)?.name).toBe('OP Mainnet');
     expect(getChainDataFromId(11155111)?.name).toBe('Sepolia');
@@ -175,7 +175,7 @@ function checkAndNormalizePrivateKeyTestCases() {
     expect(() => {
       checkAndNormalizePrivateKey(invalidPrivateKey);
     }).toThrow(
-      'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your settings file, or check the value supplied to the --private-key flag'
+      'Invalid private key found. Please verify the CANNON_PRIVATE_KEY environment variable, review your settings file, or check the value supplied to the --private-key flag',
     );
   });
 

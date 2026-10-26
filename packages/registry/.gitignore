@@ -1,9 +1,0 @@
-.env
-artifacts/
-cache/
-cannon/
-coverage.json
-deployments/
-typechain-types/
-
-out/

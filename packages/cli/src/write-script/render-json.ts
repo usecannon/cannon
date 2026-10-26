@@ -1,7 +1,7 @@
 import { EOL } from 'node:os';
 import { Transform } from 'node:stream';
 
-import type { DumpLine } from './types';
+import type { DumpLine } from './types.js';
 
 export function createRenderer() {
   return new Transform({

@@ -1,15 +1,15 @@
 import { CannonRegistry, FallbackRegistry, InMemoryRegistry, OnChainRegistry, PackageReference } from '@usecannon/builder';
-import { yellowBright } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
 import fs from 'fs-extra';
-import _ from 'lodash';
+import { last } from 'lodash-es';
 import os from 'os';
 import path from 'path';
 import * as viem from 'viem';
-import { CliSettings } from './settings';
-import { log } from './util/console';
-import { isConnectedToInternet } from './util/is-connected-to-internet';
-import { ProviderAction, resolveRegistryProviders } from './util/provider';
+import { CliSettings } from './settings.js';
+import { log } from './util/console.js';
+import { isConnectedToInternet } from './util/is-connected-to-internet.js';
+import { ProviderAction, resolveRegistryProviders } from './util/provider.js';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -49,7 +49,10 @@ export class LocalRegistry extends CannonRegistry {
     return path.join(this.packagesDir, 'tags', `${name}_${version}_${variant}.txt.meta`);
   }
 
-  async getUrl(packageRef: string, chainId: number): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
+  override async getUrl(
+    packageRef: string,
+    chainId: number,
+  ): Promise<{ url: string | null; mutability: 'version' | 'tag' | '' }> {
     const { fullPackageRef } = new PackageReference(packageRef);
 
     const baseResolved = await super.getUrl(fullPackageRef, chainId);
@@ -61,7 +64,7 @@ export class LocalRegistry extends CannonRegistry {
       'load local package link',
       fullPackageRef,
       'at file',
-      this.getTagReferenceStorage(fullPackageRef, chainId).replace(os.homedir(), '')
+      this.getTagReferenceStorage(fullPackageRef, chainId).replace(os.homedir(), ''),
     );
     try {
       return {
@@ -79,7 +82,7 @@ export class LocalRegistry extends CannonRegistry {
     }
   }
 
-  async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
+  override async getMetaUrl(packageRef: string, chainId: number): Promise<string | null> {
     const { fullPackageRef } = new PackageReference(packageRef);
 
     try {
@@ -96,7 +99,7 @@ export class LocalRegistry extends CannonRegistry {
     chainId: number,
     url: string,
     metaUrl: string,
-    mutabilityOverride?: 'version' | 'tag'
+    mutabilityOverride?: 'version' | 'tag',
   ): Promise<string[]> {
     for (const packageName of packagesNames) {
       const { fullPackageRef } = new PackageReference(packageName);
@@ -136,7 +139,7 @@ export class LocalRegistry extends CannonRegistry {
           let tag: PackageReference;
           try {
             tag = PackageReference.from(tagName, tagVersion, tagPreset);
-          } catch (er) {
+          } catch (err) {
             return false;
           }
 
@@ -156,7 +159,7 @@ export class LocalRegistry extends CannonRegistry {
       });
   }
 
-  async getAllUrls(filterPackage: string, chainId: number): Promise<Set<string>> {
+  override async getAllUrls(filterPackage: string, chainId: number): Promise<Set<string>> {
     if (!filterPackage) {
       return new Set();
     }
@@ -172,15 +175,15 @@ export class LocalRegistry extends CannonRegistry {
 }
 
 export class ReadOnlyOnChainRegistry extends OnChainRegistry {
-  async publish(): Promise<string[]> {
+  override async publish(): Promise<string[]> {
     throw new Error('Cannot execute write operations on ReadOnlyOnChainRegistry');
   }
 
-  async publishMany(): Promise<string[]> {
+  override async publishMany(): Promise<string[]> {
     throw new Error('Cannot execute write operations on ReadOnlyOnChainRegistry');
   }
 
-  async setPackageOwnership(): Promise<viem.Hash> {
+  override async setPackageOwnership(): Promise<viem.Hash> {
     throw new Error('Cannot execute write operations on ReadOnlyOnChainRegistry');
   }
 }
@@ -198,12 +201,12 @@ export async function checkLocalRegistryOverride({
   registry: OnChainRegistry | LocalRegistry;
   fallbackRegistry: FallbackRegistry;
 }) {
-  const localResult = await _.last(fallbackRegistry.registries).getUrl(fullPackageRef, chainId);
+  const localResult = await last(fallbackRegistry.registries).getUrl(fullPackageRef, chainId);
   if (registry instanceof OnChainRegistry && localResult && localResult != result) {
     log(
-      yellowBright(
-        `⚠️  The package ${fullPackageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry-priority local'`
-      )
+      chalk.yellowBright(
+        `⚠️  The package ${fullPackageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry-priority local'`,
+      ),
     );
   }
 }
@@ -212,8 +215,8 @@ export async function createOnChainOnlyRegistry(cliSettings: CliSettings): Promi
   const registryProviders = await resolveRegistryProviders({ cliSettings, action: ProviderAction.ReadProvider });
   return new FallbackRegistry(
     registryProviders.map(
-      (p) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: cliSettings.registries[0].address })
-    )
+      (p) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: cliSettings.registries[0].address }),
+    ),
   );
 }
 
@@ -223,13 +226,13 @@ export async function createLocalOnlyRegistry(cliSettings: CliSettings): Promise
 
 export async function createDefaultReadRegistry(
   cliSettings: CliSettings,
-  additionalRegistries: CannonRegistry[] = []
+  additionalRegistries: CannonRegistry[] = [],
 ): Promise<FallbackRegistry> {
   const registryProviders = await resolveRegistryProviders({ cliSettings, action: ProviderAction.ReadProvider });
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
   const onChainRegistries = registryProviders.map(
-    (p, i) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: cliSettings.registries[i].address })
+    (p, i) => new ReadOnlyOnChainRegistry({ provider: p.provider, address: cliSettings.registries[i].address }),
   );
 
   if (cliSettings.registryPriority === 'offline') {
@@ -239,17 +242,15 @@ export async function createDefaultReadRegistry(
     debug('not connected to internet, using local registry only');
     // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
     log(
-      yellowBright(
-        '⚠️  You are not connected to the internet or using a VPN that is limiting connectivity. Cannon will only use packages available locally.'
-      )
+      chalk.yellowBright(
+        '⚠️  You are not connected to the internet or using a VPN that is limiting connectivity. Cannon will only use packages available locally.',
+      ),
     );
     return new FallbackRegistry([...additionalRegistries, localRegistry]);
   } else {
     debug('using local registry');
     const fallbackRegistry = new FallbackRegistry([...additionalRegistries, localRegistry, ...onChainRegistries]);
 
-    // for some reason the promises checker really doesn't like the next line
-    // eslint-disable-next-line
     fallbackRegistry.on('getPackageUrl', async (event) => {
       // if we had to load this package from the on-chain registry and it was immutable, record
       if (event.result.mutability === 'version' && event.registry instanceof OnChainRegistry) {

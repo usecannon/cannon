@@ -5,13 +5,13 @@ import * as viem from 'viem';
 import { ChainDefinition, getOutputs, ChainBuilderRuntime, DeploymentInfo } from '@usecannon/builder';
 import { forPackageTree, PackageReference } from '@usecannon/builder';
 
-import { CliSettings } from '../settings';
-import { getProvider, runRpc } from '../rpc';
-import { createDefaultReadRegistry } from '../registry';
+import { CliSettings } from '../settings.js';
+import { getProvider, runRpc } from '../rpc.js';
+import { createDefaultReadRegistry } from '../registry.js';
 
-import { getMainLoader } from '../loader';
+import { getMainLoader } from '../loader.js';
 
-import { log, logSpinner, spinner } from '../util/console';
+import { log, logSpinner, spinner } from '../util/console.js';
 import {
   ETHERSCAN_DEFAULT_SERVER_URL,
   getSourcifyVerificationEndpoint,
@@ -21,7 +21,7 @@ import {
   SourcifyVerifyRequest,
   SourcifyVerifyResponse,
   SourcifyVerifyStatusResponse,
-} from '../util/verify';
+} from '../util/verify.js';
 
 const debug = Debug('cannon:cli:verify');
 
@@ -29,7 +29,7 @@ export async function verify(
   packageRef: string,
   cliSettings: CliSettings,
   chainId: number,
-  service: 'etherscan' | 'sourcify' | 'all'
+  service: 'etherscan' | 'sourcify' | 'all',
 ) {
   const { fullPackageRef } = new PackageReference(packageRef);
 
@@ -55,7 +55,7 @@ export async function verify(
       allowPartialDeploy: false,
     },
     resolver,
-    getMainLoader(cliSettings)
+    getMainLoader(cliSettings),
   );
 
   const etherscanApi = cliSettings.etherscanApiUrl || ETHERSCAN_DEFAULT_SERVER_URL;
@@ -137,7 +137,7 @@ export async function verify(
               constructorArguements: viem
                 .encodeAbiParameters(
                   contractArtifact.abi.find((i: viem.AbiItem) => i.type === 'constructor')?.inputs ?? [],
-                  contractInfo.constructorArgs || []
+                  contractInfo.constructorArgs || [],
                 )
                 .slice(2),
             };
@@ -192,7 +192,7 @@ export async function verify(
                 'content-type': 'application/json',
                 'User-Agent': 'Cannon CLI',
               },
-            }
+            },
           );
 
           if (res.status >= 300) {
@@ -215,7 +215,7 @@ export async function verify(
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and current network.`
+      `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and current network.`,
     );
   }
 
@@ -241,7 +241,7 @@ export async function verify(
                 'content-type': 'application/x-www-form-urlencoded',
                 'User-Agent': 'Cannon CLI',
               },
-            }
+            },
           );
 
           if (res.data.status === '0') {
@@ -264,7 +264,7 @@ export async function verify(
               headers: {
                 'User-Agent': 'Cannon CLI',
               },
-            }
+            },
           );
 
           if (res.status === 200) {

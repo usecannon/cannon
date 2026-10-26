@@ -1,15 +1,15 @@
-import { yellow } from 'chalk';
+import chalk from 'chalk';
 import Debug from 'debug';
 import { EventEmitter } from 'events';
-import _ from 'lodash';
+import { partial, cloneDeep, merge } from 'lodash-es';
 import * as viem from 'viem';
-import { CannonSigner, ChainArtifacts } from './types';
-import { PackageReference } from './package-reference';
-import { traceActions } from './error';
-import { CannonLoader, IPFSLoader } from './loader';
-import { CannonRegistry } from './registry';
-import { ChainBuilderRuntimeInfo, ChainBuilderContext, ContractArtifact, DeploymentInfo } from './types';
-import { getExecutionSigner } from './util';
+import { CannonSigner, ChainArtifacts } from './index.js';
+import { PackageReference } from './package-reference.js';
+import { traceActions } from './error/index.js';
+import { CannonLoader, IPFSLoader } from './loader.js';
+import { CannonRegistry } from './registry.js';
+import { ChainBuilderRuntimeInfo, ChainBuilderContext, ContractArtifact, DeploymentInfo } from './types.js';
+import { getExecutionSigner } from './util.js';
 
 const debug = Debug('cannon:builder:runtime');
 
@@ -103,7 +103,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   readonly getSigner: (addr: viem.Address) => Promise<CannonSigner>;
   readonly getDefaultSigner: (
     txn: Omit<viem.SendTransactionParameters, 'account' | 'chain'>,
-    salt?: string
+    salt?: string,
   ) => Promise<CannonSigner>;
   readonly getArtifact: (name: string) => Promise<ContractArtifact>;
   readonly snapshots: boolean;
@@ -132,7 +132,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     registry: CannonRegistry,
     loaders: { [scheme: string]: CannonLoader } = { ipfs: new IPFSLoader('') },
     defaultLoaderScheme = 'ipfs',
-    subpkgDepth = 0
+    subpkgDepth = 0,
   ) {
     super(registry, loaders, defaultLoaderScheme);
 
@@ -144,13 +144,13 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     this.chainId = info.chainId;
     this.getSigner = info.getSigner;
     this.getDefaultSigner =
-      info.getDefaultSigner || _.partial(getExecutionSigner, this.provider as viem.TestClient & viem.PublicClient);
+      info.getDefaultSigner || partial(getExecutionSigner, this.provider as viem.TestClient & viem.PublicClient);
 
     this.getArtifact = async (n: string) => {
       debug(`resolve artifact ${n}`);
       if (info.getArtifact) {
         debug('need to find artifact externally');
-        this.reportContractArtifact(n, _.cloneDeep(await info.getArtifact(n)));
+        this.reportContractArtifact(n, cloneDeep(await info.getArtifact(n)));
       }
 
       return this.misc.artifacts[n] || null;
@@ -178,7 +178,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
 
     if (info.gasPrice) {
       if (info.gasFee) {
-        debug(yellow('WARNING: gasPrice is ignored when gasFee is set'));
+        debug(chalk.yellow('WARNING: gasPrice is ignored when gasFee is set'));
       } else {
         this._gasPrice = info.gasPrice;
       }
@@ -207,7 +207,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     const chainId = await this.provider.getChainId();
     if (chainId !== this.chainId) {
       throw new Error(
-        `provider network reported chainId (${chainId}) does not match configured deployment chain id (${this.chainId})`
+        `provider network reported chainId (${chainId}) does not match configured deployment chain id (${this.chainId})`,
       );
     }
   }
@@ -273,7 +273,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
   }
 
   updateProviderArtifacts(artifacts: ChainArtifacts) {
-    this.traceArtifacts = _.merge(this.traceArtifacts, artifacts);
+    this.traceArtifacts = merge(this.traceArtifacts, artifacts);
     this.provider = this.provider.extend(traceActions(this.traceArtifacts) as any);
   }
 
@@ -287,7 +287,7 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
       this.registry,
       this.loaders,
       this.defaultLoaderScheme,
-      this.subpkgDepth + 1
+      this.subpkgDepth + 1,
     );
 
     newRuntime.signals = this.signals;
@@ -299,14 +299,14 @@ export class ChainBuilderRuntime extends CannonStorage implements ChainBuilderRu
     // forward any events which come from our child
     newRuntime.on(Events.PreStepExecute, (t, n, c, d) => this.emit(Events.PreStepExecute, t, n, c, d + 1));
     newRuntime.on(Events.PostStepExecute, (t, n, cfg, ctx, result, d) =>
-      this.emit(Events.PostStepExecute, t, n, cfg, ctx, result, d + 1)
+      this.emit(Events.PostStepExecute, t, n, cfg, ctx, result, d + 1),
     );
     newRuntime.on(Events.DeployContract, (n, c, d) => this.emit(Events.DeployContract, n, c, d + 1));
     newRuntime.on(Events.DeployTxn, (n, t, d) => this.emit(Events.DeployTxn, n, t, d + 1));
     newRuntime.on(Events.DeployExtra, (n, v, d) => this.emit(Events.DeployExtra, n, v, d + 1));
     newRuntime.on(Events.SkipDeploy, (n, e, d) => this.emit(Events.SkipDeploy, n, e, d + 1));
     newRuntime.on(Events.ResolveDeploy, (packageName, preset, chainId, registry, d) =>
-      this.emit(Events.ResolveDeploy, packageName, preset, chainId, registry, d + 1)
+      this.emit(Events.ResolveDeploy, packageName, preset, chainId, registry, d + 1),
     );
     newRuntime.on(Events.DownloadDeploy, (hash, gateway, d) => this.emit(Events.DownloadDeploy, hash, gateway, d + 1));
     newRuntime.on(Events.Notice, (n, msg, d) => this.emit(Events.Notice, n, msg, d + 1));

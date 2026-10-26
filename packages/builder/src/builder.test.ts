@@ -1,20 +1,20 @@
 import _ from 'lodash';
-import { fixtureSigner, makeFakeProvider } from '../test/fixtures';
-import { RawChainDefinition } from './actions';
-import { build, createInitialContext, getOutputs, runStep } from './builder';
-import { BUILD_VERSION } from './constants';
-import { ChainDefinition } from './definition';
-import { IPFSLoader } from './loader';
-import { InMemoryRegistry } from './registry';
-import { ChainBuilderRuntime, Events } from './runtime';
-import deployStep from './steps/deploy';
-import varStep from './steps/var';
-import pullStep from './steps/pull';
-import invokeStep from './steps/invoke';
-import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types';
+import { fixtureSigner, makeFakeProvider } from '../test/fixtures.js';
+import { RawChainDefinition } from './actions.js';
+import { build, createInitialContext, getOutputs, runStep } from './builder.js';
+import { BUILD_VERSION } from './constants.js';
+import { ChainDefinition } from './definition.js';
+import { IPFSLoader } from './loader.js';
+import { InMemoryRegistry } from './registry.js';
+import { ChainBuilderRuntime, Events } from './runtime.js';
+import deployStep from './steps/deploy.js';
+import varStep from './steps/var.js';
+import pullStep from './steps/pull.js';
+import invokeStep from './steps/invoke.js';
+import { ChainBuilderContext, ContractArtifact, DeploymentState } from './types.js';
 
-jest.mock('./steps/deploy');
-jest.mock('./steps/invoke');
+jest.mock('./steps/deploy.js');
+jest.mock('./steps/invoke.js');
 
 describe('builder.ts', () => {
   const loader = new IPFSLoader('', null as any);
@@ -59,7 +59,7 @@ describe('builder.ts', () => {
         getArtifact,
       },
       new InMemoryRegistry(),
-      { ipfs: loader }
+      { ipfs: loader },
     );
   });
 
@@ -199,7 +199,7 @@ describe('builder.ts', () => {
         invoke: { smartFunc: { target: ['something'], func: 'wohoo', depends: ['deploy.Fake'] } },
       });
       await expect(build(runtime, new ChainDefinition(fakeDefWithBadDep), {}, initialCtx)).rejects.toThrowError(
-        'the dependency "deploy.Fake" is not defined elsewhere'
+        'the dependency "deploy.Fake" is not defined elsewhere',
       );
     });
 
@@ -279,7 +279,7 @@ describe('builder.ts', () => {
       const artifacts = await getOutputs(runtime, new ChainDefinition(fakeDefinition), expectedStateOut);
 
       expect(artifacts?.contracts?.Yoop.address).toStrictEqual(
-        expectedStateOut['deploy.Yoop'].artifacts.contracts!.Yoop.address
+        expectedStateOut['deploy.Yoop'].artifacts.contracts!.Yoop.address,
       );
       expect(artifacts?.txns?.smartFunc.hash).toStrictEqual('0x');
     });
@@ -304,7 +304,7 @@ describe('builder.ts', () => {
         runtime,
         { ref: new ChainDefinition(fakeDefinition).getPackageRef({} as any), currentLabel: 'deploy.Yoop' },
         _.merge({}, (fakeDefinition as any).deploy.Yoop, { chains: [5555, 5678] }),
-        initialCtx
+        initialCtx,
       );
 
       expect(stepData).toBeNull();
@@ -317,7 +317,7 @@ describe('builder.ts', () => {
         runtime,
         { ref: new ChainDefinition(fakeDefinition).getPackageRef({} as any), currentLabel: 'deploy.Yoop' },
         _.merge({}, (fakeDefinition as any).deploy.Yoop, { chains: [5555, 5678] }),
-        initialCtx
+        initialCtx,
       );
 
       (runtime as any).chainId = origChainId;
@@ -335,7 +335,7 @@ describe('builder.ts', () => {
         runtime,
         { ref: new ChainDefinition(fakeDefinition).getPackageRef({} as any), currentLabel: 'deploy.Yoop' },
         (fakeDefinition as any).deploy.Yoop,
-        initialCtx
+        initialCtx,
       );
 
       expect(stepData).toStrictEqual(expectedStateOut['deploy.Yoop'].artifacts);
@@ -350,7 +350,7 @@ describe('builder.ts', () => {
         pkg,
         5,
         { baz: 'boop' },
-        '0x0987098709870987098709870987098709870987'
+        '0x0987098709870987098709870987098709870987',
       );
 
       expect(ctx.chainId).toBe(5);

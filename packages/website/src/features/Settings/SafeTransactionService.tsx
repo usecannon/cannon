@@ -51,7 +51,7 @@ const SafeTransactionService: React.FC = () => {
       setSettings({ cannonSafeBackendUrl: newUrl });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        setValidationError(error.errors[0].message);
+        setValidationError(error.message);
       }
     }
   };

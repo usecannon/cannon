@@ -17,12 +17,15 @@ export function getGlobalVars(): Set<string> {
     }
   };
 
+  // `window`/`self` only exist in browser/worker environments; probe them via a typed view of globalThis
+  const globalScope = globalThis as typeof globalThis & { window?: unknown; self?: unknown };
+
   // Check globalThis
   getAllPropertiesFromObject(globalThis);
 
   // Check window in browser environment
-  if (typeof window !== 'undefined') {
-    getAllPropertiesFromObject(window);
+  if (typeof globalScope.window !== 'undefined') {
+    getAllPropertiesFromObject(globalScope.window);
   }
 
   // Check global in Node.js environment
@@ -31,8 +34,8 @@ export function getGlobalVars(): Set<string> {
   }
 
   // Check self (used in Web Workers)
-  if (typeof self !== 'undefined') {
-    getAllPropertiesFromObject(self);
+  if (typeof globalScope.self !== 'undefined') {
+    getAllPropertiesFromObject(globalScope.self);
   }
 
   // Get properties from Function constructor

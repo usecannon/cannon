@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { isAddress, getAddress } from 'viem';
+import { isAddress, getAddress, Hex } from 'viem';
 import { useCannonChains } from '@/providers/CannonProvidersProvider';
 import HoverHighlight from '@/features/Tx/HoverHighlight';
 
@@ -44,7 +44,8 @@ const ConvertComboBox: React.FC<ConvertComboBoxProps> = ({
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState('Dec');
   const address = '0x' + topicHex.slice(-40);
-  const topicDec = isAddress(address) ? getAddress(address) : address;
+  const isValidAddress = isAddress(address);
+  const topicDec = isValidAddress ? getAddress(address) : (address as Hex);
   const { getExplorerUrl } = useCannonChains();
 
   return (
@@ -97,21 +98,32 @@ const ConvertComboBox: React.FC<ConvertComboBoxProps> = ({
       </div>
       <ArrowRight className="h-3 w-3 mr-1 font-bold" />
       {value === 'Dec' ? (
-        <a
-          href={getExplorerUrl(chainId, topicDec)}
-          className="inline-flex items-center"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        isValidAddress ? (
+          <a
+            href={getExplorerUrl(chainId, topicDec)}
+            className="inline-flex items-center"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <HoverHighlight
+              id={topicDec}
+              hoverId={hoverId}
+              setHoverId={setHoverId}
+              className="text-xs"
+            >
+              {topicDec}
+            </HoverHighlight>
+          </a>
+        ) : (
           <HoverHighlight
-            id={topicDec}
+            id={topicHex}
             hoverId={hoverId}
             setHoverId={setHoverId}
-            className="text-xs"
+            className="text-xs font-medium text-destructive"
           >
-            {topicDec}
+            invalid address
           </HoverHighlight>
-        </a>
+        )
       ) : (
         <span className="text-xs">{topicHex}</span>
       )}

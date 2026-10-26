@@ -44,7 +44,7 @@ async function loadChainDefinitionToml(
   ref: string,
   filepath: string,
   trace: string[],
-  files: Set<string>
+  files: Set<string>,
 ): Promise<[RawChainDefinition, string]> {
   let buf: string;
   try {
@@ -79,7 +79,7 @@ async function loadChainDefinitionToml(
     _.mergeWith(
       assembledDef,
       (await loadChainDefinitionToml(repo, ref, abspath, [filepath].concat(trace), files))[0],
-      customMerge
+      customMerge,
     );
   }
 
@@ -124,7 +124,7 @@ export function parseHintedMulticall(data: Hex): {
     try {
       [type, cannonPackage, cannonUpgradeFromPackage, gitRepoUrl, gitRepoHash, prevGitRepoHash] = decodeAbiParameters(
         parseAbiParameters('string[]'),
-        ((decoded.args![0] as any)[0] as any).callData
+        ((decoded.args![0] as any)[0] as any).callData,
       )[0];
     } catch (err) {
       console.log('Could not parse decoded function', { decoded, err });
@@ -144,7 +144,7 @@ export function parseHintedMulticall(data: Hex): {
   const isSinglePackage = cannonPackage?.split(',').every(
     (p) =>
       // check all items in the array to see if they are the same
-      p === cannonPackage?.split(',')[0]
+      p === cannonPackage?.split(',')[0],
   );
 
   return {

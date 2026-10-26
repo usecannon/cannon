@@ -1,8 +1,6 @@
 import { ReactElement } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from '../_layout';
-import { NextSeo } from 'next-seo';
-import defaultSEO from '@/constants/defaultSeo';
 import PageLoading from '@/components/PageLoading';
 import { useRouter } from 'next/router';
 
@@ -15,16 +13,6 @@ export default function Docs() {
   const router = useRouter();
   return (
     <>
-      <NextSeo
-        {...defaultSEO}
-        title="Cannon | CLI Docs"
-        description="CLI Docs"
-        openGraph={{
-          ...defaultSEO.openGraph,
-          title: 'Cannon | CLI Docs',
-          description: 'CLI Docs',
-        }}
-      />
       {router.isReady ? <SSRDocsCliPage /> : <PageLoading />}
     </>
   );
