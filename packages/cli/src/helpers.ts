@@ -32,6 +32,7 @@ import { logSpinner, warnSpinner } from './util/console.js';
 import { isConnectedToInternet } from './util/is-connected-to-internet.js';
 import { getChainIdFromRpcUrl, isURL, hideApiKey } from './util/provider.js';
 import { createDefaultReadRegistry } from './registry.js';
+import { createRequire } from 'node:module';
 
 const debug = Debug('cannon:cli:helpers');
 
@@ -204,8 +205,8 @@ export async function checkCannonVersion(currentVersion: string): Promise<void> 
 
 function loadPackageJson(filepath: string): { name: string; version: string } {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require(filepath);
+    const req = createRequire(filepath);
+    return req(filepath);
   } catch (err) {
     return { name: '', version: '' };
   }
